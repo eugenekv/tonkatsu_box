@@ -6588,6 +6588,186 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Error: {message}'**
   String kodiRawError(String message);
+
+  /// No description provided for @settingsMalImport.
+  ///
+  /// In en, this message translates to:
+  /// **'MyAnimeList'**
+  String get settingsMalImport;
+
+  /// No description provided for @settingsMalImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import anime/manga lists from XML export'**
+  String get settingsMalImportSubtitle;
+
+  /// No description provided for @malImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MyAnimeList Import'**
+  String get malImportTitle;
+
+  /// No description provided for @malImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Anime and manga will be matched to AniList'**
+  String get malImportSubtitle;
+
+  /// No description provided for @malImportPickFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Add XML file'**
+  String get malImportPickFiles;
+
+  /// No description provided for @malImportFilesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Export XML from myanimelist.net/panel.php?go=export'**
+  String get malImportFilesHint;
+
+  /// No description provided for @malImportAnimeFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Anime list'**
+  String get malImportAnimeFile;
+
+  /// No description provided for @malImportMangaFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Manga list'**
+  String get malImportMangaFile;
+
+  /// No description provided for @malImportRemoveFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get malImportRemoveFile;
+
+  /// No description provided for @malImportEntriesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entry} other{{count} entries}}'**
+  String malImportEntriesCount(int count);
+
+  /// No description provided for @malImportTargetCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Target collection'**
+  String get malImportTargetCollection;
+
+  /// No description provided for @malImportCreateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new collection'**
+  String get malImportCreateNew;
+
+  /// No description provided for @malImportUseExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Use existing collection'**
+  String get malImportUseExisting;
+
+  /// No description provided for @malImportSelectCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Select collection'**
+  String get malImportSelectCollection;
+
+  /// No description provided for @malImportNoCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'No collections available'**
+  String get malImportNoCollections;
+
+  /// No description provided for @malImportErrorLoadingCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading collections'**
+  String get malImportErrorLoadingCollections;
+
+  /// No description provided for @malImportNewCollectionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection name'**
+  String get malImportNewCollectionName;
+
+  /// No description provided for @malImportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Import'**
+  String get malImportButton;
+
+  /// No description provided for @malImportReadingFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading files...'**
+  String get malImportReadingFiles;
+
+  /// No description provided for @malImportResolvingAnime.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving anime on AniList'**
+  String get malImportResolvingAnime;
+
+  /// No description provided for @malImportResolvingManga.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving manga on AniList'**
+  String get malImportResolvingManga;
+
+  /// No description provided for @malImportMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing entries'**
+  String get malImportMatching;
+
+  /// No description provided for @malImportComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Import complete!'**
+  String get malImportComplete;
+
+  /// No description provided for @malImportLookingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing: {title}'**
+  String malImportLookingUp(String title);
+
+  /// No description provided for @malImportImported.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} imported'**
+  String malImportImported(int count);
+
+  /// No description provided for @malImportWishlisted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} to wishlist'**
+  String malImportWishlisted(int count);
+
+  /// No description provided for @malImportUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} updated'**
+  String malImportUpdated(int count);
+
+  /// No description provided for @malImportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed: {error}'**
+  String malImportFailed(String error);
+
+  /// No description provided for @malImportInvalidFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not parse XML: {error}'**
+  String malImportInvalidFile(String error);
+
+  /// No description provided for @malImportFilePicked.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked: {kind} ({count, plural, =1{1 entry} other{{count} entries}})'**
+  String malImportFilePicked(String kind, int count);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -1388,5 +1388,77 @@
     "placeholders": {
       "message": {"type": "String"}
     }
+  },
+
+  "settingsMalImport": "MyAnimeList",
+  "settingsMalImportSubtitle": "Импорт списков аниме и манги из XML",
+  "malImportTitle": "Импорт MyAnimeList",
+  "malImportSubtitle": "Аниме и манга будут сматчены с AniList",
+  "malImportPickFiles": "Добавить XML-файл",
+  "malImportFilesHint": "Выгрузите XML на myanimelist.net/panel.php?go=export",
+  "malImportAnimeFile": "Список аниме",
+  "malImportMangaFile": "Список манги",
+  "malImportRemoveFile": "Удалить",
+  "malImportEntriesCount": "{count, plural, =1{1 запись} few{{count} записи} other{{count} записей}}",
+  "@malImportEntriesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportTargetCollection": "Целевая коллекция",
+  "malImportCreateNew": "Создать новую коллекцию",
+  "malImportUseExisting": "Использовать существующую",
+  "malImportSelectCollection": "Выберите коллекцию",
+  "malImportNoCollections": "Нет доступных коллекций",
+  "malImportErrorLoadingCollections": "Ошибка загрузки коллекций",
+  "malImportNewCollectionName": "Название коллекции",
+  "malImportButton": "Начать импорт",
+  "malImportReadingFiles": "Чтение файлов...",
+  "malImportResolvingAnime": "Резолвинг аниме на AniList",
+  "malImportResolvingManga": "Резолвинг манги на AniList",
+  "malImportMatching": "Импорт записей",
+  "malImportComplete": "Импорт завершён!",
+  "malImportLookingUp": "Обработка: {title}",
+  "@malImportLookingUp": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "malImportImported": "Импортировано: {count}",
+  "@malImportImported": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportWishlisted": "В вишлист: {count}",
+  "@malImportWishlisted": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportUpdated": "Обновлено: {count}",
+  "@malImportUpdated": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportFailed": "Импорт не удался: {error}",
+  "@malImportFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "malImportInvalidFile": "Не удалось распарсить XML: {error}",
+  "@malImportInvalidFile": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "malImportFilePicked": "Выбрано: {kind} ({count, plural, =1{1 запись} few{{count} записи} other{{count} записей}})",
+  "@malImportFilePicked": {
+    "placeholders": {
+      "kind": {"type": "String"},
+      "count": {"type": "int"}
+    }
   }
 }

@@ -32,6 +32,7 @@ import '../../collections/providers/collections_provider.dart';
 import '../../home/providers/all_items_provider.dart';
 import '../../wishlist/providers/wishlist_provider.dart';
 import 'browse_collections_screen.dart';
+import 'mal_import_screen.dart';
 import 'ra_import_screen.dart';
 import 'steam_import_screen.dart';
 import 'trakt_import_screen.dart';
@@ -268,6 +269,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: l.settingsRaImport,
             subtitle: l.settingsRaImportSubtitle,
             onTap: () => _pushScreen(const RaImportScreen()),
+          ),
+          SettingsTile(
+            leadingAssetPath: AppAssets.iconMalColor,
+            leadingAssetColored: true,
+            title: l.settingsMalImport,
+            subtitle: l.settingsMalImportSubtitle,
+            onTap: () => _pushScreen(const MalImportScreen()),
           ),
         ],
       ),

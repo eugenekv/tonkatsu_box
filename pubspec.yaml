@@ -59,6 +59,9 @@ dependencies:
   # Archive
   archive: ^4.0.2
 
+  # XML (MyAnimeList import)
+  xml: ^6.5.0
+
   # Gallery
   gal: ^2.3.0
 
