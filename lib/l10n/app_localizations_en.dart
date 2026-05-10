@@ -3594,4 +3594,124 @@ class SEn extends S {
   String kodiRawError(String message) {
     return 'Error: $message';
   }
+
+  @override
+  String get settingsMalImport => 'MyAnimeList';
+
+  @override
+  String get settingsMalImportSubtitle =>
+      'Import anime/manga lists from XML export';
+
+  @override
+  String get malImportTitle => 'MyAnimeList Import';
+
+  @override
+  String get malImportSubtitle => 'Anime and manga will be matched to AniList';
+
+  @override
+  String get malImportPickFiles => 'Add XML file';
+
+  @override
+  String get malImportFilesHint =>
+      'Export XML from myanimelist.net/panel.php?go=export';
+
+  @override
+  String get malImportAnimeFile => 'Anime list';
+
+  @override
+  String get malImportMangaFile => 'Manga list';
+
+  @override
+  String get malImportRemoveFile => 'Remove';
+
+  @override
+  String malImportEntriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get malImportTargetCollection => 'Target collection';
+
+  @override
+  String get malImportCreateNew => 'Create new collection';
+
+  @override
+  String get malImportUseExisting => 'Use existing collection';
+
+  @override
+  String get malImportSelectCollection => 'Select collection';
+
+  @override
+  String get malImportNoCollections => 'No collections available';
+
+  @override
+  String get malImportErrorLoadingCollections => 'Error loading collections';
+
+  @override
+  String get malImportNewCollectionName => 'Collection name';
+
+  @override
+  String get malImportButton => 'Start Import';
+
+  @override
+  String get malImportReadingFiles => 'Reading files...';
+
+  @override
+  String get malImportResolvingAnime => 'Resolving anime on AniList';
+
+  @override
+  String get malImportResolvingManga => 'Resolving manga on AniList';
+
+  @override
+  String get malImportMatching => 'Importing entries';
+
+  @override
+  String get malImportComplete => 'Import complete!';
+
+  @override
+  String malImportLookingUp(String title) {
+    return 'Processing: $title';
+  }
+
+  @override
+  String malImportImported(int count) {
+    return '$count imported';
+  }
+
+  @override
+  String malImportWishlisted(int count) {
+    return '$count to wishlist';
+  }
+
+  @override
+  String malImportUpdated(int count) {
+    return '$count updated';
+  }
+
+  @override
+  String malImportFailed(String error) {
+    return 'Import failed: $error';
+  }
+
+  @override
+  String malImportInvalidFile(String error) {
+    return 'Could not parse XML: $error';
+  }
+
+  @override
+  String malImportFilePicked(String kind, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return 'Picked: $kind ($_temp0)';
+  }
 }

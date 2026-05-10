@@ -47,4 +47,7 @@ abstract final class AppAssets {
 
   /// Цветной логотип VNDB (PNG).
   static const String iconVndbColor = 'assets/images/icon_vndb_color.png';
+
+  /// Цветной логотип MyAnimeList (PNG).
+  static const String iconMalColor = 'assets/images/icon_myanimelist_color.png';
 }

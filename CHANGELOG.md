@@ -7,6 +7,22 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Added
+
+- **Import anime and manga lists from MyAnimeList XML export**
+
+  New Settings → Import → MyAnimeList screen accepts the official XML export (`myanimelist.net/panel.php?go=export`), batch-resolves MAL IDs to AniList via `idMal_in` (50 per request, ~75 s for a 5k-entry library), and writes results into a target collection. AniList becomes the canonical record; the MAL link is preserved as a markdown footer in `user_comment`. Status mapping: Watching/Reading → in-progress, Completed → completed, On-Hold and Plan to Watch/Read → planned, Dropped → dropped. When a `Completed` entry has missing watched-episode counts or dates, the importer back-fills them from the AniList totals and from `my_start_date` / `my_finish_date`. Re-import deduplicates on `(collection_id, media_type, external_id)` and merges instead of duplicating: status uses `mergeExternalStatus` (won't downgrade `completed`, won't touch `dropped`), progress is `max(local, mal)`, started/completed dates take the earliest start and latest finish, `user_comment` is rebuilt from the latest MAL data. Titles missing on AniList go to the wishlist with a note containing the MAL link, status, score, tags, and comments — re-import updates the existing wishlist row instead of duplicating it.
+
+  * lib/core/services/mal_import_service.dart (MalImportService, MalEntry, MalParsedFile, MalImportProgress, MalImportResult, MalImportStage, MalFileKind, MalImportResultToUniversal): New. XML parser, MAL→AniList resolver, dedup-aware writer with wishlist fallback.
+  * lib/core/api/anilist_api.dart (AniListApi.getAnimeByMalIds, AniListApi.getMangaByMalIds): New batch lookups via `idMal_in` GraphQL filter; returns `Map<int malId, Anime|Manga>` so callers can correlate exports.
+  * lib/features/settings/screens/mal_import_screen.dart (MalImportScreen), lib/features/settings/content/mal_import_content.dart (MalImportContent): New. Picks up to two XML files (auto-detects anime vs manga via `<user_export_type>`), routes to either a new collection or an existing one, and shows three-stage progress (resolving anime / resolving manga / matching entries) before navigating to `ImportResultScreen`.
+  * lib/features/settings/screens/settings_screen.dart: Add MyAnimeList tile to the Import section.
+  * lib/shared/theme/app_assets.dart (AppAssets.iconMalColor): New, points to `assets/images/MyAnimeList_Logo.png`.
+  * assets/images/MyAnimeList_Logo.png: New brand asset.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb: Add `settingsMalImport` plus 21 `malImport*` keys.
+  * pubspec.yaml: Add direct `xml: ^6.5.0` dependency.
+  * test/core/services/mal_import_service_test.dart: 18 tests covering XML parsing (anime/manga, status mapping, validation, kind fallback), `Completed` back-fill, unmatched-to-wishlist with MAL markdown link, and re-import dedup that updates instead of inserting.
+
 ### Changed
 
 - **Unified brand-icon rendering across settings, welcome wizard, and search**

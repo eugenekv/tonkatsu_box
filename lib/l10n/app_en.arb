@@ -1669,5 +1669,77 @@
     "placeholders": {
       "message": {"type": "String"}
     }
+  },
+
+  "settingsMalImport": "MyAnimeList",
+  "settingsMalImportSubtitle": "Import anime/manga lists from XML export",
+  "malImportTitle": "MyAnimeList Import",
+  "malImportSubtitle": "Anime and manga will be matched to AniList",
+  "malImportPickFiles": "Add XML file",
+  "malImportFilesHint": "Export XML from myanimelist.net/panel.php?go=export",
+  "malImportAnimeFile": "Anime list",
+  "malImportMangaFile": "Manga list",
+  "malImportRemoveFile": "Remove",
+  "malImportEntriesCount": "{count, plural, =1{1 entry} other{{count} entries}}",
+  "@malImportEntriesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportTargetCollection": "Target collection",
+  "malImportCreateNew": "Create new collection",
+  "malImportUseExisting": "Use existing collection",
+  "malImportSelectCollection": "Select collection",
+  "malImportNoCollections": "No collections available",
+  "malImportErrorLoadingCollections": "Error loading collections",
+  "malImportNewCollectionName": "Collection name",
+  "malImportButton": "Start Import",
+  "malImportReadingFiles": "Reading files...",
+  "malImportResolvingAnime": "Resolving anime on AniList",
+  "malImportResolvingManga": "Resolving manga on AniList",
+  "malImportMatching": "Importing entries",
+  "malImportComplete": "Import complete!",
+  "malImportLookingUp": "Processing: {title}",
+  "@malImportLookingUp": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "malImportImported": "{count} imported",
+  "@malImportImported": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportWishlisted": "{count} to wishlist",
+  "@malImportWishlisted": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportUpdated": "{count} updated",
+  "@malImportUpdated": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "malImportFailed": "Import failed: {error}",
+  "@malImportFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "malImportInvalidFile": "Could not parse XML: {error}",
+  "@malImportInvalidFile": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "malImportFilePicked": "Picked: {kind} ({count, plural, =1{1 entry} other{{count} entries}})",
+  "@malImportFilePicked": {
+    "placeholders": {
+      "kind": {"type": "String"},
+      "count": {"type": "int"}
+    }
   }
 }

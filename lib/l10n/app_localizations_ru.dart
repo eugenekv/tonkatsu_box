@@ -3637,4 +3637,125 @@ class SRu extends S {
   String kodiRawError(String message) {
     return 'Ошибка: $message';
   }
+
+  @override
+  String get settingsMalImport => 'MyAnimeList';
+
+  @override
+  String get settingsMalImportSubtitle => 'Импорт списков аниме и манги из XML';
+
+  @override
+  String get malImportTitle => 'Импорт MyAnimeList';
+
+  @override
+  String get malImportSubtitle => 'Аниме и манга будут сматчены с AniList';
+
+  @override
+  String get malImportPickFiles => 'Добавить XML-файл';
+
+  @override
+  String get malImportFilesHint =>
+      'Выгрузите XML на myanimelist.net/panel.php?go=export';
+
+  @override
+  String get malImportAnimeFile => 'Список аниме';
+
+  @override
+  String get malImportMangaFile => 'Список манги';
+
+  @override
+  String get malImportRemoveFile => 'Удалить';
+
+  @override
+  String malImportEntriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count записей',
+      few: '$count записи',
+      one: '1 запись',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get malImportTargetCollection => 'Целевая коллекция';
+
+  @override
+  String get malImportCreateNew => 'Создать новую коллекцию';
+
+  @override
+  String get malImportUseExisting => 'Использовать существующую';
+
+  @override
+  String get malImportSelectCollection => 'Выберите коллекцию';
+
+  @override
+  String get malImportNoCollections => 'Нет доступных коллекций';
+
+  @override
+  String get malImportErrorLoadingCollections => 'Ошибка загрузки коллекций';
+
+  @override
+  String get malImportNewCollectionName => 'Название коллекции';
+
+  @override
+  String get malImportButton => 'Начать импорт';
+
+  @override
+  String get malImportReadingFiles => 'Чтение файлов...';
+
+  @override
+  String get malImportResolvingAnime => 'Резолвинг аниме на AniList';
+
+  @override
+  String get malImportResolvingManga => 'Резолвинг манги на AniList';
+
+  @override
+  String get malImportMatching => 'Импорт записей';
+
+  @override
+  String get malImportComplete => 'Импорт завершён!';
+
+  @override
+  String malImportLookingUp(String title) {
+    return 'Обработка: $title';
+  }
+
+  @override
+  String malImportImported(int count) {
+    return 'Импортировано: $count';
+  }
+
+  @override
+  String malImportWishlisted(int count) {
+    return 'В вишлист: $count';
+  }
+
+  @override
+  String malImportUpdated(int count) {
+    return 'Обновлено: $count';
+  }
+
+  @override
+  String malImportFailed(String error) {
+    return 'Импорт не удался: $error';
+  }
+
+  @override
+  String malImportInvalidFile(String error) {
+    return 'Не удалось распарсить XML: $error';
+  }
+
+  @override
+  String malImportFilePicked(String kind, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count записей',
+      few: '$count записи',
+      one: '1 запись',
+    );
+    return 'Выбрано: $kind ($_temp0)';
+  }
 }

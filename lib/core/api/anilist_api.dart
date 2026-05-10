@@ -224,6 +224,68 @@ query ($id: Int) {
 }
 ''';
 
+  /// GraphQL query для получения аниме по списку MAL ID.
+  static const String _animeGetByMalIdsQuery = r'''
+query ($page: Int, $perPage: Int, $malIds: [Int]) {
+  Page(page: $page, perPage: $perPage) {
+    media(type: ANIME, idMal_in: $malIds) {
+      id
+      idMal
+      title { romaji english native }
+      coverImage { large medium }
+      bannerImage
+      description(asHtml: false)
+      genres
+      averageScore
+      meanScore
+      popularity
+      status
+      season
+      seasonYear
+      startDate { year month day }
+      episodes
+      duration
+      format
+      source
+      studios(isMain: true) { nodes { name } }
+      nextAiringEpisode { airingAt episode }
+    }
+  }
+}
+''';
+
+  /// GraphQL query для получения манги по списку MAL ID.
+  static const String _mangaGetByMalIdsQuery = r'''
+query ($page: Int, $perPage: Int, $malIds: [Int]) {
+  Page(page: $page, perPage: $perPage) {
+    media(type: MANGA, idMal_in: $malIds) {
+      id
+      idMal
+      title { romaji english native }
+      coverImage { large medium }
+      bannerImage
+      description(asHtml: false)
+      genres
+      averageScore
+      meanScore
+      popularity
+      status
+      startDate { year month day }
+      chapters
+      volumes
+      format
+      countryOfOrigin
+      staff(sort: RELEVANCE, perPage: 5) {
+        edges {
+          node { name { full } }
+          role
+        }
+      }
+    }
+  }
+}
+''';
+
   /// GraphQL query для получения нескольких аниме по ID.
   static const String _animeGetByIdsQuery = r'''
 query ($page: Int, $perPage: Int, $ids: [Int]) {
@@ -609,6 +671,148 @@ query ($page: Int, $perPage: Int, $ids: [Int]) {
           .toList();
     } on DioException catch (e) {
       throw _handleDioException(e, 'Failed to fetch anime by IDs');
+    }
+  }
+
+  /// Получает аниме по списку MAL ID.
+  ///
+  /// Возвращает карту `malId → Anime`. ID, не найденные на AniList,
+  /// в карте отсутствуют. Throws [AniListApiException] при ошибке.
+  Future<Map<int, Anime>> getAnimeByMalIds(List<int> malIds) async {
+    if (malIds.isEmpty) return <int, Anime>{};
+
+    final Map<int, Anime> result = <int, Anime>{};
+
+    for (int i = 0; i < malIds.length; i += _maxPerPage) {
+      final List<int> batch = malIds.sublist(
+        i,
+        i + _maxPerPage > malIds.length ? malIds.length : i + _maxPerPage,
+      );
+      final Map<int, Anime> batchResult = await _fetchAnimeByMalBatch(batch);
+      result.addAll(batchResult);
+    }
+
+    return result;
+  }
+
+  /// Получает мангу по списку MAL ID.
+  ///
+  /// Возвращает карту `malId → Manga`. ID, не найденные на AniList,
+  /// в карте отсутствуют. Throws [AniListApiException] при ошибке.
+  Future<Map<int, Manga>> getMangaByMalIds(List<int> malIds) async {
+    if (malIds.isEmpty) return <int, Manga>{};
+
+    final Map<int, Manga> result = <int, Manga>{};
+
+    for (int i = 0; i < malIds.length; i += _maxPerPage) {
+      final List<int> batch = malIds.sublist(
+        i,
+        i + _maxPerPage > malIds.length ? malIds.length : i + _maxPerPage,
+      );
+      final Map<int, Manga> batchResult = await _fetchMangaByMalBatch(batch);
+      result.addAll(batchResult);
+    }
+
+    return result;
+  }
+
+  Future<Map<int, Anime>> _fetchAnimeByMalBatch(List<int> malIds) async {
+    try {
+      final Response<dynamic> response = await _dio.post<dynamic>(
+        _baseUrl,
+        data: <String, dynamic>{
+          'query': _animeGetByMalIdsQuery,
+          'variables': <String, dynamic>{
+            'page': 1,
+            'perPage': malIds.length,
+            'malIds': malIds,
+          },
+        },
+      );
+
+      if (response.statusCode != 200 || response.data == null) {
+        throw AniListApiException(
+          'Failed to fetch anime by MAL IDs',
+          statusCode: response.statusCode,
+        );
+      }
+
+      final Map<String, dynamic> data =
+          response.data as Map<String, dynamic>;
+      final Map<String, dynamic>? dataField =
+          data['data'] as Map<String, dynamic>?;
+      if (dataField == null) {
+        _checkErrors(data);
+        return <int, Anime>{};
+      }
+
+      final Map<String, dynamic>? pageData =
+          dataField['Page'] as Map<String, dynamic>?;
+      if (pageData == null) return <int, Anime>{};
+
+      final List<dynamic> mediaList =
+          pageData['media'] as List<dynamic>? ?? <dynamic>[];
+
+      final Map<int, Anime> map = <int, Anime>{};
+      for (final dynamic item in mediaList) {
+        final Map<String, dynamic> json = item as Map<String, dynamic>;
+        final int? malId = json['idMal'] as int?;
+        if (malId == null) continue;
+        map[malId] = Anime.fromJson(json);
+      }
+      return map;
+    } on DioException catch (e) {
+      throw _handleDioException(e, 'Failed to fetch anime by MAL IDs');
+    }
+  }
+
+  Future<Map<int, Manga>> _fetchMangaByMalBatch(List<int> malIds) async {
+    try {
+      final Response<dynamic> response = await _dio.post<dynamic>(
+        _baseUrl,
+        data: <String, dynamic>{
+          'query': _mangaGetByMalIdsQuery,
+          'variables': <String, dynamic>{
+            'page': 1,
+            'perPage': malIds.length,
+            'malIds': malIds,
+          },
+        },
+      );
+
+      if (response.statusCode != 200 || response.data == null) {
+        throw AniListApiException(
+          'Failed to fetch manga by MAL IDs',
+          statusCode: response.statusCode,
+        );
+      }
+
+      final Map<String, dynamic> data =
+          response.data as Map<String, dynamic>;
+      final Map<String, dynamic>? dataField =
+          data['data'] as Map<String, dynamic>?;
+      if (dataField == null) {
+        _checkErrors(data);
+        return <int, Manga>{};
+      }
+
+      final Map<String, dynamic>? pageData =
+          dataField['Page'] as Map<String, dynamic>?;
+      if (pageData == null) return <int, Manga>{};
+
+      final List<dynamic> mediaList =
+          pageData['media'] as List<dynamic>? ?? <dynamic>[];
+
+      final Map<int, Manga> map = <int, Manga>{};
+      for (final dynamic item in mediaList) {
+        final Map<String, dynamic> json = item as Map<String, dynamic>;
+        final int? malId = json['idMal'] as int?;
+        if (malId == null) continue;
+        map[malId] = Manga.fromJson(json);
+      }
+      return map;
+    } on DioException catch (e) {
+      throw _handleDioException(e, 'Failed to fetch manga by MAL IDs');
     }
   }
 
