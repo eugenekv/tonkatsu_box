@@ -1,5 +1,3 @@
-// Виджет для отображения кэшированных изображений.
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,18 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/image_cache_service.dart';
 
-/// Виджет для отображения кэшированных изображений.
-///
-/// Автоматически определяет источник изображения:
-/// - Если кэширование выключено: загружает из сети
-/// - Если кэширование включено и файл есть: показывает локальный файл
-/// - Если кэширование включено, но файл отсутствует: загружает из сети
-///   и скачивает в кэш в фоне (при [autoDownload] = true)
-///
-/// Future кэшируется в State, чтобы при rebuild родителя
-/// не происходило повторной загрузки (мигания placeholder → картинка).
+/// Image widget that picks the source (network or local cache) based on
+/// [ImageCacheService] state. The fetch [Future] is captured in [State] so
+/// parent rebuilds don't restart the load and flicker the placeholder.
 class CachedImage extends ConsumerStatefulWidget {
-  /// Создаёт [CachedImage].
   const CachedImage({
     required this.imageType,
     required this.imageId,
@@ -34,37 +24,24 @@ class CachedImage extends ConsumerStatefulWidget {
     super.key,
   });
 
-  /// Тип изображения (платформа, обложка, постер).
+  /// Image category — routes to the right sub-folder of the local cache.
   final ImageType imageType;
 
-  /// ID изображения для кэша.
+  /// Cache key — typically the upstream entity id.
   final String imageId;
 
-  /// URL для загрузки из сети.
   final String remoteUrl;
-
-  /// Ширина изображения.
   final double? width;
-
-  /// Высота изображения.
   final double? height;
-
-  /// Способ масштабирования.
   final BoxFit fit;
 
-  /// Ширина кэша изображения в памяти.
   final int? memCacheWidth;
-
-  /// Высота кэша изображения в памяти.
   final int? memCacheHeight;
-
-  /// Виджет-заглушка при загрузке.
   final Widget? placeholder;
-
-  /// Виджет при ошибке.
   final Widget? errorWidget;
 
-  /// Автоматически скачивать в локальный кэш при отсутствии файла.
+  /// When the cache misses, pull the file into the local cache in the
+  /// background instead of leaving subsequent renders to refetch.
   final bool autoDownload;
 
   @override
@@ -118,8 +95,8 @@ class _CachedImageState extends ConsumerState<CachedImage> {
           return _buildError(context);
         }
 
-        // Кэш включён, но файл отсутствует — показать из сети + скачать
         if (result.isMissing) {
+          // Cache enabled but file missing — render from network, refill in background.
           if (widget.autoDownload && result.uri != null) {
             final ImageCacheService cacheService =
                 ref.read(imageCacheServiceProvider);
@@ -134,11 +111,10 @@ class _CachedImageState extends ConsumerState<CachedImage> {
           return _buildNetworkImage(result.uri!, context);
         }
 
-        // Локальный файл
         if (result.isLocal && result.uri != null) {
           final File localFile = File(result.uri!);
-          // Guard: файл мог быть удалён/опустошён между getImageUri и render
-          // (race condition при clearCache или параллельном скачивании).
+          // The file may have been deleted/truncated between getImageUri and
+          // render (clearCache or parallel re-download race).
           if (!localFile.existsSync() || localFile.lengthSync() == 0) {
             _deleteAndRedownload();
             return _buildNetworkImage(widget.remoteUrl, context);
@@ -152,14 +128,13 @@ class _CachedImageState extends ConsumerState<CachedImage> {
             cacheHeight: widget.memCacheHeight,
             errorBuilder:
                 (BuildContext ctx, Object error, StackTrace? stack) {
-              // Файл повреждён — удалить из кэша, перекачать, показать из сети
+              // Local file is corrupt — evict, redownload, render from network.
               _deleteAndRedownload();
               return _buildNetworkImage(widget.remoteUrl, context);
             },
           );
         }
 
-        // Удалённый URL (кэш выключен)
         if (result.uri != null) {
           return _buildNetworkImage(result.uri!, context);
         }
@@ -169,10 +144,8 @@ class _CachedImageState extends ConsumerState<CachedImage> {
     );
   }
 
-  /// Удаляет повреждённый файл из кэша и перекачивает.
-  ///
-  /// Защита от повторных вызовов: флаг [_corruptHandled] предотвращает
-  /// множественные delete+download при rebuild виджета.
+  /// Re-entry guard so a corrupt-cache eviction fires once per mount, not
+  /// per rebuild.
   bool _corruptHandled = false;
 
   void _deleteAndRedownload() {

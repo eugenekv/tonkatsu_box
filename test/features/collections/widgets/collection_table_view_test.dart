@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:xerabora/features/collections/widgets/collection_table_view.dart';
+import 'package:xerabora/features/collections/widgets/collection_table/collection_table_view.dart';
 import 'package:xerabora/shared/models/collection_item.dart';
 import 'package:xerabora/shared/models/item_status.dart';
 import 'package:xerabora/shared/models/media_type.dart';

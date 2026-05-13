@@ -7,6 +7,59 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Changed
+
+- **Collection table view refactored into floating row cards**
+
+  The 1375-line monolithic table widget is split into a focused module
+  under `collection_table/` — one file per role (the view, the header,
+  the row, the column enum, and four cell types). Visually the table
+  chrome is removed: the outer surface card, the grey header strip,
+  zebra striping and inter-cell borders are gone. Each row is a faint
+  rounded `surfaceLight` card that floats on the page; the header sits
+  above as a plain label strip. Column ordering and widths were tuned —
+  name (flex 5) and tag (flex 2) are the only stretchy columns; platform
+  (140), type (56), status (96), rating (60) and year (56) are fixed
+  width and their content is centred. Tag moved to the trailing
+  position. Rating renders an em-dash when unset. Minimum table width
+  before horizontal scrolling kicks in rose from 600 to 820 so the
+  title column stays readable on narrow windows.
+
+  The table no longer holds its own vertical scroll: the body shrink-wraps
+  to its content and the parent owns the scroll, so the collection hero
+  scrolls together with the rows just like in grid mode. (`shrinkWrap`
+  means the list isn't lazy — fine for typical collections, would need
+  slivers for ten-thousand-item ones.)
+
+  All Cyrillic dartdocs in the touched files were translated to English
+  per the project comment policy.
+
+  * lib/features/collections/widgets/collection_table_view.dart: Removed.
+  * lib/features/collections/widgets/collection_table/collection_table_view.dart
+    (CollectionTableView), table_header.dart (TableHeader), table_row.dart
+    (TableRow), table_column.dart (TableColumn, kDragHandleWidth,
+    kCheckboxColumnWidth, kThumbWidth, kThumbHeight, kThumbRadius),
+    cells/thumbnail_cell.dart (ThumbnailCell), cells/rating_cell.dart
+    (RatingCell), cells/status_cell.dart (StatusCell), cells/tag_cell.dart
+    (TagCell): New module replacing the monolithic widget. Behaviour
+    parity preserved: sortable / filterable columns, reorderable mode
+    with drag handle, select-all tri-state checkbox, inline editing of
+    status / tag / rating via popups.
+  * lib/features/collections/widgets/collection_items_view.dart
+    (CollectionItemsView, CollectionItemsView._withHeader, _TagGroup):
+    Import re-pointed to the new module path. `_withHeader` grew a
+    `wrapInScroll` flag that wraps the hero + body in a single
+    `SingleChildScrollView` for table mode. Dartdocs and inline
+    comments translated.
+  * lib/shared/models/collection_item.dart (CollectionItem,
+    CollectionItem._resolvedMedia, CollectionItem.copyWith): Dartdocs
+    and inline comments translated to English; no behaviour change.
+  * lib/shared/widgets/cached_image.dart (CachedImage): Dartdocs and
+    inline comments translated; no behaviour change.
+  * test/features/collections/widgets/collection_table_view_test.dart:
+    Import re-pointed to the new module path; existing assertions
+    unchanged.
+
 ### Added
 
 - **Mood Grid — visual N×M boards of items inside the Tier Lists section**

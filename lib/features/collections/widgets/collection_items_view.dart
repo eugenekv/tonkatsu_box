@@ -1,5 +1,3 @@
-// Grid/List/Reorder view для элементов коллекции.
-
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -22,16 +20,14 @@ import '../../settings/providers/settings_provider.dart';
 import '../providers/collection_selection_provider.dart';
 import '../providers/collections_provider.dart';
 import 'collection_item_tile.dart';
-import 'collection_table_view.dart';
+import 'collection_table/collection_table_view.dart';
 import 'selectable_poster_card.dart';
 import 'status_chip_row.dart';
 
-/// View для отображения элементов коллекции в grid/list/reorder режиме.
-///
-/// Автоматически выбирает режим отображения на основе [isGridMode]
-/// и текущей сортировки (manual sort → reorderable list).
+/// Grid / list / table / reorder view for collection items. The actual mode
+/// is picked from [isGridMode], [isTableMode] and the current sort: a manual
+/// sort flips the grid into a [ReorderableListView] so users can drag.
 class CollectionItemsView extends ConsumerWidget {
-  /// Создаёт [CollectionItemsView].
   const CollectionItemsView({
     required this.collectionId,
     required this.items,
@@ -50,53 +46,24 @@ class CollectionItemsView extends ConsumerWidget {
     super.key,
   });
 
-  /// ID коллекции.
   final int? collectionId;
-
-  /// Отфильтрованные элементы для отображения.
   final List<CollectionItem> items;
-
-  /// Режим отображения — grid или list.
   final bool isGridMode;
-
-  /// Режим таблицы (Excel-like).
   final bool isTableMode;
-
-  /// Можно ли редактировать (move/remove/reorder).
   final bool canEdit;
-
-  /// Callback нажатия на элемент.
   final ValueChanged<CollectionItem> onItemTap;
-
-  /// Callback перемещения элемента.
   final ValueChanged<CollectionItem>? onItemMove;
-
-  /// Callback копирования элемента.
   final ValueChanged<CollectionItem>? onItemClone;
-
-  /// Callback удаления элемента.
   final ValueChanged<CollectionItem>? onItemRemove;
-
-  /// Callback при изменении фокуса на элементе (для клавиатурных действий).
   final void Function(CollectionItem item, bool hasFocus)? onItemFocusChanged;
-
-  /// Теги коллекции для группировки.
   final List<CollectionTag> tags;
-
-  /// Выбранные фильтры по тегам.
   final Set<int> filterTagIds;
-
-  /// Включён ли режим группировки по тегам.
   final bool groupByTags;
 
-  /// Опциональный header, скроллится вместе со списком элементов.
-  ///
-  /// Используется для rich-коллекций: hero-баннер встраивается как первый
-  /// sliver и уезжает вверх вместе с сеткой. Для table/reorder режимов —
-  /// пинится сверху, т.к. эти виджеты не работают со slivers.
+  /// Optional header that scrolls with the grid as a sliver. Table and
+  /// reorder modes pin it above instead — those widgets don't accept slivers.
   final Widget? header;
 
-  /// Максимальная ширина карточки на десктопе.
   static const double _desktopMaxCardWidth = 170;
 
   @override
@@ -114,9 +81,10 @@ class CollectionItemsView extends ConsumerWidget {
       final Set<int>? selectedIds = canEdit
           ? ref.watch(collectionSelectionProvider(collectionId))
           : null;
-      return _withHeader(Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        child: CollectionTableView(
+      return _withHeader(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: CollectionTableView(
           items: items,
           tags: tags,
           onItemTap: onItemTap,
@@ -177,8 +145,10 @@ class CollectionItemsView extends ConsumerWidget {
                       .reorderItem(oldIndex, newIndex);
                 }
               : null,
+          ),
         ),
-      ));
+        wrapInScroll: true,
+      );
     }
 
     if (isGridMode) {
@@ -192,9 +162,8 @@ class CollectionItemsView extends ConsumerWidget {
     return _buildListView(context, ref);
   }
 
-  /// Группирует элементы по тегам.
-  ///
-  /// Элементы с unknown tagId (orphaned) попадают в группу "без тега".
+  /// Buckets items by their `tagId`. Items pointing at an unknown tag (e.g.
+  /// after the tag was deleted) land in the "untagged" bucket.
   List<_TagGroup> _groupByTag(String untaggedLabel) {
     if (tags.isEmpty) {
       return <_TagGroup>[
@@ -240,10 +209,24 @@ class CollectionItemsView extends ConsumerWidget {
   bool get _hasTagGroups =>
       tags.isNotEmpty && (groupByTags || filterTagIds.isNotEmpty);
 
-  /// Пинит [header] сверху [body] (используется для table/reorder/empty
-  /// режимов, где нельзя встроить header как sliver).
-  Widget _withHeader(Widget body) {
-    if (header == null) return body;
+  /// Pins [header] above [body] — used by table/reorder/empty modes where
+  /// the body widget doesn't support slivers. When [wrapInScroll] is true
+  /// (table mode) the whole stack lives inside a vertical scroll view so the
+  /// header scrolls with the table rows instead of being pinned.
+  Widget _withHeader(Widget body, {bool wrapInScroll = false}) {
+    if (header == null) {
+      return wrapInScroll
+          ? SingleChildScrollView(child: body)
+          : body;
+    }
+    if (wrapInScroll) {
+      return SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[header!, body],
+        ),
+      );
+    }
     return Column(
       children: <Widget>[
         header!,
@@ -260,7 +243,8 @@ class CollectionItemsView extends ConsumerWidget {
     final S l = S.of(context);
     final List<_TagGroup> groups = _groupByTag(l.tagNone);
 
-    // Плоский список, отсортированный по тегам.
+    // Flatten the per-tag buckets back into a single list, preserving the
+    // grouped ordering so the table view renders rows tag by tag.
     final List<CollectionItem> sorted = <CollectionItem>[
       for (final _TagGroup g in groups) ...g.items,
     ];
@@ -395,7 +379,8 @@ class CollectionItemsView extends ConsumerWidget {
       for (final CollectionTag tag in tags) tag.id: tag,
     };
 
-    // Плоский список, отсортированный по тегам — рендерим как обычный grid.
+    // Flatten the per-tag buckets — the grid renders the joined sequence as
+    // a regular grid; the headers come from the buckets above.
     final List<CollectionItem> sorted = <CollectionItem>[
       for (final _TagGroup g in groups) ...g.items,
     ];
@@ -581,7 +566,8 @@ class CollectionItemsView extends ConsumerWidget {
         );
       },
       onReorder: (int oldIndex, int newIndex) {
-        // ReorderableListView даёт newIndex ПОСЛЕ удаления элемента
+        // ReorderableListView reports newIndex *after* the element has been
+        // removed; normalise so callers get the semantic destination index.
         if (newIndex > oldIndex) {
           newIndex -= 1;
         }
@@ -643,7 +629,8 @@ class CollectionItemsView extends ConsumerWidget {
   }
 
 
-  /// Sentinel value для "без тега" в popup (чтобы отличить от dismiss).
+  /// Distinct from `null` (popup dismissed) — picked when the user explicitly
+  /// chose "no tag".
   static const int _noTagSentinel = -1;
 
   void _showTagPopup(
@@ -869,16 +856,12 @@ class CollectionItemsView extends ConsumerWidget {
   }
 }
 
-/// Группа элементов по тегу.
+/// One bucket of items sharing a tag. `name == null` means the bucket is
+/// rendered without a divider (used when grouping is off).
 class _TagGroup {
   _TagGroup({required this.name, required this.items, this.color});
 
-  /// Название тега (null = без разделителя).
   final String? name;
-
-  /// Цвет тега (null = без цвета / untagged).
   final Color? color;
-
-  /// Элементы в группе.
   final List<CollectionItem> items;
 }

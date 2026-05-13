@@ -1,5 +1,3 @@
-// Универсальный элемент коллекции (игра, фильм или сериал).
-
 import 'package:flutter/material.dart';
 
 import '../../core/services/image_cache_service.dart';
@@ -17,11 +15,9 @@ import 'manga.dart';
 import 'tv_show.dart';
 import 'visual_novel.dart';
 
-/// Универсальный элемент коллекции.
-///
-/// Поддерживает игры, фильмы, сериалы и анимацию в одной коллекции.
+/// Universal collection entry — games, movies, TV, anime, manga, visual
+/// novels and custom items share one row type, switched on [mediaType].
 class CollectionItem with Exportable {
-  /// Создаёт экземпляр [CollectionItem].
   const CollectionItem({
     required this.id,
     required this.collectionId,
@@ -51,12 +47,12 @@ class CollectionItem with Exportable {
     this.platform,
   });
 
-  /// Создаёт [CollectionItem] из записи базы данных.
   factory CollectionItem.fromDb(Map<String, dynamic> row) {
     return CollectionItem.fromDbWithJoins(row);
   }
 
-  /// Создаёт [CollectionItem] из записи БД с join-данными.
+  /// Builds a [CollectionItem] from a row that joined the cached media tables
+  /// (games / movies / tv_shows / etc.) for hydrating media metadata in one pass.
   factory CollectionItem.fromDbWithJoins(
     Map<String, dynamic> row, {
     Game? game,
@@ -112,7 +108,6 @@ class CollectionItem with Exportable {
     );
   }
 
-  /// Создаёт [CollectionItem] из экспортных данных.
   factory CollectionItem.fromExport(
     Map<String, dynamic> json, {
     int id = 0,
@@ -158,96 +153,72 @@ class CollectionItem with Exportable {
     );
   }
 
-  /// Уникальный идентификатор записи.
   final int id;
 
-  /// ID коллекции (null для элементов без коллекции).
+  /// `null` for "uncategorised" items — owned by the user but outside any
+  /// collection.
   final int? collectionId;
 
-  /// true если элемент не принадлежит ни одной коллекции.
   bool get isUncategorized => collectionId == null;
 
-  /// Тип медиа-контента.
   final MediaType mediaType;
 
-  /// Внешний ID (igdb_id для игр, tmdb_id для фильмов/сериалов).
+  /// Provider-side id — IGDB id for games, TMDB id for movies/TV, AniList id
+  /// for anime/manga, VNDB id for visual novels.
   final int externalId;
 
-  /// ID платформы (только для игр).
+  /// Platform id from the local `platforms` table — only meaningful for
+  /// games and for [MediaType.animation] (Movie vs TV via [AnimationSource]).
   final int? platformId;
 
-  /// ID тега (секции) внутри коллекции (null = без тега).
+  /// Optional grouping tag inside a collection.
   final int? tagId;
 
-  /// Текущий сезон (для сериалов).
   final int currentSeason;
-
-  /// Текущий эпизод (для сериалов).
   final int currentEpisode;
 
-  /// Порядок сортировки (для ручной сортировки drag-and-drop).
+  /// Drag-and-drop order; lower comes first. Re-sequenced on manual reorder.
   final int sortOrder;
 
-  /// Потраченное время в минутах (ручной ввод пользователем).
+  /// Manual playtime in minutes — separate from any provider-side stats.
   final int timeSpentMinutes;
 
-  /// Статус прохождения/просмотра.
   final ItemStatus status;
 
-  /// Комментарий автора коллекции.
+  /// Author note attached when the collection was shared (read-only on
+  /// import).
   final String? authorComment;
 
-  /// Личный комментарий пользователя.
+  /// Private note the current user wrote on this item.
   final String? userComment;
 
-  /// Пользовательский рейтинг (1-10).
+  /// User rating 1–10. `null` means "not rated", not zero.
   final int? userRating;
 
-  /// Дата добавления в коллекцию.
   final DateTime addedAt;
-
-  /// Дата начала (начал играть/смотреть).
   final DateTime? startedAt;
-
-  /// Дата завершения.
   final DateTime? completedAt;
-
-  /// Дата последней активности.
   final DateTime? lastActivityAt;
 
-  /// Данные игры (joined).
+  /// Joined media payloads — exactly one of the seven fields is non-null,
+  /// picked by [mediaType] (game / movie / tvShow / visualNovel / anime /
+  /// manga / customMedia).
   final Game? game;
-
-  /// Данные фильма (joined).
   final Movie? movie;
-
-  /// Данные сериала (joined).
   final TvShow? tvShow;
-
-  /// Данные визуальной новеллы (joined).
   final VisualNovel? visualNovel;
-
-  /// Данные аниме (joined).
   final Anime? anime;
-
-  /// Данные манги (joined).
   final Manga? manga;
-
-  /// Данные кастомного медиа (joined).
   final CustomMedia? customMedia;
 
-  /// Данные платформы (joined).
+  /// Joined platform metadata for games / animation.
   final Platform? platform;
 
-  // -- Геттеры совместимости --
-
-  /// ID в IGDB (для игр). Алиас для [externalId].
+  /// Legacy alias kept for older callers that hard-coded `igdbId`.
   int get igdbId => externalId;
 
-  /// Унифицированные поля текущего медиа-элемента.
-  ///
-  /// Позволяет избежать дублирования switch(mediaType) в каждом геттере.
-  /// IGDB рейтинг нормализуется к 0–10 (IGDB хранит 0–100).
+  /// Per-[mediaType] view used by every UI getter to avoid duplicating the
+  /// switch. IGDB rating (0–100) is normalised here to 0–10 to match TMDB.
   ({
     String? name,
     String? coverUrl,
@@ -447,7 +418,8 @@ class CollectionItem with Exportable {
     }
   }
 
-  /// Название элемента (игра, фильм, сериал или анимация).
+  /// Title from the joined media, falling back to a typed "Unknown X" so the
+  /// UI never renders an empty row.
   String get itemName {
     final String fallback = switch (mediaType) {
       MediaType.game => 'Unknown Game',
@@ -462,16 +434,15 @@ class CollectionItem with Exportable {
     return _resolvedMedia.name ?? fallback;
   }
 
-  /// Тип медиа для отображения (учитывает displayType кастомных элементов).
+  /// Effective media type for display — custom items can carry an
+  /// overriding `displayType` so they masquerade as games / movies / …
   MediaType get displayMediaType =>
       mediaType == MediaType.custom && customMedia?.displayType != null
           ? customMedia!.displayType!
           : mediaType;
 
-  /// Название платформы или placeholder.
   String get platformName => platform?.displayName ?? 'Unknown Platform';
 
-  /// Иконка-заглушка для заданного типа медиа.
   static IconData _placeholderIconFor(MediaType type) => switch (type) {
         MediaType.game => Icons.videogame_asset,
         MediaType.movie => Icons.movie_outlined,
@@ -483,72 +454,39 @@ class CollectionItem with Exportable {
         MediaType.custom => Icons.dashboard_customize,
       };
 
-  /// Есть ли комментарий автора.
   bool get hasAuthorComment =>
       authorComment != null && authorComment!.isNotEmpty;
 
-  /// Есть ли личный комментарий.
   bool get hasUserComment => userComment != null && userComment!.isNotEmpty;
 
-  /// Время прохождения (разница startedAt → completedAt).
+  /// Wall-clock time between [startedAt] and [completedAt]; `null` when
+  /// either bound is missing or the diff is negative (clock skew on import).
   Duration? get completionTime {
     if (startedAt == null || completedAt == null) return null;
     final Duration diff = completedAt!.difference(startedAt!);
     return diff.isNegative ? null : diff;
   }
 
-  /// Завершён ли элемент.
   bool get isCompleted => status == ItemStatus.completed;
 
-  /// URL постера/обложки (полный размер).
   String? get coverUrl => _resolvedMedia.coverUrl;
 
-  /// API рейтинг, нормализованный к шкале 0–10.
-  ///
-  /// IGDB хранит рейтинг 0–100, нормализация выполняется в [_resolvedMedia].
-  /// TMDB уже хранит 0–10.
+  /// Provider rating normalised to a 0–10 scale (IGDB stores 0–100).
   double? get apiRating => _resolvedMedia.rating;
 
-  /// Описание элемента (summary для игр, overview для фильмов/сериалов).
   String? get itemDescription => _resolvedMedia.description;
-
-  /// URL маленького постера/обложки для thumbnail-ов.
   String? get thumbnailUrl => _resolvedMedia.thumbUrl;
-
-  /// Год выпуска (Game.releaseYear / Movie.releaseYear / TvShow.firstAirYear).
   int? get releaseYear => _resolvedMedia.releaseYear;
-
-  /// Длительность в минутах (только фильмы).
   int? get runtime => _resolvedMedia.runtime;
-
-  /// Количество сезонов (только сериалы).
   int? get totalSeasons => _resolvedMedia.totalSeasons;
-
-  /// Количество эпизодов (только сериалы).
   int? get totalEpisodes => _resolvedMedia.totalEpisodes;
-
-  /// Жанры строкой ("Action, RPG").
   String? get genresString => _resolvedMedia.genresString;
-
-  /// Жанры списком.
   List<String>? get genres => _resolvedMedia.genres;
-
-  /// Форматированный рейтинг ("7.5").
   String? get formattedRating => _resolvedMedia.formattedRating;
-
-  /// Статус медиа ("Returning Series" и т.п.).
   String? get mediaStatus => _resolvedMedia.mediaStatus;
-
-  /// Источник данных (IGDB / TMDB).
   DataSource get dataSource => _resolvedMedia.source;
-
-  /// Тип изображения для кэша.
   ImageType get imageType => _resolvedMedia.imageType;
-
-  /// Иконка-заглушка.
   IconData get placeholderIcon => _resolvedMedia.placeholderIcon;
-
-  // -- Exportable контракт --
 
   @override
   Set<String> get internalDbFields =>
@@ -564,7 +502,6 @@ class CollectionItem with Exportable {
   Map<String, String> get dbToExportKeyMapping =>
       const <String, String>{'author_comment': 'comment'};
 
-  /// Преобразует в Map для сохранения в базу данных.
   @override
   Map<String, dynamic> toDb() {
     return <String, dynamic>{
@@ -595,10 +532,9 @@ class CollectionItem with Exportable {
     };
   }
 
-  /// Преобразует в Map для экспорта.
-  ///
-  /// При [includeUserData] = true добавляет пользовательские данные:
-  /// статус, даты, заметки, прогресс сериалов, порядок сортировки.
+  /// When [includeUserData] is true the export carries personal fields
+  /// (status, dates, notes, season/episode progress, sort order) on top of
+  /// the bare media reference suitable for sharing.
   @override
   Map<String, dynamic> toExport({bool includeUserData = false}) {
     final Map<String, dynamic> data = <String, dynamic>{
@@ -629,7 +565,6 @@ class CollectionItem with Exportable {
     return data;
   }
 
-  /// Создаёт копию с изменёнными полями.
   CollectionItem copyWith({
     int? id,
     int? collectionId,
@@ -698,10 +633,9 @@ class CollectionItem with Exportable {
     );
   }
 
-  /// Возвращает копию с новым статусом и пересчитанными датами активности.
-  ///
-  /// Даты вычисляются через [computeDatesForStatus] — единая логика для всех
-  /// мест смены статуса (UI, импорты, внешний sync).
+  /// Returns a copy with the new status and recomputed activity dates.
+  /// All date math goes through [computeDatesForStatus] so UI, importers and
+  /// external syncs stay in lockstep.
   CollectionItem withStatus(ItemStatus newStatus, {DateTime? now}) {
     final StatusDatesUpdate update = computeDatesForStatus(
       newStatus: newStatus,
