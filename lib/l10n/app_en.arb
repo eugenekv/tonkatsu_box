@@ -1148,6 +1148,8 @@
 
   "settingsShowRecommendations": "Recommendations",
   "settingsShowRecommendationsSubtitle": "Similar movies and TV shows on detail pages",
+  "settingsHideEmptyMediaTypeChevrons": "Hide empty media type filters",
+  "settingsHideEmptyMediaTypeChevronsSubtitle": "Hide media type chevrons (Games, Movies, etc.) when there are no items of that type",
   "settingsShowPlatformOverlay": "Game platform covers",
   "settingsShowPlatformOverlaySubtitle": "Show platform overlay on game posters (PS5, Switch, etc.)",
   "settingsShowBlurayOverlay": "Blu-ray covers",

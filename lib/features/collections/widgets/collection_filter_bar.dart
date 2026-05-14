@@ -20,6 +20,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/chevron_filter_bar.dart';
+import '../../settings/providers/settings_provider.dart';
 import '../providers/collections_provider.dart';
 import 'collection_filter_sheet.dart';
 
@@ -125,6 +126,19 @@ class _CollectionFilterBarState extends ConsumerState<CollectionFilterBar> {
 
   Widget _buildTypeChevronBar(S l, CollectionStats? stats) {
     final List<_TypeEntry> entries = _typeEntries(l, stats);
+    final bool hideEmpty = ref.watch(
+      settingsNotifierProvider.select(
+        (SettingsState s) => s.hideEmptyMediaTypeChevrons,
+      ),
+    );
+    final List<_TypeEntry> visibleEntries =
+        (hideEmpty && stats != null)
+            ? entries
+                .where((_TypeEntry e) =>
+                    (e.count ?? 0) > 0 ||
+                    widget.filterTypes.contains(e.type))
+                .toList()
+            : entries;
     final bool compact =
         MediaQuery.sizeOf(context).width < _compactBreakpoint;
     // На узких экранах TagSidebar скрыт — даём кнопку, открывающую sheet
@@ -138,18 +152,21 @@ class _CollectionFilterBarState extends ConsumerState<CollectionFilterBar> {
         height: 40,
         child: Row(
           children: <Widget>[
-            for (int i = 0; i < entries.length; i++)
+            for (int i = 0; i < visibleEntries.length; i++)
               Expanded(
                 child: ChevronSegment(
-                  label: entries[i].count != null && entries[i].count! > 0
-                      ? '${entries[i].label} (${entries[i].count})'
-                      : entries[i].label,
-                  icon: MediaTypeTheme.iconFor(entries[i].type),
-                  selected: widget.filterTypes.contains(entries[i].type),
-                  accentColor: MediaTypeTheme.colorFor(entries[i].type),
+                  label: visibleEntries[i].count != null &&
+                          visibleEntries[i].count! > 0
+                      ? '${visibleEntries[i].label} (${visibleEntries[i].count})'
+                      : visibleEntries[i].label,
+                  icon: MediaTypeTheme.iconFor(visibleEntries[i].type),
+                  selected:
+                      widget.filterTypes.contains(visibleEntries[i].type),
+                  accentColor:
+                      MediaTypeTheme.colorFor(visibleEntries[i].type),
                   isFirst: i == 0,
                   isLast: false,
-                  onTap: () => widget.onTypeToggled(entries[i].type),
+                  onTap: () => widget.onTypeToggled(visibleEntries[i].type),
                   compact: compact,
                   tintWhenInactive: true,
                 ),
