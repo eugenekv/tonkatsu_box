@@ -2506,6 +2506,14 @@ class SEn extends S {
       'Similar movies and TV shows on detail pages';
 
   @override
+  String get settingsHideEmptyMediaTypeChevrons =>
+      'Hide empty media type filters';
+
+  @override
+  String get settingsHideEmptyMediaTypeChevronsSubtitle =>
+      'Hide media type chevrons (Games, Movies, etc.) when there are no items of that type';
+
+  @override
   String get settingsShowPlatformOverlay => 'Game platform covers';
 
   @override

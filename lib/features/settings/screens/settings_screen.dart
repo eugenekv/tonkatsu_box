@@ -350,6 +350,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           SettingsTile(
+            leadingIcon: Icons.filter_alt_off_outlined,
+            leadingColor: _kAppearanceColor,
+            title: l.settingsHideEmptyMediaTypeChevrons,
+            subtitle: l.settingsHideEmptyMediaTypeChevronsSubtitle,
+            showChevron: false,
+            trailing: Switch(
+              value: settings.hideEmptyMediaTypeChevrons,
+              onChanged: (bool value) {
+                ref
+                    .read(settingsNotifierProvider.notifier)
+                    .setHideEmptyMediaTypeChevrons(enabled: value);
+              },
+            ),
+          ),
+          SettingsTile(
             leadingIcon: Icons.videogame_asset_outlined,
             leadingColor: _kAppearanceColor,
             title: l.settingsShowPlatformOverlay,

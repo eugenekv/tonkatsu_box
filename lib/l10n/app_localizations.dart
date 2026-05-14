@@ -4567,6 +4567,18 @@ abstract class S {
   /// **'Similar movies and TV shows on detail pages'**
   String get settingsShowRecommendationsSubtitle;
 
+  /// No description provided for @settingsHideEmptyMediaTypeChevrons.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide empty media type filters'**
+  String get settingsHideEmptyMediaTypeChevrons;
+
+  /// No description provided for @settingsHideEmptyMediaTypeChevronsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide media type chevrons (Games, Movies, etc.) when there are no items of that type'**
+  String get settingsHideEmptyMediaTypeChevronsSubtitle;
+
   /// No description provided for @settingsShowPlatformOverlay.
   ///
   /// In en, this message translates to:

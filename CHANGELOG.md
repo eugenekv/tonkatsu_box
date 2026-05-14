@@ -62,6 +62,30 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Setting: hide empty media-type chevrons**
+
+  New toggle in Settings → Appearance hides the chevron segments for
+  media types that have zero items in the current view. Applies to the
+  filter bar inside a collection and to the unified "all items"
+  screen reachable from the home tab. Off by default; a currently
+  selected type stays visible even if its count is zero so the user
+  can still clear the filter.
+
+  * lib/features/settings/providers/settings_provider.dart
+    (SettingsKeys.hideEmptyMediaTypeChevrons, SettingsState.hideEmptyMediaTypeChevrons,
+    SettingsNotifier.setHideEmptyMediaTypeChevrons): New setting plumbing
+    mirroring `showRecommendations`.
+  * lib/features/settings/screens/settings_screen.dart: New SettingsTile
+    with a Switch under Appearance.
+  * lib/features/collections/widgets/collection_filter_bar.dart
+    (_CollectionFilterBarState._buildTypeChevronBar): Filter `_typeEntries`
+    by count > 0 when the setting is on, keeping selected types visible.
+  * lib/features/home/screens/all_items_screen.dart (_buildMediaTypeBar):
+    Same filter applied to `_MediaTypeEntry` list.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb: New keys
+    `settingsHideEmptyMediaTypeChevrons` and
+    `settingsHideEmptyMediaTypeChevronsSubtitle`.
+
 - **Mood Grid — visual N×M boards of items inside the Tier Lists section**
 
   A second board type alongside the existing ranked tier list. A grid is

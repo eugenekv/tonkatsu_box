@@ -2531,6 +2531,14 @@ class SRu extends S {
       'Похожие фильмы и сериалы на странице деталей';
 
   @override
+  String get settingsHideEmptyMediaTypeChevrons =>
+      'Скрывать пустые фильтры типов';
+
+  @override
+  String get settingsHideEmptyMediaTypeChevronsSubtitle =>
+      'Скрывать шевроны типов медиа (Игры, Фильмы и т.д.), если в коллекции нет таких записей';
+
+  @override
   String get settingsShowPlatformOverlay => 'Обложки платформ';
 
   @override

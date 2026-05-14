@@ -205,6 +205,18 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
 
     final bool compact =
         MediaQuery.sizeOf(context).width < _compactBreakpoint;
+    final bool hideEmpty = ref.watch(
+      settingsNotifierProvider.select(
+        (SettingsState s) => s.hideEmptyMediaTypeChevrons,
+      ),
+    );
+    final List<_MediaTypeEntry> visibleEntries =
+        (hideEmpty && items != null)
+            ? entries
+                .where((_MediaTypeEntry e) =>
+                    e.count > 0 || _selectedTypes.contains(e.type))
+                .toList()
+            : entries;
 
     return ColoredBox(
       color: AppColors.surface,
@@ -212,16 +224,17 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
         height: 40,
         child: Row(
           children: <Widget>[
-            for (int i = 0; i < entries.length; i++)
+            for (int i = 0; i < visibleEntries.length; i++)
               Expanded(
                 child: ChevronSegment(
-                  label: entries[i].displayLabel,
-                  icon: MediaTypeTheme.iconFor(entries[i].type),
-                  selected: _selectedTypes.contains(entries[i].type),
-                  accentColor: MediaTypeTheme.colorFor(entries[i].type),
+                  label: visibleEntries[i].displayLabel,
+                  icon: MediaTypeTheme.iconFor(visibleEntries[i].type),
+                  selected: _selectedTypes.contains(visibleEntries[i].type),
+                  accentColor:
+                      MediaTypeTheme.colorFor(visibleEntries[i].type),
                   isFirst: i == 0,
                   isLast: false,
-                  onTap: () => _toggleMediaType(entries[i].type),
+                  onTap: () => _toggleMediaType(visibleEntries[i].type),
                   compact: compact,
                   tintWhenInactive: true,
                 ),

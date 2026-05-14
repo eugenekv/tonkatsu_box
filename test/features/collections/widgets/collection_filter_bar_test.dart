@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:xerabora/data/repositories/collection_repository.dart';
 import 'package:xerabora/features/collections/providers/collections_provider.dart';
 import 'package:xerabora/features/collections/widgets/collection_filter_bar.dart';
+import 'package:xerabora/features/settings/providers/settings_provider.dart';
 import 'package:xerabora/l10n/app_localizations.dart';
 import 'package:xerabora/shared/models/collection_item.dart';
 import 'package:xerabora/shared/models/collection_sort_mode.dart';
@@ -12,6 +13,17 @@ import 'package:xerabora/shared/models/media_type.dart';
 import 'package:xerabora/shared/models/collection_tag.dart';
 import 'package:xerabora/shared/models/platform.dart' as p;
 import 'package:xerabora/shared/widgets/chevron_filter_bar.dart';
+
+class TestSettingsNotifier extends SettingsNotifier {
+  TestSettingsNotifier({this.hideEmptyChevrons = false});
+
+  final bool hideEmptyChevrons;
+
+  @override
+  SettingsState build() {
+    return SettingsState(hideEmptyMediaTypeChevrons: hideEmptyChevrons);
+  }
+}
 
 class TestCollectionSortNotifier extends CollectionSortNotifier {
   TestCollectionSortNotifier(this._initialMode);
@@ -189,6 +201,7 @@ List<Override> _defaultOverrides({
         .overrideWith(() => TestCollectionSortNotifier(sortMode)),
     collectionSortDescProvider
         .overrideWith(() => TestCollectionSortDescNotifier(isDescending)),
+    settingsNotifierProvider.overrideWith(TestSettingsNotifier.new),
   ];
 }
 

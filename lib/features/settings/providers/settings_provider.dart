@@ -68,6 +68,9 @@ abstract class SettingsKeys {
   static const String aniListUsername = 'anilist_username';
 
   static const String richCollectionsEnabled = 'rich_collections_enabled';
+
+  static const String hideEmptyMediaTypeChevrons =
+      'hide_empty_media_type_chevrons';
 }
 
 class SettingsState {
@@ -91,6 +94,7 @@ class SettingsState {
     this.discordRpcEnabled = false,
     this.discordRaSyncEnabled = false,
     this.richCollectionsEnabled = false,
+    this.hideEmptyMediaTypeChevrons = false,
   });
 
   final String? clientId;
@@ -133,6 +137,9 @@ class SettingsState {
 
   /// Hero image + description instead of mosaic.
   final bool richCollectionsEnabled;
+
+  /// Hide media-type chevrons with zero items in the current filter bar.
+  final bool hideEmptyMediaTypeChevrons;
 
   String? resolveOverlay({
     String? platformOverlay,
@@ -210,6 +217,7 @@ class SettingsState {
     bool? discordRpcEnabled,
     bool? discordRaSyncEnabled,
     bool? richCollectionsEnabled,
+    bool? hideEmptyMediaTypeChevrons,
   }) {
     return SettingsState(
       clientId: clientId ?? this.clientId,
@@ -232,6 +240,8 @@ class SettingsState {
       discordRaSyncEnabled: discordRaSyncEnabled ?? this.discordRaSyncEnabled,
       richCollectionsEnabled:
           richCollectionsEnabled ?? this.richCollectionsEnabled,
+      hideEmptyMediaTypeChevrons:
+          hideEmptyMediaTypeChevrons ?? this.hideEmptyMediaTypeChevrons,
     );
   }
 }
@@ -336,6 +346,8 @@ class SettingsNotifier extends Notifier<SettingsState> {
         _prefs.getBool(SettingsKeys.discordRaSyncEnabled) ?? false;
     final bool richCollectionsEnabled =
         _prefs.getBool(SettingsKeys.richCollectionsEnabled) ?? false;
+    final bool hideEmptyMediaTypeChevrons =
+        _prefs.getBool(SettingsKeys.hideEmptyMediaTypeChevrons) ?? false;
 
     // Valid token → connected immediately (skip verify);
     // expired with credentials → trigger auto-verify below.
@@ -363,6 +375,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
       discordRpcEnabled: discordRpcEnabled,
       discordRaSyncEnabled: discordRaSyncEnabled,
       richCollectionsEnabled: richCollectionsEnabled,
+      hideEmptyMediaTypeChevrons: hideEmptyMediaTypeChevrons,
     );
 
     // API keys already wired by apiKeysProvider; only the request-time language param is set here.
@@ -571,6 +584,11 @@ class SettingsNotifier extends Notifier<SettingsState> {
     state = state.copyWith(richCollectionsEnabled: enabled);
   }
 
+  Future<void> setHideEmptyMediaTypeChevrons({required bool enabled}) async {
+    await _prefs.setBool(SettingsKeys.hideEmptyMediaTypeChevrons, enabled);
+    state = state.copyWith(hideEmptyMediaTypeChevrons: enabled);
+  }
+
   /// Falls back to built-in key if available, otherwise clears.
   Future<void> resetTmdbApiKeyToDefault() async {
     await _prefs.remove(SettingsKeys.tmdbApiKey);
@@ -678,6 +696,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
     await _prefs.remove(SettingsKeys.discordRpcEnabled);
     await _prefs.remove(SettingsKeys.discordRaSyncEnabled);
     await _prefs.remove(SettingsKeys.richCollectionsEnabled);
+    await _prefs.remove(SettingsKeys.hideEmptyMediaTypeChevrons);
     await _prefs.remove(SettingsKeys.raUsername);
     await _prefs.remove(SettingsKeys.raApiKey);
 
