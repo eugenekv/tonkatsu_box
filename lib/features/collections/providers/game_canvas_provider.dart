@@ -10,13 +10,11 @@ import 'canvas_state.dart';
 import 'canvas_timer_mixin.dart';
 import 'collections_provider.dart';
 
-/// Провайдер для управления per-item canvas.
-///
-/// Ключ — `({collectionId, collectionItemId})`.
-/// В отличие от [canvasNotifierProvider], per-item canvas:
-/// - Не синхронизируется реактивно с элементами коллекции
-/// - Автоинициализируется одним медиа-элементом (игра/фильм/сериал)
-/// - Поддерживает game/movie/tvShow/text/image/link элементы
+/// Per-item canvas. Key is `({collectionId, collectionItemId})`.
+/// Unlike [canvasNotifierProvider], the per-item canvas does not
+/// reactively sync with the collection: it auto-initialises with a
+/// single media element (game / movie / TV show) and supports
+/// game / movie / tvShow / text / image / link items.
 final NotifierProviderFamily<GameCanvasNotifier, CanvasState,
         ({int? collectionId, int collectionItemId})>
     gameCanvasNotifierProvider = NotifierProvider.family<GameCanvasNotifier,
@@ -24,10 +22,6 @@ final NotifierProviderFamily<GameCanvasNotifier, CanvasState,
   GameCanvasNotifier.new,
 );
 
-/// Notifier для управления per-item canvas.
-///
-/// Упрощённая версия [CanvasNotifier] без реактивной синхронизации
-/// с элементами коллекции. Каждый элемент коллекции имеет свой canvas.
 class GameCanvasNotifier
     extends FamilyNotifier<CanvasState,
         ({int? collectionId, int collectionItemId})>
@@ -67,10 +61,47 @@ class GameCanvasNotifier
 
     ref.onDispose(cancelTimers);
 
-    // Загружаем canvas после инициализации state
+    // Per-item canvas has no structural sync loop; without this listener
+    // a rename in collection_items would not propagate to the live state.
+    ref.listen<AsyncValue<List<CollectionItem>>>(
+      collectionItemsNotifierProvider(_collectionId),
+      (AsyncValue<List<CollectionItem>>? previous,
+          AsyncValue<List<CollectionItem>> next) {
+        final List<CollectionItem>? items = next.valueOrNull;
+        if (items == null) return;
+        CollectionItem? match;
+        for (final CollectionItem ci in items) {
+          if (ci.id == _collectionItemId) {
+            match = ci;
+            break;
+          }
+        }
+        if (match == null) return;
+        _syncOverrideName(match.overrideName);
+      },
+    );
+
     Future<void>.microtask(_loadCanvas);
 
     return const CanvasState();
+  }
+
+  /// In-memory patch only — `override_name` lives on `collection_items` and
+  /// is rejoined on the next canvas reload, so no DB write here.
+  void _syncOverrideName(String? overrideName) {
+    if (!state.isInitialized) return;
+    bool changed = false;
+    final List<CanvasItem> updated = state.items.map((CanvasItem item) {
+      if (item.collectionItemId != _collectionItemId) return item;
+      if (item.overrideName == overrideName) return item;
+      changed = true;
+      return overrideName == null
+          ? item.copyWith(clearOverrideName: true)
+          : item.copyWith(overrideName: overrideName);
+    }).toList();
+    if (changed) {
+      state = state.copyWith(items: updated);
+    }
   }
 
   Future<void> _loadCanvas() async {
@@ -109,7 +140,6 @@ class GameCanvasNotifier
     }
   }
 
-  /// Инициализирует per-item canvas с одним медиа-элементом.
   Future<void> _initializeWithCollectionItem() async {
     final AsyncValue<List<CollectionItem>> itemsAsync =
         ref.read(collectionItemsNotifierProvider(_collectionId));
@@ -137,7 +167,6 @@ class GameCanvasNotifier
     final CanvasItemType canvasType =
         CanvasItemType.fromMediaType(collectionItem.mediaType);
 
-    // Размещаем единственный элемент по центру canvas
     const double x = CanvasRepository.initialCenterX -
         CanvasRepository.defaultCardWidth / 2;
     const double y = CanvasRepository.initialCenterY -
@@ -180,7 +209,6 @@ class GameCanvasNotifier
     );
   }
 
-  /// Перезагрузка canvas из БД.
   @override
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, error: null);

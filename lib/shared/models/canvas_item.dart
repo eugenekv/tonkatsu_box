@@ -13,47 +13,33 @@ import 'movie.dart';
 import 'tv_show.dart';
 import 'visual_novel.dart';
 
-/// Тип элемента на канвасе.
 enum CanvasItemType {
-  /// Карточка игры.
   game('game'),
 
-  /// Карточка фильма.
   movie('movie'),
 
-  /// Карточка сериала.
   tvShow('tv_show'),
 
-  /// Карточка анимации.
   animation('animation'),
 
-  /// Карточка визуальной новеллы.
   visualNovel('visual_novel'),
 
-  /// Карточка манги.
   manga('manga'),
 
-  /// Карточка аниме.
   anime('anime'),
 
-  /// Карточка кастомного элемента.
   custom('custom'),
 
-  /// Текстовый блок.
   text('text'),
 
-  /// Изображение.
   image('image'),
 
-  /// Ссылка.
   link('link');
 
   const CanvasItemType(this.value);
 
-  /// Строковое значение для базы данных.
   final String value;
 
-  /// Создаёт [CanvasItemType] из строки.
   static CanvasItemType fromString(String value) {
     return CanvasItemType.values.firstWhere(
       (CanvasItemType type) => type.value == value,
@@ -61,7 +47,6 @@ enum CanvasItemType {
     );
   }
 
-  /// Создаёт [CanvasItemType] из [MediaType].
   static CanvasItemType fromMediaType(MediaType mediaType) {
     switch (mediaType) {
       case MediaType.game:
@@ -83,7 +68,6 @@ enum CanvasItemType {
     }
   }
 
-  /// Является ли тип медиа-элементом (game, movie, tvShow).
   bool get isMediaItem =>
       this == game ||
       this == movie ||
@@ -95,12 +79,7 @@ enum CanvasItemType {
       this == custom;
 }
 
-/// Модель элемента на канвасе коллекции.
-///
-/// Представляет любой объект, размещённый на канвасе:
-/// игровую карточку, текст, изображение или ссылку.
 class CanvasItem with Exportable {
-  /// Создаёт экземпляр [CanvasItem].
   const CanvasItem({
     required this.id,
     required this.collectionId,
@@ -121,9 +100,9 @@ class CanvasItem with Exportable {
     this.anime,
     this.manga,
     this.customMedia,
+    this.overrideName,
   });
 
-  /// Создаёт [CanvasItem] из записи базы данных.
   factory CanvasItem.fromDb(Map<String, dynamic> row) {
     final String? dataString = row['data'] as String?;
     Map<String, dynamic>? parsedData;
@@ -147,10 +126,10 @@ class CanvasItem with Exportable {
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         (row['created_at'] as int) * 1000,
       ),
+      overrideName: row['override_name'] as String?,
     );
   }
 
-  /// Создаёт [CanvasItem] из экспортных данных.
   factory CanvasItem.fromExport(
     Map<String, dynamic> json, {
     int collectionId = 0,
@@ -175,67 +154,59 @@ class CanvasItem with Exportable {
     );
   }
 
-  /// Уникальный идентификатор элемента.
   final int id;
 
-  /// ID коллекции.
   final int collectionId;
 
-  /// ID элемента коллекции (для per-game canvas, null для коллекционного).
+  /// Set on per-item (game) canvas rows; null for collection-canvas rows.
   final int? collectionItemId;
 
-  /// Тип элемента.
   final CanvasItemType itemType;
 
-  /// ID связанного объекта (igdb_id для game, tmdb_id для movie/tvShow).
+  /// External media id (igdb_id for game, tmdb_id for movie / tvShow, …).
   final int? itemRefId;
 
-  /// Позиция X на канвасе.
   final double x;
 
-  /// Позиция Y на канвасе.
   final double y;
 
-  /// Ширина элемента.
   final double? width;
 
-  /// Высота элемента.
   final double? height;
 
-  /// Слой отображения (z-index).
   final int zIndex;
 
-  /// Дополнительные данные (JSON).
   final Map<String, dynamic>? data;
 
-  /// Дата создания.
   final DateTime createdAt;
 
-  /// Данные игры (joined, не сохраняются в БД).
+  /// Joined, not persisted in `canvas_items`.
   final Game? game;
 
-  /// Данные фильма (joined, не сохраняются в БД).
+  /// Joined, not persisted in `canvas_items`.
   final Movie? movie;
 
-  /// Данные сериала (joined, не сохраняются в БД).
+  /// Joined, not persisted in `canvas_items`.
   final TvShow? tvShow;
 
-  /// Данные визуальной новеллы (joined, не сохраняются в БД).
+  /// Joined, not persisted in `canvas_items`.
   final VisualNovel? visualNovel;
 
-  /// Данные аниме (joined, не сохраняются в БД).
+  /// Joined, not persisted in `canvas_items`.
   final Anime? anime;
 
-  /// Данные манги (joined, не сохраняются в БД).
+  /// Joined, not persisted in `canvas_items`.
   final Manga? manga;
 
-  /// Данные кастомного элемента (joined, не сохраняются в БД).
+  /// Joined, not persisted in `canvas_items`.
   final CustomMedia? customMedia;
 
-  // -- Unified media accessors (для медиа-типов) --
+  /// Joined `collection_items.override_name` for the matching media entry in
+  /// the same collection — transient, never written back to `canvas_items`.
+  final String? overrideName;
 
-  /// Название медиа-элемента (game/movie/tvShow/visualNovel).
   String? get mediaTitle {
+    if (overrideName != null) return overrideName;
     return switch (itemType) {
       CanvasItemType.game => game?.name,
       CanvasItemType.movie => movie?.title,
@@ -249,7 +220,6 @@ class CanvasItem with Exportable {
     };
   }
 
-  /// URL thumbnail-а медиа-элемента.
   String? get mediaThumbnailUrl {
     return switch (itemType) {
       CanvasItemType.game => game?.coverUrl,
@@ -266,7 +236,6 @@ class CanvasItem with Exportable {
     };
   }
 
-  /// ImageType для кэширования.
   ImageType get mediaImageType {
     return switch (itemType) {
       CanvasItemType.game => ImageType.gameCover,
@@ -283,7 +252,6 @@ class CanvasItem with Exportable {
     };
   }
 
-  /// ID для кэширования изображения.
   String get mediaCacheId {
     return switch (itemType) {
       CanvasItemType.game => (game?.id ?? 0).toString(),
@@ -301,7 +269,6 @@ class CanvasItem with Exportable {
     };
   }
 
-  /// Иконка-заглушка для медиа-элемента.
   IconData get mediaPlaceholderIcon {
     return switch (itemType) {
       CanvasItemType.game => Icons.videogame_asset,
@@ -325,7 +292,7 @@ class CanvasItem with Exportable {
     };
   }
 
-  /// MediaType для медиа-элемента (null для text/image/link).
+  /// Null for non-media item types (text / image / link).
   MediaType? get asMediaType {
     return switch (itemType) {
       CanvasItemType.game => MediaType.game,
@@ -340,8 +307,6 @@ class CanvasItem with Exportable {
     };
   }
 
-  // -- Exportable контракт --
-
   @override
   Set<String> get internalDbFields => const <String>{'collection_id'};
 
@@ -349,7 +314,6 @@ class CanvasItem with Exportable {
   Map<String, String> get dbToExportKeyMapping =>
       const <String, String>{'item_type': 'type', 'item_ref_id': 'refId'};
 
-  /// Преобразует в Map для сохранения в базу данных.
   @override
   Map<String, dynamic> toDb() {
     return <String, dynamic>{
@@ -368,7 +332,6 @@ class CanvasItem with Exportable {
     };
   }
 
-  /// Преобразует в Map для экспорта.
   @override
   Map<String, dynamic> toExport() {
     return <String, dynamic>{
@@ -386,7 +349,6 @@ class CanvasItem with Exportable {
     };
   }
 
-  /// Создаёт копию с изменёнными полями.
   CanvasItem copyWith({
     int? id,
     int? collectionId,
@@ -407,6 +369,8 @@ class CanvasItem with Exportable {
     Anime? anime,
     Manga? manga,
     CustomMedia? customMedia,
+    String? overrideName,
+    bool clearOverrideName = false,
   }) {
     return CanvasItem(
       id: id ?? this.id,
@@ -428,6 +392,8 @@ class CanvasItem with Exportable {
       anime: anime ?? this.anime,
       manga: manga ?? this.manga,
       customMedia: customMedia ?? this.customMedia,
+      overrideName:
+          clearOverrideName ? null : (overrideName ?? this.overrideName),
     );
   }
 
