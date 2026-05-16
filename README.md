@@ -33,26 +33,30 @@
 Tonkatsu Box is a free, open-source app to organize your media collections. Search millions of titles from IGDB, TMDB, VNDB, and AniList. Track your progress, rate everything, create visual boards and mood grids, and import your library from Steam, Trakt.tv, RetroAchievements, MyAnimeList, or AniList.
 
 <p align="center">
-  <img src="docs/screenshots/01-main-all.jpg" width="800" alt="Main screen">
+  <img src="docs/screenshots/mockup_main_all.jpg" width="800" alt="Main screen">
 </p>
 
 ## Screenshots
 
-| All Items | Collection Grid |
+| Collections | Collection Grid |
 |---|---|
-| <img src="docs/screenshots/02-main-games-filtered.jpg" alt="All Items"> | <img src="docs/screenshots/04-collection-grid.jpg" alt="Collection Grid"> |
+| <img src="docs/screenshots/mockup_collections.jpg" alt="Collections"> | <img src="docs/screenshots/mockup_collection_view.jpg" alt="Collection Grid"> |
 
-| Search Sources | Item Details |
+| Bulk Selection | Item Details |
 |---|---|
-| <img src="docs/screenshots/05-search-source.jpg" alt="Search Sources"> | <img src="docs/screenshots/06-item-details.jpg" alt="Item Details"> |
+| <img src="docs/screenshots/mockup_bulk_selection.jpg" alt="Bulk selection"> | <img src="docs/screenshots/mockup_item_details.jpg" alt="Item Details"> |
 
-| Game Search | Movie Search |
+| Game Search | Add to Collection |
 |---|---|
-| <img src="docs/screenshots/09-search-games.jpg" alt="Game Search"> | <img src="docs/screenshots/07-search-movies.jpg" alt="Movie Search"> |
+| <img src="docs/screenshots/mockup_game_search.jpg" alt="Game Search"> | <img src="docs/screenshots/mockup_add_game.jpg" alt="Add to collection"> |
 
-| Tier List | Wishlist |
+| Settings | Search Sources |
 |---|---|
-| <img src="docs/screenshots/12-tier-list.jpg" alt="Tier List"> | <img src="docs/screenshots/11-wishlist.jpg" alt="Wishlist"> |
+| <img src="docs/screenshots/mockup_settings.jpg" alt="Settings"> | <img src="docs/screenshots/mockup_search_sources.jpg" alt="Search Sources"> |
+
+| Tier List | Mood Grid |
+|---|---|
+| <img src="docs/screenshots/mockup_tier_list.jpg" alt="Tier List"> | <img src="docs/screenshots/mockup_mood_grid.jpg" alt="Mood grid"> |
 
 ## Features
 
