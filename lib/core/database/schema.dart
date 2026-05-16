@@ -1,9 +1,6 @@
-// Определения таблиц базы данных.
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Схема базы данных — статические методы для создания всех таблиц.
 abstract final class DatabaseSchema {
-  /// Создаёт все таблицы БД (вызывается при первой инициализации).
   static Future<void> createAll(Database db) async {
     await createPlatformsTable(db);
     await createGamesTable(db);
@@ -37,7 +34,6 @@ abstract final class DatabaseSchema {
     await createMoodGridCellsTable(db);
   }
 
-  /// Таблица платформ (IGDB).
   static Future<void> createPlatformsTable(Database db) async {
     await db.execute('''
       CREATE TABLE platforms (
@@ -48,7 +44,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица игр (кэш IGDB).
   static Future<void> createGamesTable(Database db) async {
     await db.execute('''
       CREATE TABLE games (
@@ -72,7 +67,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица коллекций.
   static Future<void> createCollectionsTable(Database db) async {
     await db.execute('''
       CREATE TABLE collections (
@@ -90,7 +84,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица элементов канваса.
   static Future<void> createCanvasItemsTable(Database db) async {
     await db.execute('''
       CREATE TABLE canvas_items (
@@ -121,7 +114,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица viewport канваса коллекции.
   static Future<void> createCanvasViewportTable(Database db) async {
     await db.execute('''
       CREATE TABLE canvas_viewport (
@@ -134,7 +126,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица viewport канваса отдельного элемента.
   static Future<void> createGameCanvasViewportTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS game_canvas_viewport (
@@ -146,7 +137,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица связей канваса.
   static Future<void> createCanvasConnectionsTable(Database db) async {
     await db.execute('''
       CREATE TABLE canvas_connections (
@@ -176,7 +166,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица кэша фильмов (TMDB).
   static Future<void> createMoviesCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE movies_cache (
@@ -196,7 +185,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица кэша сериалов (TMDB).
   static Future<void> createTvShowsCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE tv_shows_cache (
@@ -218,7 +206,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица кэша сезонов (TMDB).
   static Future<void> createTvSeasonsCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE tv_seasons_cache (
@@ -234,7 +221,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица элементов коллекции (универсальная).
   static Future<void> createCollectionItemsTable(Database db) async {
     await db.execute('''
       CREATE TABLE collection_items (
@@ -262,7 +248,8 @@ abstract final class DatabaseSchema {
       )
     ''');
 
-    // Игры: unique с platform_id (одна игра на разных платформах разрешена).
+    // Games: UNIQUE includes platform_id so the same game on different
+    // platforms can coexist as separate rows in one collection.
     await db.execute('''
       CREATE UNIQUE INDEX idx_ci_coll_game
       ON collection_items(collection_id, media_type, external_id, platform_id)
@@ -294,7 +281,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица кэша эпизодов (TMDB).
   static Future<void> createTvEpisodesCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS tv_episodes_cache (
@@ -313,7 +299,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица просмотренных эпизодов.
   static Future<void> createWatchedEpisodesTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS watched_episodes (
@@ -330,7 +315,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица жанров TMDB.
   static Future<void> createTmdbGenresTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS tmdb_genres (
@@ -343,7 +327,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица списка желаний.
   static Future<void> createWishlistTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS wishlist (
@@ -358,7 +341,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица жанров IGDB.
   static Future<void> createIgdbGenresTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS igdb_genres (
@@ -368,7 +350,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица кэша визуальных новелл (VNDB).
   static Future<void> createVisualNovelsCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS visual_novels_cache (
@@ -396,7 +377,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица тегов VNDB.
   static Future<void> createVndbTagsTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS vndb_tags (
@@ -406,7 +386,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица кэша манги (AniList).
   static Future<void> createMangaCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS manga_cache (
@@ -437,7 +416,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица кэша аниме (AniList).
   static Future<void> createAnimeCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS anime_cache (
@@ -472,7 +450,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица тир-листов.
   static Future<void> createTierListsTable(Database db) async {
     await db.execute('''
       CREATE TABLE tier_lists (
@@ -485,7 +462,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица определений тиров (S/A/B/C + кастомные).
   static Future<void> createTierDefinitionsTable(Database db) async {
     await db.execute('''
       CREATE TABLE tier_definitions (
@@ -504,7 +480,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица привязок элементов к тирам.
   static Future<void> createTierListEntriesTable(Database db) async {
     await db.execute('''
       CREATE TABLE tier_list_entries (
@@ -523,7 +498,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Создаёт таблицу кастомных элементов.
   static Future<void> createCustomItemsTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS custom_items (
@@ -542,7 +516,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Создаёт таблицу тегов коллекции.
   static Future<void> createCollectionTagsTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS collection_tags (
@@ -561,7 +534,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица профилей внешних трекеров (RA, Steam, Trakt).
   static Future<void> createTrackerProfilesTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS tracker_profiles (
@@ -584,7 +556,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица прогресса per-game от трекеров.
   static Future<void> createTrackerGameDataTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS tracker_game_data (
@@ -615,7 +586,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица конкретных достижений per-game.
   static Future<void> createTrackerAchievementsTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS tracker_achievements (
@@ -643,7 +613,6 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица mood grids (визуальные сетки айтемов с лейблами).
   static Future<void> createMoodGridsTable(Database db) async {
     await db.execute('''
       CREATE TABLE mood_grids (
@@ -657,11 +626,9 @@ abstract final class DatabaseSchema {
     ''');
   }
 
-  /// Таблица ячеек mood grid.
-  ///
-  /// Без UNIQUE на (grid_id, media_type, external_id) — один айтем можно
-  /// положить в несколько ячеек. Без FK на collection_items — ячейка не
-  /// зависит от наличия айтема в коллекциях.
+  /// No UNIQUE on `(grid_id, media_type, external_id)` — the same item
+  /// can occupy several cells. No FK to `collection_items` — a cell
+  /// stands alone, regardless of whether the item is in any collection.
   static Future<void> createMoodGridCellsTable(Database db) async {
     await db.execute('''
       CREATE TABLE mood_grid_cells (

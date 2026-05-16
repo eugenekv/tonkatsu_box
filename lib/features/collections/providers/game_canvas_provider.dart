@@ -10,13 +10,11 @@ import 'canvas_state.dart';
 import 'canvas_timer_mixin.dart';
 import 'collections_provider.dart';
 
-/// Провайдер для управления per-item canvas.
-///
-/// Ключ — `({collectionId, collectionItemId})`.
-/// В отличие от [canvasNotifierProvider], per-item canvas:
-/// - Не синхронизируется реактивно с элементами коллекции
-/// - Автоинициализируется одним медиа-элементом (игра/фильм/сериал)
-/// - Поддерживает game/movie/tvShow/text/image/link элементы
+/// Per-item canvas. Key is `({collectionId, collectionItemId})`.
+/// Unlike [canvasNotifierProvider], the per-item canvas does not
+/// reactively sync with the collection: it auto-initialises with a
+/// single media element (game / movie / TV show) and supports
+/// game / movie / tvShow / text / image / link items.
 final NotifierProviderFamily<GameCanvasNotifier, CanvasState,
         ({int? collectionId, int collectionItemId})>
     gameCanvasNotifierProvider = NotifierProvider.family<GameCanvasNotifier,
@@ -24,10 +22,6 @@ final NotifierProviderFamily<GameCanvasNotifier, CanvasState,
   GameCanvasNotifier.new,
 );
 
-/// Notifier для управления per-item canvas.
-///
-/// Упрощённая версия [CanvasNotifier] без реактивной синхронизации
-/// с элементами коллекции. Каждый элемент коллекции имеет свой canvas.
 class GameCanvasNotifier
     extends FamilyNotifier<CanvasState,
         ({int? collectionId, int collectionItemId})>
@@ -87,7 +81,6 @@ class GameCanvasNotifier
       },
     );
 
-    // Загружаем canvas после инициализации state
     Future<void>.microtask(_loadCanvas);
 
     return const CanvasState();
@@ -147,7 +140,6 @@ class GameCanvasNotifier
     }
   }
 
-  /// Инициализирует per-item canvas с одним медиа-элементом.
   Future<void> _initializeWithCollectionItem() async {
     final AsyncValue<List<CollectionItem>> itemsAsync =
         ref.read(collectionItemsNotifierProvider(_collectionId));
@@ -175,7 +167,6 @@ class GameCanvasNotifier
     final CanvasItemType canvasType =
         CanvasItemType.fromMediaType(collectionItem.mediaType);
 
-    // Размещаем единственный элемент по центру canvas
     const double x = CanvasRepository.initialCenterX -
         CanvasRepository.defaultCardWidth / 2;
     const double y = CanvasRepository.initialCenterY -
@@ -218,7 +209,6 @@ class GameCanvasNotifier
     );
   }
 
-  /// Перезагрузка canvas из БД.
   @override
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, error: null);

@@ -11,22 +11,20 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 - **Rename any collection item without touching the API cache**
 
-  Right-click an item in the grid / list (or use the overflow menu on its
-  detail screen) and pick "Rename" to give it a custom display name —
-  "Final Fantasy VII Remake Intergrade" can become "FF7R" in your
-  Favorites while keeping the original title in Wishlist or another
-  collection. The original cached title is shown as a subtitle inside the
-  dialog so you can see what you're overriding, and a "Reset to original"
-  button clears the override. The custom name is per-collection-item:
-  shared cache rows (games, movies_cache, tv_shows_cache, …) keep the
-  canonical API title so future IGDB / TMDB / AniList / RA resyncs don't
-  overwrite the user's choice and external matchers (RA-import name
-  fallback, ScreenScraper lookup) keep using the cached name. Canvas
-  boards inherit the override too — the title under each card on the
-  board follows the rename. Custom items already have a full Edit dialog,
-  so the Rename action is hidden for them. Mood grids show the original
-  cached name (cells reference media by external id only, no
-  collection-item linkage to inherit from).
+  Open an item's detail screen, use the overflow menu (⋮) and pick
+  "Rename" to give it a custom display name — "Final Fantasy VII Remake
+  Intergrade" can become "FF7R" in your Favorites while keeping the
+  original title in Wishlist or another collection. The original cached
+  title is shown as a subtitle inside the dialog so you can see what
+  you're overriding, and a "Reset to original" button clears the
+  override. The custom name is per-collection-item: shared cache rows
+  (games, movies_cache, tv_shows_cache, …) keep the canonical API title
+  so future IGDB / TMDB / AniList / RA resyncs don't overwrite the
+  user's choice. Canvas boards inherit the override too — the title
+  under each card on the board follows the rename. Custom items already
+  have a full Edit dialog, so the Rename action is hidden for them.
+  Mood grids show the original cached name (cells reference media by
+  external id only, no collection-item linkage to inherit from).
 
   * lib/core/database/schema.dart (DatabaseSchema.createCollectionItemsTable):
     Add `override_name TEXT` column on fresh installs.
@@ -74,15 +72,8 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
     on narrow screens or with long original titles.
   * lib/features/collections/screens/item_detail_screen.dart
     (_ItemDetailScreenState._renameItem, AppBar overflow menu):
-    New menu entry "Rename" hidden for `MediaType.custom`. The
-    ScreenScraperGallerySection now receives `item.cachedName` instead of
-    `item.itemName` so the SS lookup keeps using the API title after a
-    rename. No SnackBar on success — the new title in the AppBar is
-    confirmation enough.
-  * lib/features/collections/widgets/collection_items_view.dart
-    (CollectionItemsView._renameItem, _showItemContextMenu): Adds a
-    "Rename" entry to the right-click / long-press menu in the grid / list
-    view, hidden for `MediaType.custom`.
+    New menu entry "Rename" hidden for `MediaType.custom`. No SnackBar
+    on success — the new title in the AppBar is confirmation enough.
   * lib/shared/models/canvas_item.dart (CanvasItem.overrideName,
     CanvasItem.mediaTitle, CanvasItem.copyWith, CanvasItem.fromDb):
     New transient `overrideName` field — loaded from a SQL join (never
@@ -104,13 +95,12 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
     test/core/database/dao/collection_dao_test.dart,
     test/core/database/dao/canvas_dao_test.dart,
     test/features/collections/providers/collections_provider_test.dart,
-    test/features/collections/widgets/rename_item_dialog_test.dart,
-    test/features/collections/widgets/collection_items_view_test.dart:
+    test/features/collections/widgets/rename_item_dialog_test.dart:
     Round-trip, copyWith semantics, DAO trim / empty / whitespace / null
     branches, notifier state mutation, dialog Save / Reset / Cancel
-    behaviour, canvas SQL subquery shape, and updated context-menu count /
-    ordering after the new entry. `test/helpers/builders.dart`
-    (createTestCollectionItem) gains an `overrideName` parameter.
+    behaviour, and canvas SQL subquery shape.
+    `test/helpers/builders.dart` (createTestCollectionItem) gains an
+    `overrideName` parameter.
 
 - **ScreenScraper media gallery on game cards**
 
