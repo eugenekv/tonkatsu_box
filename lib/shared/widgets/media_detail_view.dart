@@ -19,15 +19,23 @@ import 'star_rating_bar.dart';
 import '../utils/duration_formatter.dart';
 
 /// `type` is either 'started' or 'completed'.
-typedef OnActivityDateChanged = Future<void> Function(
-  String type,
-  DateTime date,
-);
+typedef OnActivityDateChanged =
+    Future<void> Function(String type, DateTime date);
 
 String _formatActivityDate(DateTime date) {
   const List<String> months = <String>[
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   return '${months[date.month - 1]} ${date.day}, ${date.year}';
 }
@@ -172,10 +180,8 @@ class _MediaDetailViewState extends State<MediaDetailView> {
   @override
   void initState() {
     super.initState();
-    _authorController =
-        TextEditingController(text: widget.authorComment);
-    _userController =
-        TextEditingController(text: widget.userComment);
+    _authorController = TextEditingController(text: widget.authorComment);
+    _userController = TextEditingController(text: widget.userComment);
     _authorController.addListener(_onAuthorChanged);
     _userController.addListener(_onUserChanged);
   }
@@ -255,50 +261,48 @@ class _MediaDetailViewState extends State<MediaDetailView> {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(
-                color: AppColors.surfaceBorder.withAlpha(40),
-              ),
+              border: Border.all(color: AppColors.surfaceBorder.withAlpha(40)),
             ),
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _buildHeader(),
-              if (widget.statusWidget != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.md),
-                _buildStatusSection(context),
-              ],
-              if (widget.onUserRatingChanged != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.md),
-                _buildUserRatingSection(context),
-              ],
-              if (widget.addedAt != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.sm),
-                _buildActivityDatesRow(context),
-              ],
-              const SizedBox(height: AppSpacing.md),
-              _TrackerCommentsLayout(
-                trackerSection: widget.trackerSection,
-                notesSection: _buildUserNotesSection(context),
-                authorSection: _buildAuthorCommentSection(context),
-              ),
-              if (widget.mediaGallery != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.md),
-                widget.mediaGallery!,
-              ],
-              if (widget.extraSections != null &&
-                  widget.extraSections!.isNotEmpty) ...<Widget>[
-                const SizedBox(height: AppSpacing.md),
-                _buildExtraSectionsExpansion(context),
-              ],
-              if (widget.recommendationSections != null &&
-                  widget.recommendationSections!.isNotEmpty)
-                for (final Widget section
-                    in widget.recommendationSections!) ...<Widget>[
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                _buildHeader(),
+                if (widget.statusWidget != null) ...<Widget>[
                   const SizedBox(height: AppSpacing.md),
-                  section,
+                  _buildStatusSection(context),
                 ],
-            ],
-          ),
+                if (widget.onUserRatingChanged != null) ...<Widget>[
+                  const SizedBox(height: AppSpacing.md),
+                  _buildUserRatingSection(context),
+                ],
+                if (widget.addedAt != null) ...<Widget>[
+                  const SizedBox(height: AppSpacing.sm),
+                  _buildActivityDatesRow(context),
+                ],
+                const SizedBox(height: AppSpacing.md),
+                _TrackerCommentsLayout(
+                  trackerSection: widget.trackerSection,
+                  notesSection: _buildUserNotesSection(context),
+                  authorSection: _buildAuthorCommentSection(context),
+                ),
+                if (widget.mediaGallery != null) ...<Widget>[
+                  const SizedBox(height: AppSpacing.md),
+                  widget.mediaGallery!,
+                ],
+                if (widget.extraSections != null &&
+                    widget.extraSections!.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: AppSpacing.md),
+                  _buildExtraSectionsExpansion(context),
+                ],
+                if (widget.recommendationSections != null &&
+                    widget.recommendationSections!.isNotEmpty)
+                  for (final Widget section
+                      in widget.recommendationSections!) ...<Widget>[
+                    const SizedBox(height: AppSpacing.md),
+                    section,
+                  ],
+              ],
+            ),
           ),
         ),
       ],
@@ -364,10 +368,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
               children: <Widget>[
                 _buildCoverImage(),
                 if (widget.platformOverlayAsset != null)
-                  Image.asset(
-                    widget.platformOverlayAsset!,
-                    fit: BoxFit.fill,
-                  ),
+                  Image.asset(widget.platformOverlayAsset!, fit: BoxFit.fill),
               ],
             ),
           ),
@@ -409,12 +410,9 @@ class _MediaDetailViewState extends State<MediaDetailView> {
                       ),
                     ],
                   ),
-                  if (widget.tagWidget != null)
-                    widget.tagWidget!,
-                  if (widget.raBadge != null)
-                    widget.raBadge!,
-                  if (widget.onTimeSpentTap != null)
-                    _buildTimeSpentChip(),
+                  if (widget.tagWidget != null) widget.tagWidget!,
+                  if (widget.raBadge != null) widget.raBadge!,
+                  if (widget.onTimeSpentTap != null) _buildTimeSpentChip(),
                 ],
               ),
               if (widget.infoChips.isNotEmpty) ...<Widget>[
@@ -424,8 +422,12 @@ class _MediaDetailViewState extends State<MediaDetailView> {
                   runSpacing: 4,
                   children: <Widget>[
                     for (final MediaDetailChip chip in widget.infoChips)
-                      _buildInfoChip(chip.icon, chip.text,
-                          iconColor: chip.iconColor, onTap: chip.onTap),
+                      _buildInfoChip(
+                        chip.icon,
+                        chip.text,
+                        iconColor: chip.iconColor,
+                        onTap: chip.onTap,
+                      ),
                   ],
                 ),
               ],
@@ -473,8 +475,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
       imageUrl: widget.coverUrl!,
       fit: BoxFit.cover,
       memCacheWidth: 200,
-      placeholder: (BuildContext ctx, String url) =>
-          _buildLoadingPlaceholder(),
+      placeholder: (BuildContext ctx, String url) => _buildLoadingPlaceholder(),
       errorWidget: (BuildContext ctx, String url, Object error) =>
           _buildPlaceholder(),
     );
@@ -551,7 +552,8 @@ class _MediaDetailViewState extends State<MediaDetailView> {
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: onTap != null
             ? Border.all(
-                color: (iconColor ?? AppColors.textSecondary).withAlpha(60))
+                color: (iconColor ?? AppColors.textSecondary).withAlpha(60),
+              )
             : null,
       ),
       child: Row(
@@ -586,11 +588,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
       children: <Widget>[
         Row(
           children: <Widget>[
-            const Icon(
-              Icons.star,
-              size: 18,
-              color: AppColors.ratingStar,
-            ),
+            const Icon(Icons.star, size: 18, color: AppColors.ratingStar),
             const SizedBox(width: 6),
             Text(
               S.of(context).detailMyRating,
@@ -633,8 +631,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
           date: widget.startedAt,
           editable: widget.onActivityDateChanged != null,
           onTap: widget.onActivityDateChanged != null
-              ? () => _pickActivityDate(
-                    context, 'started', widget.startedAt)
+              ? () => _pickActivityDate(context, 'started', widget.startedAt)
               : null,
         ),
         _buildDateChip(
@@ -643,12 +640,11 @@ class _MediaDetailViewState extends State<MediaDetailView> {
           date: widget.completedAt,
           editable: widget.onActivityDateChanged != null,
           onTap: widget.onActivityDateChanged != null
-              ? () => _pickActivityDate(
-                    context, 'completed', widget.completedAt)
+              ? () =>
+                    _pickActivityDate(context, 'completed', widget.completedAt)
               : null,
         ),
-        if (widget.completionTime != null)
-          _buildCompletionTimeChip(l),
+        if (widget.completionTime != null) _buildCompletionTimeChip(l),
         if (widget.lastActivityAt != null)
           _buildDateChip(
             icon: Icons.update,
@@ -664,14 +660,15 @@ class _MediaDetailViewState extends State<MediaDetailView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const Icon(Icons.timer_outlined,
-            size: 14, color: AppColors.textTertiary),
+        const Icon(
+          Icons.timer_outlined,
+          size: 14,
+          color: AppColors.textTertiary,
+        ),
         const SizedBox(width: 4),
         Text(
           formatted,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textTertiary,
-          ),
+          style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
         ),
       ],
     );
@@ -691,9 +688,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
         const SizedBox(width: 4),
         Text(
           '$label: ',
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textTertiary,
-          ),
+          style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
         ),
         Text(
           date != null ? _formatActivityDate(date) : '\u2014',
@@ -705,11 +700,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
         ),
         if (editable) ...<Widget>[
           const SizedBox(width: 2),
-          const Icon(
-            Icons.edit_outlined,
-            size: 12,
-            color: AppColors.brand,
-          ),
+          const Icon(Icons.edit_outlined, size: 12, color: AppColors.brand),
         ],
       ],
     );
@@ -760,9 +751,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
 
   Widget _buildExtraSectionsExpansion(BuildContext context) {
     return Theme(
-      data: Theme.of(context).copyWith(
-        dividerColor: Colors.transparent,
-      ),
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
         tilePadding: EdgeInsets.zero,
         childrenPadding: EdgeInsets.zero,
@@ -817,10 +806,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
                 onPressed: isEditing
                     ? _finishEditing
                     : () => _startEditing(_EditingField.author),
-                icon: Icon(
-                  isEditing ? Icons.check : Icons.edit,
-                  size: 18,
-                ),
+                icon: Icon(isEditing ? Icons.check : Icons.edit, size: 18),
                 iconSize: 18,
                 visualDensity: VisualDensity.compact,
                 tooltip: isEditing ? l.done : l.edit,
@@ -830,9 +816,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
         const SizedBox(height: 2),
         Text(
           l.detailReviewVisibility,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textTertiary,
-          ),
+          style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
         ),
         const SizedBox(height: 6),
         _buildCommentContainer(
@@ -900,10 +884,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
               onPressed: isEditing
                   ? _finishEditing
                   : () => _startEditing(_EditingField.user),
-              icon: Icon(
-                isEditing ? Icons.check : Icons.edit,
-                size: 18,
-              ),
+              icon: Icon(isEditing ? Icons.check : Icons.edit, size: 18),
               iconSize: 18,
               visualDensity: VisualDensity.compact,
               tooltip: isEditing ? l.done : l.edit,
@@ -950,9 +931,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
     final BoxDecoration decoration = BoxDecoration(
       color: accentColor.withAlpha(20),
       borderRadius: radius,
-      border: Border.all(
-        color: accentColor.withAlpha(isEditing ? 80 : 40),
-      ),
+      border: Border.all(color: accentColor.withAlpha(isEditing ? 80 : 40)),
     );
     const EdgeInsets padding = EdgeInsets.all(AppSpacing.md - 4);
 
@@ -998,16 +977,11 @@ class _MediaDetailViewState extends State<MediaDetailView> {
       return Material(
         color: Colors.transparent,
         borderRadius: radius,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: radius,
-          child: content,
-        ),
+        child: InkWell(onTap: onTap, borderRadius: radius, child: content),
       );
     }
     return content;
   }
-
 }
 
 Future<void> _launchExternalUrl(String url) async {
