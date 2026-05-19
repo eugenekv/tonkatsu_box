@@ -1,11 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Домашний URL VGMaps (Better VGMaps).
 const String vgMapsHomeUrl = 'https://vgmaps.de/';
 
-/// Состояние боковой панели VGMaps Browser.
+/// State for the VGMaps browser side panel.
 class VgMapsPanelState {
-  /// Создаёт экземпляр [VgMapsPanelState].
   const VgMapsPanelState({
     this.isOpen = false,
     this.currentUrl = vgMapsHomeUrl,
@@ -18,34 +16,19 @@ class VgMapsPanelState {
     this.error,
   });
 
-  /// Открыта ли панель.
   final bool isOpen;
-
-  /// Текущий URL в WebView.
   final String currentUrl;
-
-  /// Можно ли перейти назад.
   final bool canGoBack;
-
-  /// Можно ли перейти вперёд.
   final bool canGoForward;
-
-  /// Идёт ли загрузка страницы.
   final bool isLoading;
 
-  /// URL захваченного изображения (из JS injection).
+  /// Image URL captured via the page's JS injection.
   final String? capturedImageUrl;
-
-  /// Ширина захваченного изображения.
   final int? capturedImageWidth;
-
-  /// Высота захваченного изображения.
   final int? capturedImageHeight;
 
-  /// Ошибка.
   final String? error;
 
-  /// Создаёт копию с изменёнными полями.
   VgMapsPanelState copyWith({
     bool? isOpen,
     String? currentUrl,
@@ -79,41 +62,38 @@ class VgMapsPanelState {
   }
 }
 
-/// Провайдер для управления боковой панелью VGMaps Browser.
 final NotifierProviderFamily<VgMapsPanelNotifier, VgMapsPanelState, int?>
     vgMapsPanelProvider =
     NotifierProvider.family<VgMapsPanelNotifier, VgMapsPanelState, int?>(
   VgMapsPanelNotifier.new,
 );
 
-/// Notifier для управления состоянием боковой панели VGMaps Browser.
 class VgMapsPanelNotifier extends FamilyNotifier<VgMapsPanelState, int?> {
   @override
   VgMapsPanelState build(int? arg) {
     return const VgMapsPanelState();
   }
 
-  /// Переключает видимость панели.
   void togglePanel() {
     state = state.copyWith(isOpen: !state.isOpen);
   }
 
-  /// Открывает панель.
   void openPanel() {
     state = state.copyWith(isOpen: true);
   }
 
-  /// Закрывает панель.
+  /// Resets browser navigation and any captured-image state. Mirrors
+  /// [SteamGridDbPanelNotifier.closePanel]: the provider is keyed by
+  /// `collectionId`, so without this the previous URL / captured image
+  /// would leak into the next canvas opening the same panel.
   void closePanel() {
-    state = state.copyWith(isOpen: false);
+    state = const VgMapsPanelState();
   }
 
-  /// Обновляет текущий URL при навигации.
   void setCurrentUrl(String url) {
     state = state.copyWith(currentUrl: url);
   }
 
-  /// Обновляет состояние навигации (назад/вперёд).
   void setNavigationState({
     required bool canGoBack,
     required bool canGoForward,
@@ -124,12 +104,11 @@ class VgMapsPanelNotifier extends FamilyNotifier<VgMapsPanelState, int?> {
     );
   }
 
-  /// Устанавливает состояние загрузки страницы.
   void setLoading({required bool isLoading}) {
     state = state.copyWith(isLoading: isLoading);
   }
 
-  /// Захватывает URL изображения из JS injection.
+  /// Capture an image URL reported by the page's JS injection.
   void captureImage(String url, {int? width, int? height}) {
     state = state.copyWith(
       capturedImageUrl: url,
@@ -138,17 +117,14 @@ class VgMapsPanelNotifier extends FamilyNotifier<VgMapsPanelState, int?> {
     );
   }
 
-  /// Очищает захваченное изображение.
   void clearCapturedImage() {
     state = state.copyWith(clearCapturedImage: true);
   }
 
-  /// Устанавливает ошибку.
   void setError(String error) {
     state = state.copyWith(error: error);
   }
 
-  /// Очищает ошибку.
   void clearError() {
     state = state.copyWith(clearError: true);
   }

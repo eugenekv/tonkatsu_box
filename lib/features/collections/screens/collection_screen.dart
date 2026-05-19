@@ -241,9 +241,11 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
             ],
           ),
           DraggableFab(
+            key: ValueKey<bool>(_isCanvasMode),
             mainAction: _buildMainFabAction(l),
             primaryItems: _buildPrimaryFabItems(l),
             items: _buildSecondaryFabItems(l),
+            initialRight: _isCanvasMode ? 72 : null,
           ),
         ],
       ),

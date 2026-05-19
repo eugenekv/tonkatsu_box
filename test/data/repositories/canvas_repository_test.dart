@@ -7,7 +7,10 @@ import 'package:xerabora/shared/models/canvas_viewport.dart';
 import 'package:xerabora/shared/models/collection_item.dart';
 import 'package:xerabora/shared/models/item_status.dart';
 import 'package:xerabora/shared/models/media_type.dart';
+import 'package:xerabora/shared/models/anime.dart';
+import 'package:xerabora/shared/models/custom_media.dart';
 import 'package:xerabora/shared/models/game.dart';
+import 'package:xerabora/shared/models/manga.dart';
 import 'package:xerabora/shared/models/movie.dart';
 import 'package:xerabora/shared/models/tv_show.dart';
 import 'package:xerabora/shared/models/visual_novel.dart';
@@ -705,6 +708,113 @@ void main() {
         expect(result[0].itemRefId, 17);
         expect(result[0].visualNovel, isNotNull);
         expect(result[0].visualNovel!.title, 'Ever17');
+      });
+
+      // Regression: `initializeCanvas` must propagate every media-type-specific
+      // field (game/movie/tvShow/visualNovel/manga/anime/customMedia) from the
+      // CollectionItem to the freshly-created CanvasItem. Forgetting one means
+      // the canvas opens with empty cards (no cover image, no title) for that
+      // type — exactly what happened to anime and custom items historically.
+      // When a new media type is added, add a case here so the same regression
+      // can't slip in.
+      test(
+          'should propagate every media-type field from CollectionItem',
+          () async {
+        const Game testGame = Game(id: 100, name: 'Hades');
+        const Movie testMovie = Movie(tmdbId: 200, title: 'Spirited Away');
+        const TvShow testTvShow = TvShow(tmdbId: 300, title: 'Breaking Bad');
+        const VisualNovel testVn = VisualNovel(id: 'v17', title: 'Ever17');
+        const Manga testManga = Manga(id: 500, title: 'Berserk');
+        const Anime testAnime = Anime(id: 600, title: 'Cowboy Bebop');
+        const CustomMedia testCustom =
+            CustomMedia(id: 700, title: 'My homebrew');
+
+        final List<CollectionItem> items = <CollectionItem>[
+          CollectionItem(
+            id: 1,
+            collectionId: 10,
+            mediaType: MediaType.game,
+            externalId: 100,
+            status: ItemStatus.notStarted,
+            addedAt: testDate,
+            game: testGame,
+          ),
+          CollectionItem(
+            id: 2,
+            collectionId: 10,
+            mediaType: MediaType.movie,
+            externalId: 200,
+            status: ItemStatus.notStarted,
+            addedAt: testDate,
+            movie: testMovie,
+          ),
+          CollectionItem(
+            id: 3,
+            collectionId: 10,
+            mediaType: MediaType.tvShow,
+            externalId: 300,
+            status: ItemStatus.notStarted,
+            addedAt: testDate,
+            tvShow: testTvShow,
+          ),
+          CollectionItem(
+            id: 4,
+            collectionId: 10,
+            mediaType: MediaType.visualNovel,
+            externalId: 17,
+            status: ItemStatus.notStarted,
+            addedAt: testDate,
+            visualNovel: testVn,
+          ),
+          CollectionItem(
+            id: 5,
+            collectionId: 10,
+            mediaType: MediaType.manga,
+            externalId: 500,
+            status: ItemStatus.notStarted,
+            addedAt: testDate,
+            manga: testManga,
+          ),
+          CollectionItem(
+            id: 6,
+            collectionId: 10,
+            mediaType: MediaType.anime,
+            externalId: 600,
+            status: ItemStatus.notStarted,
+            addedAt: testDate,
+            anime: testAnime,
+          ),
+          CollectionItem(
+            id: 7,
+            collectionId: 10,
+            mediaType: MediaType.custom,
+            externalId: 700,
+            status: ItemStatus.notStarted,
+            addedAt: testDate,
+            customMedia: testCustom,
+          ),
+        ];
+
+        when(() => mockDb.insertCanvasItemsBatch(any()))
+            .thenAnswer((_) async => <int>[1, 2, 3, 4, 5, 6, 7]);
+        when(() => mockDb.upsertCanvasViewport(
+              collectionId: any(named: 'collectionId'),
+              scale: any(named: 'scale'),
+              offsetX: any(named: 'offsetX'),
+              offsetY: any(named: 'offsetY'),
+            )).thenAnswer((_) async {});
+
+        final List<CanvasItem> result =
+            await repository.initializeCanvas(10, items);
+
+        expect(result.length, 7);
+        expect(result[0].game?.id, testGame.id);
+        expect(result[1].movie?.tmdbId, testMovie.tmdbId);
+        expect(result[2].tvShow?.tmdbId, testTvShow.tmdbId);
+        expect(result[3].visualNovel?.id, testVn.id);
+        expect(result[4].manga?.id, testManga.id);
+        expect(result[5].anime?.id, testAnime.id);
+        expect(result[6].customMedia?.id, testCustom.id);
       });
 
       test('should handle empty games list', () async {

@@ -31,6 +31,10 @@ class GameCanvasNotifier
   late int? _collectionId;
   late int _collectionItemId;
 
+  /// Mirrors [CanvasNotifier._loadGeneration]: protects the phase-2
+  /// enrichment from overwriting state if a concurrent reload superseded it.
+  int _loadGeneration = 0;
+
   // CanvasTimerMixin
   @override
   CanvasRepository get timerRepository => _repository;
@@ -105,6 +109,7 @@ class GameCanvasNotifier
   }
 
   Future<void> _loadCanvas() async {
+    final int gen = ++_loadGeneration;
     try {
       final bool hasItems =
           await _repository.hasGameCanvasItems(_collectionItemId);
@@ -114,25 +119,34 @@ class GameCanvasNotifier
         return;
       }
 
+      // Phase 1: skeleton — positions and types only.
       final (
-        List<CanvasItem> items,
+        List<CanvasItem> rawItems,
         CanvasViewport? viewport,
         List<CanvasConnection> connections,
       ) = await (
-        _repository.getGameCanvasItemsWithData(_collectionItemId),
+        _repository.getGameCanvasItems(_collectionItemId),
         _repository.getGameCanvasViewport(_collectionItemId),
         _repository.getGameCanvasConnections(_collectionItemId),
       ).wait;
+      if (gen != _loadGeneration) return;
 
       state = state.copyWith(
-        items: items,
+        items: rawItems,
         connections: connections,
         viewport: viewport ??
             CanvasViewport(collectionId: _collectionItemId),
         isLoading: false,
         isInitialized: true,
       );
+
+      // Phase 2: cover image + title hydration.
+      final List<CanvasItem> enriched =
+          await _repository.enrichItems(rawItems);
+      if (gen != _loadGeneration) return;
+      state = state.copyWith(items: enriched);
     } catch (e) {
+      if (gen != _loadGeneration) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -193,6 +207,7 @@ class GameCanvasNotifier
       tvShow: collectionItem.tvShow,
       visualNovel: collectionItem.visualNovel,
       manga: collectionItem.manga,
+      anime: collectionItem.anime,
       customMedia: collectionItem.customMedia,
     );
 

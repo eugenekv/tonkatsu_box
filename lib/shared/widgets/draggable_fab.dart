@@ -55,6 +55,8 @@ class DraggableFab extends StatefulWidget {
     this.primaryItems = const <DraggableFabItem>[],
     this.items = const <DraggableFabItem>[],
     this.icon = Icons.more_vert,
+    this.initialRight,
+    this.initialBottom,
     super.key,
   });
 
@@ -71,13 +73,21 @@ class DraggableFab extends StatefulWidget {
   /// Иконка кнопки меню.
   final IconData icon;
 
+  /// Initial right offset (defaults to [AppSpacing.md]). Set on the canvas
+  /// view so the FAB clears the right-side toolbar column instead of
+  /// overlapping it.
+  final double? initialRight;
+
+  /// Initial bottom offset (defaults to [AppSpacing.md]).
+  final double? initialBottom;
+
   @override
   State<DraggableFab> createState() => _DraggableFabState();
 }
 
 class _DraggableFabState extends State<DraggableFab> {
-  double _right = AppSpacing.md;
-  double _bottom = AppSpacing.md;
+  late double _right = widget.initialRight ?? AppSpacing.md;
+  late double _bottom = widget.initialBottom ?? AppSpacing.md;
 
   bool _isDragging = false;
   Offset _dragStart = Offset.zero;
