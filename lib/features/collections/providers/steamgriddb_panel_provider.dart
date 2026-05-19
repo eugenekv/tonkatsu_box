@@ -5,29 +5,21 @@ import '../../../shared/models/steamgriddb_game.dart';
 import '../../../shared/models/steamgriddb_image.dart';
 import '../../settings/providers/settings_provider.dart';
 
-/// Тип изображений SteamGridDB для фильтрации в панели.
+/// SteamGridDB image kind shown by the side panel.
 enum SteamGridDbImageType {
-  /// Обложки (box art).
   grids('Grids'),
-
-  /// Баннеры.
   heroes('Heroes'),
-
-  /// Логотипы.
   logos('Logos'),
-
-  /// Иконки.
   icons('Icons');
 
   const SteamGridDbImageType(this.label);
 
-  /// Отображаемое название.
+  /// Display label.
   final String label;
 }
 
-/// Состояние боковой панели SteamGridDB.
+/// State for the SteamGridDB side panel.
 class SteamGridDbPanelState {
-  /// Создаёт экземпляр [SteamGridDbPanelState].
   const SteamGridDbPanelState({
     this.isOpen = false,
     this.searchTerm = '',
@@ -42,40 +34,25 @@ class SteamGridDbPanelState {
     this.imageCache = const <String, List<SteamGridDbImage>>{},
   });
 
-  /// Открыта ли панель.
   final bool isOpen;
-
-  /// Текущий поисковый запрос.
   final String searchTerm;
-
-  /// Результаты поиска игр.
   final List<SteamGridDbGame> searchResults;
 
-  /// Выбранная игра (null = показываем результаты поиска).
+  /// Currently selected game; `null` means the panel is showing search
+  /// results, not a specific game's image grid.
   final SteamGridDbGame? selectedGame;
 
-  /// Выбранный тип изображений.
   final SteamGridDbImageType selectedImageType;
-
-  /// Текущие изображения для отображения.
   final List<SteamGridDbImage> images;
-
-  /// Идёт поиск игр.
   final bool isSearching;
-
-  /// Идёт загрузка изображений.
   final bool isLoadingImages;
-
-  /// Ошибка при поиске.
   final String? searchError;
-
-  /// Ошибка при загрузке изображений.
   final String? imageError;
 
-  /// Кэш изображений по ключу "$gameId:$imageType".
+  /// Per-`(gameId, imageType)` cache survives close/open so reopening the
+  /// panel for a recently-viewed game does not re-hit the API.
   final Map<String, List<SteamGridDbImage>> imageCache;
 
-  /// Создаёт копию с изменёнными полями.
   SteamGridDbPanelState copyWith({
     bool? isOpen,
     String? searchTerm,
@@ -110,7 +87,6 @@ class SteamGridDbPanelState {
   }
 }
 
-/// Провайдер для управления боковой панелью SteamGridDB.
 final NotifierProviderFamily<SteamGridDbPanelNotifier, SteamGridDbPanelState,
         int?> steamGridDbPanelProvider =
     NotifierProvider.family<SteamGridDbPanelNotifier, SteamGridDbPanelState,
@@ -118,7 +94,6 @@ final NotifierProviderFamily<SteamGridDbPanelNotifier, SteamGridDbPanelState,
   SteamGridDbPanelNotifier.new,
 );
 
-/// Notifier для управления состоянием боковой панели SteamGridDB.
 class SteamGridDbPanelNotifier
     extends FamilyNotifier<SteamGridDbPanelState, int?> {
   late SteamGridDbApi _api;
@@ -129,22 +104,21 @@ class SteamGridDbPanelNotifier
     return const SteamGridDbPanelState();
   }
 
-  /// Переключает видимость панели.
   void togglePanel() {
     state = state.copyWith(isOpen: !state.isOpen);
   }
 
-  /// Открывает панель.
   void openPanel() {
     state = state.copyWith(isOpen: true);
   }
 
-  /// Закрывает панель.
+  /// Resets the search input, results, and selection while keeping
+  /// [imageCache]. Without this reset the previous query leaked across
+  /// canvases that share the provider key (`collectionId`).
   void closePanel() {
-    state = state.copyWith(isOpen: false);
+    state = SteamGridDbPanelState(imageCache: state.imageCache);
   }
 
-  /// Ищет игры по названию.
   Future<void> searchGames(String term) async {
     final String trimmedTerm = term.trim();
     if (trimmedTerm.isEmpty) return;
@@ -180,7 +154,7 @@ class SteamGridDbPanelNotifier
     }
   }
 
-  /// Выбирает игру и загружает изображения по умолчанию (grids).
+  /// Selects a game and fetches its grids by default.
   Future<void> selectGame(SteamGridDbGame game) async {
     state = state.copyWith(
       selectedGame: game,
@@ -191,7 +165,7 @@ class SteamGridDbPanelNotifier
     await _loadImages();
   }
 
-  /// Очищает выбор игры, возвращаясь к результатам поиска.
+  /// Returns from a selected game back to the search-results view.
   void clearGameSelection() {
     state = state.copyWith(
       clearSelectedGame: true,
@@ -200,7 +174,6 @@ class SteamGridDbPanelNotifier
     );
   }
 
-  /// Выбирает тип изображений и загружает их.
   Future<void> selectImageType(SteamGridDbImageType type) async {
     state = state.copyWith(
       selectedImageType: type,
@@ -210,19 +183,16 @@ class SteamGridDbPanelNotifier
     await _loadImages();
   }
 
-  /// Возвращает ключ кэша для пары (gameId, imageType).
   String _cacheKey(int gameId, SteamGridDbImageType type) {
     return '$gameId:${type.name}';
   }
 
-  /// Загружает изображения для выбранной игры и типа.
   Future<void> _loadImages() async {
     final SteamGridDbGame? game = state.selectedGame;
     if (game == null) return;
 
     final String key = _cacheKey(game.id, state.selectedImageType);
 
-    // Проверяем кэш
     final List<SteamGridDbImage>? cached = state.imageCache[key];
     if (cached != null) {
       state = state.copyWith(images: cached);
@@ -244,7 +214,6 @@ class SteamGridDbPanelNotifier
           results = await _api.getIcons(game.id);
       }
 
-      // Сохраняем в кэш
       final Map<String, List<SteamGridDbImage>> updatedCache =
           Map<String, List<SteamGridDbImage>>.of(state.imageCache);
       updatedCache[key] = results;

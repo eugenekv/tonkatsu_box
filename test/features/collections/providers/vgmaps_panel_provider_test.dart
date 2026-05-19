@@ -172,6 +172,36 @@ void main() {
 
         container.dispose();
       });
+
+      // Mirrors the SteamGridDB regression: provider is keyed by
+      // `collectionId`, so without resetting the URL and any captured
+      // image the previous browsing session leaked into the next canvas
+      // that opened the panel.
+      test('should reset navigation and captured-image state', () {
+        final ProviderContainer container = createContainer();
+        final VgMapsPanelNotifier notifier =
+            container.read(vgMapsPanelProvider(testCollectionId).notifier);
+
+        notifier.openPanel();
+        notifier.setCurrentUrl('https://example.com/some-map');
+        notifier.captureImage(
+          'https://example.com/img.png',
+          width: 800,
+          height: 600,
+        );
+
+        notifier.closePanel();
+
+        final VgMapsPanelState state =
+            container.read(vgMapsPanelProvider(testCollectionId));
+        expect(state.isOpen, false);
+        expect(state.currentUrl, vgMapsHomeUrl);
+        expect(state.capturedImageUrl, isNull);
+        expect(state.capturedImageWidth, isNull);
+        expect(state.capturedImageHeight, isNull);
+
+        container.dispose();
+      });
     });
 
     group('setCurrentUrl', () {

@@ -40,6 +40,104 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Changed
 
+- **Refactor canvas dialogs and load the board in two phases**
+
+  The 800-line `_CanvasViewState` shed all its dialog plumbing into a
+  dedicated service; the remaining state class now only carries layout,
+  gestures, and the build tree. The board also paints sooner: instead of
+  blocking the first frame on the seven join queries that hydrate cover
+  art and titles, it now renders a skeleton of positions and types as
+  soon as the bare canvas rows are loaded, then swaps the hydrated items
+  in on the next state tick. Personal (per-item) canvas uses the same
+  two-phase shape for symmetry, even though its one-to-few items make
+  the perf win negligible there.
+
+  * lib/features/collections/widgets/canvas_item_actions.dart
+    (CanvasItemActions.addText, CanvasItemActions.addImage,
+    CanvasItemActions.addLink, CanvasItemActions.editItem,
+    CanvasItemActions.editConnection): New service that owns the
+    add/edit dialogs (text, image, link, edit-connection). Internal
+    `_showAndApply` helper collapses the seven copies of the
+    show-dialog → null-check → `context.mounted` check →
+    forward-to-controller pattern.
+  * lib/features/collections/widgets/canvas_view.dart
+    (_CanvasViewState): Removed `_handleAddText`, `_handleAddImage`,
+    `_handleAddLink`, `_handleEditItem`, `_editTextItem`,
+    `_editImageItem`, `_editLinkItem`, `_handleEditConnection`
+    (~120 lines). Call sites in `_onCanvasSecondaryTap`,
+    `_onItemSecondaryTap`, `_showConnectionContextMenu` now delegate
+    to a `late final` `_actions` field.
+  * lib/data/repositories/canvas_repository.dart
+    (CanvasRepository.enrichItems): New public wrapper around the
+    existing `_enrichItemsWithMediaData`. Lets callers split skeleton
+    load from media hydration without exposing the private method.
+  * lib/features/collections/providers/canvas_provider.dart
+    (CanvasNotifier._loadCanvas, CanvasNotifier._loadGeneration),
+    lib/features/collections/providers/game_canvas_provider.dart
+    (GameCanvasNotifier._loadCanvas, GameCanvasNotifier._loadGeneration):
+    Two-phase load — phase 1 fetches positions / viewport / connections
+    in parallel and updates state with `isLoading: false`, phase 2
+    calls `enrichItems` and swaps in the hydrated list. A
+    `_loadGeneration` counter discards phase-2 results from a load
+    that was superseded by another reload.
+
+- **Fix canvas regressions on first init, FAB overlap, and stale side-panel state**
+
+  Anime and custom items on a freshly-created board used to open with
+  empty cards (no cover, no title) because `CanvasItem.copyWith` in
+  the init path silently dropped the `anime` and `customMedia` fields
+  while accepting game / movie / TV show. Reloading the canvas hid the
+  bug because the read path enriches from cache; first-render was the
+  only window. The collection screen's ⋮ FAB also got moved inward
+  on canvas mode so it stops landing on top of the canvas-side
+  toolbar buttons (VgMaps, SteamGridDB, center-view, reset). And the
+  SteamGridDB / VgMaps side panels stop carrying their previous search
+  and browser state across canvases — both providers are keyed by
+  `collectionId`, so per-item canvases inside the same collection used
+  to inherit each other's queries until the panel was closed.
+
+  * lib/data/repositories/canvas_repository.dart
+    (CanvasRepository.initializeCanvas): Copy `anime` and
+    `customMedia` through to the freshly-created `CanvasItem`s.
+  * lib/features/collections/providers/game_canvas_provider.dart
+    (GameCanvasNotifier._initializeWithCollectionItem): Copy `anime`
+    through to the per-item canvas item.
+  * lib/shared/widgets/draggable_fab.dart (DraggableFab.initialRight,
+    DraggableFab.initialBottom): New constructor params let callers
+    pre-position the FAB without breaking the user's drag-to-relocate
+    state.
+  * lib/features/collections/screens/collection_screen.dart
+    (_CollectionScreenState.build): Pass `initialRight: 72` while in
+    canvas mode and key the `DraggableFab` on `_isCanvasMode` so the
+    position resets cleanly when the user toggles modes.
+  * test/data/repositories/canvas_repository_test.dart
+    (CanvasRepository.initializeCanvas should propagate every
+    media-type field from CollectionItem): New table-driven test that
+    walks every media-type-specific field. Adding a new media type
+    requires adding a row here, so the «one type silently forgotten»
+    class of bug can't reappear.
+  * test/features/collections/providers/game_canvas_provider_test.dart:
+    New file mirroring the same propagation check for the per-item
+    canvas (seven media types, seven tests).
+  * test/features/collections/providers/canvas_provider_test.dart:
+    Updated mocks to cover the new `enrichItems` and the split
+    `getItems`/`getGameCanvasItems` calls in the two-phase load.
+  * lib/features/collections/providers/steamgriddb_panel_provider.dart
+    (SteamGridDbPanelNotifier.closePanel): Reset search input,
+    results, selection, and current images on close while preserving
+    `imageCache`. Translated the file's dartdocs to English while
+    touching it.
+  * lib/features/collections/providers/vgmaps_panel_provider.dart
+    (VgMapsPanelNotifier.closePanel): Reset to a fresh
+    `VgMapsPanelState` on close so the captured image URL and the
+    last-visited page don't bleed into the next canvas. Translated
+    dartdocs to English.
+  * test/features/collections/providers/steamgriddb_panel_provider_test.dart,
+    test/features/collections/providers/vgmaps_panel_provider_test.dart:
+    Add a regression test per panel that confirms `closePanel` wipes
+    the search/browser side of the state and (for SteamGridDB) keeps
+    `imageCache`.
+
 - **Split search screen god class into per-source handlers and fix animation routing**
 
   `_SearchScreenState` shrank from ~1500 to ~400 lines. The seven near-duplicate

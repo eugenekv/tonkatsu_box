@@ -280,6 +280,9 @@ void main() {
           .thenAnswer((_) async => effectiveItems);
       when(() => mockRepository.getItemsWithData(collectionId))
           .thenAnswer((_) async => effectiveItems);
+      when(() => mockRepository.enrichItems(any()))
+          .thenAnswer((Invocation inv) async =>
+              inv.positionalArguments.first as List<CanvasItem>);
       when(() => mockRepository.getViewport(collectionId))
           .thenAnswer((_) async => viewport);
       when(() => mockRepository.deleteItem(any()))
@@ -351,7 +354,10 @@ void main() {
           expect(loadedState.error, isNull);
 
           verify(() => mockRepository.hasCanvasItems(collectionId)).called(1);
-          verify(() => mockRepository.getItemsWithData(collectionId)).called(1);
+          // Twice: once in `_syncCanvasWithItems` (diff against collection),
+          // once in phase 1 of the two-phase load.
+          verify(() => mockRepository.getItems(collectionId)).called(2);
+          verify(() => mockRepository.enrichItems(any())).called(1);
           verify(() => mockRepository.getViewport(collectionId)).called(1);
         },
       );
@@ -682,8 +688,9 @@ void main() {
               .thenAnswer((_) async => true);
           when(() => mockRepository.getItems(collectionId))
               .thenAnswer((_) async => testItems);
-          when(() => mockRepository.getItemsWithData(collectionId))
-              .thenAnswer((_) async => testItems);
+          when(() => mockRepository.enrichItems(any()))
+              .thenAnswer((Invocation inv) async =>
+                  inv.positionalArguments.first as List<CanvasItem>);
           when(() => mockRepository.getViewport(collectionId))
               .thenAnswer((_) async => null);
           when(() => mockRepository.getConnections(collectionId))
@@ -707,7 +714,7 @@ void main() {
 
           verify(() => mockCollectionRepo.getItemsWithData(collectionId))
               .called(1);
-          verify(() => mockRepository.getItemsWithData(collectionId)).called(1);
+          verify(() => mockRepository.enrichItems(any())).called(1);
           verifyNever(() => mockRepository.deleteItemsBatch(any()));
         },
       );
@@ -793,8 +800,11 @@ void main() {
           );
 
           final List<CanvasItem> updatedItems = <CanvasItem>[testItems[0]];
-          when(() => mockRepository.getItemsWithData(collectionId))
+          when(() => mockRepository.getItems(collectionId))
               .thenAnswer((_) async => updatedItems);
+          when(() => mockRepository.enrichItems(any()))
+              .thenAnswer((Invocation inv) async =>
+                  inv.positionalArguments.first as List<CanvasItem>);
 
           final CanvasNotifier notifier = container
               .read(canvasNotifierProvider(collectionId).notifier);
@@ -2155,8 +2165,11 @@ void main() {
     }) {
       when(() => mockRepository.hasGameCanvasItems(collectionItemId))
           .thenAnswer((_) async => true);
-      when(() => mockRepository.getGameCanvasItemsWithData(collectionItemId))
+      when(() => mockRepository.getGameCanvasItems(collectionItemId))
           .thenAnswer((_) async => items ?? testItems);
+      when(() => mockRepository.enrichItems(any()))
+          .thenAnswer((Invocation inv) async =>
+              inv.positionalArguments.first as List<CanvasItem>);
       when(() => mockRepository.getGameCanvasViewport(collectionItemId))
           .thenAnswer(
         (_) async =>

@@ -45,6 +45,13 @@ class CanvasRepository {
     return _enrichItemsWithMediaData(items);
   }
 
+  /// Hydrate the `game/movie/tvShow/...` slots on already-loaded items.
+  /// Lets callers paint a skeleton canvas first (positions + types) and
+  /// fill in the heavy joined data in a second pass — see
+  /// [CanvasNotifier._loadCanvas].
+  Future<List<CanvasItem>> enrichItems(List<CanvasItem> items) =>
+      _enrichItemsWithMediaData(items);
+
   Future<CanvasItem> createItem(CanvasItem item) async {
     final int id = await _db.insertCanvasItem(item.toDb());
     return item.copyWith(id: id);
@@ -439,6 +446,8 @@ class CanvasRepository {
           tvShow: items[i].tvShow,
           visualNovel: items[i].visualNovel,
           manga: items[i].manga,
+          anime: items[i].anime,
+          customMedia: items[i].customMedia,
         ),
     ];
 

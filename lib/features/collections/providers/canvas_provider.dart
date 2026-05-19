@@ -36,6 +36,11 @@ class CanvasNotifier extends FamilyNotifier<CanvasState, int?>
   late int? _collectionId;
   bool _isSyncing = false;
 
+  /// Bumped on every `_loadCanvas` so async hydration tasks started by an
+  /// earlier load know to drop their result instead of overwriting fresh
+  /// state — see the phase-2 enrichment in [_loadCanvas].
+  int _loadGeneration = 0;
+
   // CanvasTimerMixin
   @override
   CanvasRepository get timerRepository => _repository;
@@ -95,33 +100,47 @@ class CanvasNotifier extends FamilyNotifier<CanvasState, int?>
   Future<void> _loadCanvas() async {
     if (_collectionId == null) return;
     final int cId = _collectionId!;
+    final int gen = ++_loadGeneration;
     try {
       final bool hasItems = await _repository.hasCanvasItems(cId);
 
       if (!hasItems) {
         await _initializeFromItems();
-      } else {
-        await _syncCanvasWithItems();
-
-        final (
-          List<CanvasItem> items,
-          CanvasViewport? viewport,
-          List<CanvasConnection> connections,
-        ) = await (
-          _repository.getItemsWithData(cId),
-          _repository.getViewport(cId),
-          _repository.getConnections(cId),
-        ).wait;
-
-        state = state.copyWith(
-          items: items,
-          connections: connections,
-          viewport: viewport ?? CanvasViewport(collectionId: cId),
-          isLoading: false,
-          isInitialized: true,
-        );
+        return;
       }
+
+      await _syncCanvasWithItems();
+
+      // Phase 1: paint a skeleton canvas with positions and types as soon
+      // as the bare item rows are loaded — the media-table joins for
+      // covers/titles run in phase 2 below.
+      final (
+        List<CanvasItem> rawItems,
+        CanvasViewport? viewport,
+        List<CanvasConnection> connections,
+      ) = await (
+        _repository.getItems(cId),
+        _repository.getViewport(cId),
+        _repository.getConnections(cId),
+      ).wait;
+      if (gen != _loadGeneration) return;
+
+      state = state.copyWith(
+        items: rawItems,
+        connections: connections,
+        viewport: viewport ?? CanvasViewport(collectionId: cId),
+        isLoading: false,
+        isInitialized: true,
+      );
+
+      // Phase 2: hydrate cover images and titles. A concurrent reload
+      // (gen mismatch) discards this result, since its state is stale.
+      final List<CanvasItem> enriched =
+          await _repository.enrichItems(rawItems);
+      if (gen != _loadGeneration) return;
+      state = state.copyWith(items: enriched);
     } catch (e) {
+      if (gen != _loadGeneration) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

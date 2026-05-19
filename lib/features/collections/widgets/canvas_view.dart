@@ -6,21 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/repositories/canvas_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/constants/platform_features.dart';
-import '../../../shared/models/canvas_connection.dart';
 import '../../../shared/models/canvas_item.dart';
-import '../providers/canvas_provider.dart';
-import 'canvas_connection_painter.dart';
-import 'canvas_context_menu.dart';
 import '../../../shared/widgets/media_poster_card.dart';
-import 'canvas_image_item.dart';
-import 'canvas_link_item.dart';
-import 'canvas_text_item.dart';
-import 'dialogs/add_image_dialog.dart';
-import 'dialogs/add_link_dialog.dart';
-import 'dialogs/add_text_dialog.dart';
-import 'dialogs/edit_connection_dialog.dart';
+import '../providers/canvas_provider.dart';
 import '../providers/steamgriddb_panel_provider.dart';
 import '../providers/vgmaps_panel_provider.dart';
+import 'canvas_connection_painter.dart';
+import 'canvas_context_menu.dart';
+import 'canvas_image_item.dart';
+import 'canvas_item_actions.dart';
+import 'canvas_link_item.dart';
+import 'canvas_text_item.dart';
 
 class CanvasView extends ConsumerStatefulWidget {
   const CanvasView({
@@ -72,6 +68,11 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
       canvasNotifierProvider(widget.collectionId).notifier,
     );
   }
+
+  late final CanvasItemActions _actions = CanvasItemActions(
+    context: context,
+    controller: _readNotifier,
+  );
 
   static const double _minScale = 0.1;
   static const double _maxScale = 3.0;
@@ -196,9 +197,9 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     CanvasContextMenu.showCanvasMenu(
       context,
       position: globalPosition,
-      onAddText: () => _handleAddText(canvasX, canvasY),
-      onAddImage: () => _handleAddImage(canvasX, canvasY),
-      onAddLink: () => _handleAddLink(canvasX, canvasY),
+      onAddText: () => _actions.addText(canvasX, canvasY),
+      onAddImage: () => _actions.addImage(canvasX, canvasY),
+      onAddLink: () => _actions.addLink(canvasX, canvasY),
       onFindImages: widget.isEditable
           ? () {
               ref
@@ -234,7 +235,7 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
       context,
       position: globalPosition,
       itemType: item.itemType,
-      onEdit: () => _handleEditItem(item),
+      onEdit: () => _actions.editItem(item),
       onDelete: () => notifier.deleteItem(item.id),
       onBringToFront: () => notifier.bringToFront(item.id),
       onSendToBack: () => notifier.sendToBack(item.id),
@@ -243,95 +244,6 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
         _focusNode.requestFocus();
       },
     );
-  }
-
-  Future<void> _handleAddText(double x, double y) async {
-    final Map<String, dynamic>? result = await AddTextDialog.show(context);
-    if (result == null) return;
-    if (!mounted) return;
-
-    _readNotifier().addTextItem(
-      x,
-      y,
-      result['content'] as String,
-      (result['fontSize'] as num).toDouble(),
-    );
-  }
-
-  Future<void> _handleAddImage(double x, double y) async {
-    final Map<String, dynamic>? result = await AddImageDialog.show(context);
-    if (result == null) return;
-    if (!mounted) return;
-
-    _readNotifier().addImageItem(x, y, result);
-  }
-
-  Future<void> _handleAddLink(double x, double y) async {
-    final Map<String, dynamic>? result = await AddLinkDialog.show(context);
-    if (result == null) return;
-    if (!mounted) return;
-
-    _readNotifier().addLinkItem(
-      x,
-      y,
-      result['url'] as String,
-      result['label'] as String,
-    );
-  }
-
-  Future<void> _handleEditItem(CanvasItem item) async {
-    switch (item.itemType) {
-      case CanvasItemType.text:
-        await _editTextItem(item);
-      case CanvasItemType.image:
-        await _editImageItem(item);
-      case CanvasItemType.link:
-        await _editLinkItem(item);
-      case CanvasItemType.game:
-      case CanvasItemType.movie:
-      case CanvasItemType.tvShow:
-      case CanvasItemType.animation:
-      case CanvasItemType.visualNovel:
-      case CanvasItemType.manga:
-      case CanvasItemType.anime:
-      case CanvasItemType.custom:
-        break;
-    }
-  }
-
-  Future<void> _editTextItem(CanvasItem item) async {
-    final Map<String, dynamic>? result = await AddTextDialog.show(
-      context,
-      initialContent: item.data?['content'] as String?,
-      initialFontSize: (item.data?['fontSize'] as num?)?.toDouble(),
-    );
-    if (result == null) return;
-    if (!mounted) return;
-
-    _readNotifier().updateItemData(item.id, result);
-  }
-
-  Future<void> _editImageItem(CanvasItem item) async {
-    final Map<String, dynamic>? result = await AddImageDialog.show(
-      context,
-      initialUrl: item.data?['url'] as String?,
-    );
-    if (result == null) return;
-    if (!mounted) return;
-
-    _readNotifier().updateItemData(item.id, result);
-  }
-
-  Future<void> _editLinkItem(CanvasItem item) async {
-    final Map<String, dynamic>? result = await AddLinkDialog.show(
-      context,
-      initialUrl: item.data?['url'] as String?,
-      initialLabel: item.data?['label'] as String?,
-    );
-    if (result == null) return;
-    if (!mounted) return;
-
-    _readNotifier().updateItemData(item.id, result);
   }
 
   void _onCanvasSecondaryTapWithConnections(
@@ -361,39 +273,11 @@ class _CanvasViewState extends ConsumerState<CanvasView> {
     CanvasContextMenu.showConnectionMenu(
       context,
       position: globalPosition,
-      onEdit: () => _handleEditConnection(connectionId, canvasState),
+      onEdit: () => _actions.editConnection(connectionId, canvasState),
       onDelete: () {
         _readNotifier().deleteConnection(connectionId);
       },
     );
-  }
-
-  Future<void> _handleEditConnection(
-    int connectionId,
-    CanvasState canvasState,
-  ) async {
-    final CanvasConnection? conn = canvasState.connections
-        .where((CanvasConnection c) => c.id == connectionId)
-        .firstOrNull;
-    if (conn == null) return;
-
-    final Map<String, dynamic>? result = await EditConnectionDialog.show(
-      context,
-      initialLabel: conn.label,
-      initialColor: conn.color,
-      initialStyle: conn.style,
-    );
-    if (result == null) return;
-    if (!mounted) return;
-
-    _readNotifier().updateConnection(
-      connectionId,
-          label: result['label'] as String?,
-          color: result['color'] as String?,
-          style: result['style'] != null
-              ? ConnectionStyle.fromString(result['style'] as String)
-              : null,
-        );
   }
 
   void _handleConnectionModeClick(CanvasItem item) {

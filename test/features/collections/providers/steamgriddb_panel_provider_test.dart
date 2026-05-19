@@ -269,6 +269,44 @@ void main() {
             container.read(steamGridDbPanelProvider(testCollectionId));
         expect(state.isOpen, false);
       });
+
+      // Regression: provider was keyed by `collectionId`, so canvases that
+      // share a collection id (different per-item canvases inside the same
+      // collection) used to see each other's stale search results. Closing
+      // the panel must reset the search-side state so the next open is
+      // fresh, regardless of who reopens it.
+      test('should reset search/results/selection but keep imageCache', () {
+        when(() => mockApi.searchGames('Chrono')).thenAnswer(
+          (_) async => const <SteamGridDbGame>[testGame],
+        );
+
+        final ProviderContainer container = createContainer();
+        final SteamGridDbPanelNotifier notifier =
+            container.read(steamGridDbPanelProvider(testCollectionId).notifier);
+
+        // Prime some state plus the image cache.
+        notifier.openPanel();
+        notifier.state = notifier.state.copyWith(
+          searchTerm: 'Chrono',
+          searchResults: const <SteamGridDbGame>[testGame],
+          selectedGame: testGame,
+          images: const <SteamGridDbImage>[],
+          imageCache: const <String, List<SteamGridDbImage>>{
+            '1:grids': <SteamGridDbImage>[],
+          },
+        );
+
+        notifier.closePanel();
+
+        final SteamGridDbPanelState state =
+            container.read(steamGridDbPanelProvider(testCollectionId));
+        expect(state.isOpen, false);
+        expect(state.searchTerm, '');
+        expect(state.searchResults, isEmpty);
+        expect(state.selectedGame, isNull);
+        expect(state.images, isEmpty);
+        expect(state.imageCache, isNotEmpty);
+      });
     });
 
     group('searchGames', () {
