@@ -245,16 +245,21 @@ class _MediaDetailViewState extends State<MediaDetailView> {
     final Widget content = ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.surface.withAlpha(80),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(
-              color: AppColors.surfaceBorder.withAlpha(40),
+        // Material wraps the fill so descendant ListTile/ExpansionTile widgets
+        // paint their ink on a Material ancestor — Flutter 3.44 asserts when
+        // a coloured DecoratedBox sits between them.
+        Material(
+          color: AppColors.surface.withAlpha(80),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(
+                color: AppColors.surfaceBorder.withAlpha(40),
+              ),
             ),
-          ),
-          child: Column(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               _buildHeader(),
@@ -293,6 +298,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
                   section,
                 ],
             ],
+          ),
           ),
         ),
       ],

@@ -86,10 +86,14 @@ class _SteamGridDbPanelState extends ConsumerState<SteamGridDbPanel> {
 
     _preFillSearchIfNeeded(panelState);
 
-    return Container(
+    // Material wraps the fill so descendant ListTile widgets paint ink on
+    // a Material ancestor — Flutter 3.44 asserts when a coloured ColoredBox
+    // sits between them.
+    return SizedBox(
       width: 320,
-      color: colorScheme.surface,
-      child: Column(
+      child: Material(
+        color: colorScheme.surface,
+        child: Column(
         children: <Widget>[
           // Заголовок
           _buildHeader(colorScheme, theme),
@@ -115,6 +119,7 @@ class _SteamGridDbPanelState extends ConsumerState<SteamGridDbPanel> {
             child: _buildContent(panelState, settings, colorScheme, theme),
           ),
         ],
+        ),
       ),
     );
   }
