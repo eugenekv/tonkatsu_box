@@ -1,14 +1,9 @@
-// Плавающая перетаскиваемая кнопка с popup-меню действий.
-// Раскрывается веером в 2 стороны: primary — влево, secondary — вверх.
-
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
-/// Элемент меню [DraggableFab].
 class DraggableFabItem {
-  /// Создаёт [DraggableFabItem].
   const DraggableFabItem({
     required this.icon,
     required this.label,
@@ -16,22 +11,14 @@ class DraggableFabItem {
     this.iconColor,
   });
 
-  /// Иконка пункта.
   final IconData icon;
-
-  /// Текст пункта (показывается в tooltip).
   final String label;
-
-  /// Callback при нажатии.
   final VoidCallback onTap;
-
-  /// Цвет иконки (по умолчанию — [AppColors.textPrimary]).
   final Color? iconColor;
 }
 
-/// Разделитель — пропуск в списке кнопок (увеличенный gap).
+/// Inserts an extra vertical gap between menu sections.
 class DraggableFabDivider extends DraggableFabItem {
-  /// Создаёт [DraggableFabDivider].
   const DraggableFabDivider()
       : super(
           icon: Icons.remove,
@@ -42,14 +29,9 @@ class DraggableFabDivider extends DraggableFabItem {
   static void _noop() {}
 }
 
-/// Плавающая кнопка действий, которую можно перетаскивать по экрану.
-///
-/// Может содержать всегда-видимое [mainAction] и/или скрытое меню,
-/// раскрывающееся веером:
-/// - [primaryItems] — круглые иконки влево от ⋮.
-/// - [items] — круглые иконки вверх от ⋮.
+/// Draggable FAB block with an optional always-visible [mainAction] and a
+/// popup pill menu fed by [primaryItems] + [items] (concatenated, in order).
 class DraggableFab extends StatefulWidget {
-  /// Создаёт [DraggableFab].
   const DraggableFab({
     this.mainAction,
     this.primaryItems = const <DraggableFabItem>[],
@@ -60,17 +42,9 @@ class DraggableFab extends StatefulWidget {
     super.key,
   });
 
-  /// Всегда-видимая основная кнопка (например, «+»). Рендерится слева
-  /// от ⋮ FAB; перетаскивается вместе с ним как единый блок.
   final DraggableFabItem? mainAction;
-
-  /// Основные действия — веер влево от ⋮.
   final List<DraggableFabItem> primaryItems;
-
-  /// Остальные действия — веер вверх от ⋮.
   final List<DraggableFabItem> items;
-
-  /// Иконка кнопки меню.
   final IconData icon;
 
   /// Initial right offset (defaults to [AppSpacing.md]). Set on the canvas
@@ -225,9 +199,8 @@ class _DraggableFabState extends State<DraggableFab> {
   }
 
   void _showMenu(BuildContext context) {
-    // ⋮ sits at the top of the block, horizontally centered above the
-    // main action. Pass its actual screen position so the fan radiates
-    // around the small (40px) menu button, not the larger main one.
+    // Anchor the popup to the ⋮ button (top of the block), not the larger
+    // main FAB below it, so pills line up with the menu trigger.
     final RenderBox box = context.findRenderObject()! as RenderBox;
     final Offset blockPos = box.localToGlobal(Offset.zero);
     final double menuLeft = blockPos.dx + (_blockWidth - _menuFabSize) / 2;
@@ -242,10 +215,6 @@ class _DraggableFabState extends State<DraggableFab> {
     );
   }
 }
-
-// =========================================================================
-// Fan menu route
-// =========================================================================
 
 class _FanMenuRoute extends PopupRoute<void> {
   _FanMenuRoute({
