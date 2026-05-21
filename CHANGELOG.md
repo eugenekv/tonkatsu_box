@@ -99,6 +99,69 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Changed
 
+- **Replace raw collection dropdowns with the shared picker field**
+
+  All places where the user picked one collection from a form
+  (import screens for MAL / AniList / Trakt / Steam /
+  RetroAchievements, in-app `.xcoll` import on the home screen,
+  tier-list creation, browse-collections settings, mood grid
+  picker) now use a single `CollectionPickerField` styled like the
+  rest of the project's inputs. Tapping it opens the same
+  collection-picker dialog used by the bulk "Move/Copy to
+  collection" actions, so list overflow, sorting and search now
+  behave consistently and the dialog no longer spills past the
+  parent dialog edges. The mood-grid case additionally exposes an
+  "All collections" entry via the new `nullLabel` / `nullIcon`
+  options on the picker, which the underlying dialog renders with
+  its own icon so it doesn't blur into the "Without Collection"
+  tile.
+
+  * lib/shared/widgets/collection_picker_field.dart
+    (CollectionPickerField): New. Form-field shell that delegates
+    to `showCollectionPickerDialog`, supports the optional
+    `nullLabel` / `nullSubtitle` / `nullIcon` flow for "any/all"
+    semantics and reactively renders the selected collection's
+    name + author from `collectionsProvider`.
+  * lib/shared/widgets/collection_picker_dialog.dart
+    (showCollectionPickerDialog, _CollectionPickerContent,
+    _CollectionPickerContentState._buildUncategorizedTile,
+    _CollectionPickerContentState._buildLeadingIcon,
+    _CollectionPickerContentState._buildIconBox): Accept optional
+    `uncategorizedLabel` / `uncategorizedSubtitle` /
+    `uncategorizedIcon` overrides and extract `_buildIconBox` so
+    the relabelled tile no longer reuses the default "Uncategorized"
+    subtitle or inbox icon.
+  * lib/features/collections/screens/home_screen.dart,
+    lib/features/settings/content/mal_import_content.dart,
+    lib/features/settings/content/anilist_import_content.dart,
+    lib/features/settings/content/trakt_import_content.dart,
+    lib/features/settings/content/steam_import_content.dart,
+    lib/features/settings/content/ra_import_content.dart,
+    lib/features/settings/content/browse_collections_content.dart,
+    lib/features/tier_lists/widgets/create_tier_list_dialog.dart:
+    Drop the local `DropdownButton` / `DropdownButtonFormField` and
+    its `DropdownMenuItem` wiring; route the selection through
+    `CollectionPickerField`.
+  * lib/features/tier_lists/widgets/mood_grid_item_picker.dart
+    (MoodGridItemPickerState): Same migration, with `nullLabel`
+    set to `l.moodGridPickerAllCollections` so the "All
+    Collections" sentinel keeps its semantics.
+  * test/shared/widgets/collection_picker_field_test.dart: New.
+    Cover hint vs. selected vs. "all" rendering and verify a
+    disabled field swallows taps.
+
+- **Drop the author suffix from the mood-grid watermark**
+
+  Mood-grid exports now read "made by Tonkatsu Box" without the
+  trailing "— $authorName", matching the tier-list watermark.
+
+  * lib/features/tier_lists/widgets/mood_grid_export_view.dart
+    (MoodGridExportView, MoodGridExportView.authorName): Remove
+    the `authorName` field and the conditional suffix.
+  * lib/features/tier_lists/screens/mood_grid_detail_screen.dart:
+    Stop reading `settingsNotifierProvider.authorName` and drop
+    the now-unused `settings_provider` import.
+
 - **Label bulk-move/copy leftovers as "Duplicates" instead of "Skipped"**
 
   A move or copy can only "skip" an item when the target already

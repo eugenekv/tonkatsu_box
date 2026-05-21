@@ -16,7 +16,6 @@ class MoodGridExportView extends StatelessWidget {
     required this.repaintKey,
     required this.grid,
     required this.cells,
-    this.authorName = '',
     super.key,
   });
 
@@ -28,9 +27,6 @@ class MoodGridExportView extends StatelessWidget {
 
   /// All cells, ordered by position.
   final List<MoodGridCell> cells;
-
-  /// Optional author name shown under the watermark.
-  final String authorName;
 
   static const double _cellWidth = 140;
 
@@ -82,9 +78,7 @@ class MoodGridExportView extends StatelessWidget {
                 Image.asset(AppAssets.logo, width: 16, height: 16),
                 const SizedBox(width: 4),
                 Text(
-                  authorName.isEmpty
-                      ? 'made by Tonkatsu Box'
-                      : 'made by Tonkatsu Box — $authorName',
+                  'made by Tonkatsu Box',
                   style: AppTypography.caption.copyWith(
                     color: AppColors.textTertiary,
                     fontSize: 10,

@@ -544,7 +544,7 @@ abstract class S {
   /// No description provided for @bulkResult.
   ///
   /// In en, this message translates to:
-  /// **'Done: {done} • Skipped: {skipped}'**
+  /// **'Done: {done} • Duplicates: {skipped}'**
   String bulkResult(int done, int skipped);
 
   /// No description provided for @bulkRemoved.

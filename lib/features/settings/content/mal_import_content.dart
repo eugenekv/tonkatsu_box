@@ -14,6 +14,7 @@ import '../../../shared/models/collection.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/widgets/collection_picker_field.dart';
 import '../../collections/providers/canvas_provider.dart';
 import '../../collections/providers/collection_covers_provider.dart';
 import '../../collections/providers/collections_provider.dart';
@@ -277,21 +278,13 @@ class _MalImportContentState extends ConsumerState<MalImportContent> {
                     collections.any(
                       (Collection c) => c.id == _selectedCollectionId,
                     );
-                return DropdownButtonFormField<int>(
-                  initialValue: selectedExists ? _selectedCollectionId : null,
-                  hint: Text(l.malImportSelectCollection),
-                  isExpanded: true,
-                  items: collections.map((Collection c) {
-                    return DropdownMenuItem<int>(
-                      value: c.id,
-                      child: Text(c.name, overflow: TextOverflow.ellipsis),
-                    );
-                  }).toList(),
-                  onChanged: _isImporting
-                      ? null
-                      : (int? value) {
-                          setState(() => _selectedCollectionId = value);
-                        },
+                return CollectionPickerField(
+                  value: selectedExists ? _selectedCollectionId : null,
+                  hint: l.malImportSelectCollection,
+                  title: l.malImportSelectCollection,
+                  enabled: !_isImporting,
+                  onChanged: (int? id) =>
+                      setState(() => _selectedCollectionId = id),
                 );
               },
               loading: () =>
