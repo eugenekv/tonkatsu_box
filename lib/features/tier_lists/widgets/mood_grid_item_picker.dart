@@ -9,6 +9,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/cached_image.dart';
+import '../../../shared/widgets/collection_picker_field.dart';
 import '../../collections/providers/collections_provider.dart';
 
 /// Result of [showMoodGridItemPicker].
@@ -97,27 +98,14 @@ class _MoodGridItemPickerState extends ConsumerState<_MoodGridItemPicker> {
             ),
             const SizedBox(height: AppSpacing.sm),
             collectionsAsync.when(
-              data: (List<Collection> collections) =>
-                  DropdownButtonFormField<int?>(
-                initialValue: _filterCollectionId,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: l.moodGridPickerCollection,
-                ),
-                items: <DropdownMenuItem<int?>>[
-                  DropdownMenuItem<int?>(
-                    value: null,
-                    child: Text(l.moodGridPickerAllCollections),
-                  ),
-                  ...collections.map(
-                    (Collection c) => DropdownMenuItem<int?>(
-                      value: c.id,
-                      child: Text(c.name, overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ],
-                onChanged: (int? value) {
-                  _filterCollectionId = value;
+              data: (List<Collection> collections) => CollectionPickerField(
+                value: _filterCollectionId,
+                hint: l.moodGridPickerCollection,
+                title: l.moodGridPickerCollection,
+                nullLabel: l.moodGridPickerAllCollections,
+                leadingIcon: Icons.folder_open_outlined,
+                onChanged: (int? id) {
+                  _filterCollectionId = id;
                   _refreshItems();
                 },
               ),

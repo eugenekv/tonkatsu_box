@@ -8,6 +8,7 @@ import '../../../shared/models/collection.dart';
 import '../../../shared/models/tier_list.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
+import '../../../shared/widgets/collection_picker_field.dart';
 import '../../collections/providers/collections_provider.dart';
 import '../providers/tier_lists_provider.dart';
 
@@ -147,20 +148,13 @@ class _CreateTierListDialogState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          DropdownButton<int>(
-                            isExpanded: true,
+                          CollectionPickerField(
                             value: _selectedCollectionId,
-                            hint: Text(l.tierListScopeCollection),
-                            dropdownColor: AppColors.surface,
-                            items: collections.map((Collection c) {
-                              return DropdownMenuItem<int>(
-                                value: c.id,
-                                child: Text(c.name),
-                              );
-                            }).toList(),
-                            onChanged: (int? value) {
+                            hint: l.tierListScopeCollection,
+                            title: l.tierListScopeCollection,
+                            onChanged: (int? id) {
                               setState(() {
-                                _selectedCollectionId = value;
+                                _selectedCollectionId = id;
                                 _collectionError = null;
                               });
                             },

@@ -47,6 +47,9 @@ Future<CollectionChoice?> showCollectionPickerDialog({
   bool showUncategorized = true,
   String? title,
   Set<int?> alreadyInCollectionIds = const <int?>{},
+  String? uncategorizedLabel,
+  String? uncategorizedSubtitle,
+  IconData? uncategorizedIcon,
 }) async {
   final String resolvedTitle = title ?? S.of(context).chooseCollection;
   final AsyncValue<List<Collection>> collectionsAsync =
@@ -75,6 +78,9 @@ Future<CollectionChoice?> showCollectionPickerDialog({
         alreadyInCollectionIds: alreadyInCollectionIds,
         initialSortMode: initialSortMode,
         initialDescending: initialDescending,
+        uncategorizedLabel: uncategorizedLabel,
+        uncategorizedSubtitle: uncategorizedSubtitle,
+        uncategorizedIcon: uncategorizedIcon,
       ),
     ),
   );
@@ -89,6 +95,9 @@ class _CollectionPickerContent extends StatefulWidget {
     required this.alreadyInCollectionIds,
     required this.initialSortMode,
     required this.initialDescending,
+    this.uncategorizedLabel,
+    this.uncategorizedSubtitle,
+    this.uncategorizedIcon,
   });
 
   final String title;
@@ -97,6 +106,9 @@ class _CollectionPickerContent extends StatefulWidget {
   final Set<int?> alreadyInCollectionIds;
   final CollectionListSortMode initialSortMode;
   final bool initialDescending;
+  final String? uncategorizedLabel;
+  final String? uncategorizedSubtitle;
+  final IconData? uncategorizedIcon;
 
   @override
   State<_CollectionPickerContent> createState() =>
@@ -320,11 +332,18 @@ class _CollectionPickerContentState extends State<_CollectionPickerContent> {
   Widget _buildUncategorizedTile(S l) {
     final bool isAlreadyAdded =
         widget.alreadyInCollectionIds.contains(null);
+    final bool customised = widget.uncategorizedLabel != null;
+    final String title = widget.uncategorizedLabel ?? l.withoutCollection;
+    final String? subtitle = widget.uncategorizedSubtitle ??
+        (customised ? null : l.collectionsUncategorized);
     return ListTile(
       enabled: !isAlreadyAdded,
-      leading: _buildLeadingIcon(null, isAlreadyAdded),
-      title: Text(l.withoutCollection),
-      subtitle: Text(l.collectionsUncategorized),
+      leading: _buildIconBox(
+        widget.uncategorizedIcon ?? Icons.inbox_outlined,
+        isAlreadyAdded,
+      ),
+      title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle),
       trailing: isAlreadyAdded ? _buildAlreadyAddedBadge(l) : null,
       onTap: isAlreadyAdded
           ? null
@@ -369,12 +388,16 @@ class _CollectionPickerContentState extends State<_CollectionPickerContent> {
   }
 
   Widget _buildLeadingIcon(Collection? collection, bool disabled) {
-    final Color color = disabled ? AppColors.textTertiary : AppColors.brand;
     final IconData icon = collection == null
         ? Icons.inbox_outlined
         : collection.type == CollectionType.own
             ? Icons.folder_rounded
             : Icons.fork_right;
+    return _buildIconBox(icon, disabled);
+  }
+
+  Widget _buildIconBox(IconData icon, bool disabled) {
+    final Color color = disabled ? AppColors.textTertiary : AppColors.brand;
     return Container(
       width: 36,
       height: 36,

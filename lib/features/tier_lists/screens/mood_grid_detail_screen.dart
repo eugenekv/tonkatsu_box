@@ -16,7 +16,6 @@ import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/draggable_fab.dart';
 import '../../../shared/widgets/sub_screen_title_bar.dart';
-import '../../settings/providers/settings_provider.dart';
 import '../providers/mood_grid_detail_provider.dart';
 import '../providers/mood_grids_provider.dart';
 import '../widgets/mood_grid_export_view.dart';
@@ -50,8 +49,6 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
       error: (Object e, StackTrace s) =>
           Center(child: Text(l.errorPrefix(e.toString()))),
       data: (MoodGridDetailState state) {
-        final String authorName =
-            ref.watch(settingsNotifierProvider).authorName;
         return Stack(
           children: <Widget>[
             Column(
@@ -76,7 +73,6 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
                           repaintKey: _exportKey,
                           grid: state.grid,
                           cells: state.cells,
-                          authorName: authorName,
                         ),
                       ),
                     ],

@@ -14,6 +14,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/navigation/search_providers.dart';
+import '../../../shared/widgets/collection_picker_field.dart';
 import '../../../shared/widgets/draggable_fab.dart';
 import '../../../shared/widgets/shimmer_loading.dart';
 import '../../home/providers/all_items_provider.dart';
@@ -768,22 +769,12 @@ class _ImportTargetDialogState extends State<_ImportTargetDialog> {
                       ),
                     );
                   }
-                  return DropdownButtonFormField<int>(
-                    initialValue: _selectedId,
-                    hint: Text(l.importSelectCollection),
-                    isExpanded: true,
-                    items: collections.map((Collection c) {
-                      return DropdownMenuItem<int>(
-                        value: c.id,
-                        child: Text(
-                          c.name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (int? value) {
-                      setState(() => _selectedId = value);
-                    },
+                  return CollectionPickerField(
+                    value: _selectedId,
+                    hint: l.importSelectCollection,
+                    title: l.importSelectCollection,
+                    onChanged: (int? id) =>
+                        setState(() => _selectedId = id),
                   );
                 },
                 loading: () =>

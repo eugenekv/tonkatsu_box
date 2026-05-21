@@ -12,6 +12,7 @@ import '../../../shared/models/collection.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/widgets/collection_picker_field.dart';
 import '../../collections/models/collections_index.dart';
 import '../../collections/providers/canvas_provider.dart';
 import '../../collections/providers/collection_browser_provider.dart';
@@ -482,20 +483,12 @@ class _ImportTargetDialogState extends ConsumerState<_ImportTargetDialog> {
                         collections.any(
                           (Collection c) => c.id == _selectedId,
                         );
-                    return DropdownButtonFormField<int>(
-                      initialValue: selectedExists ? _selectedId : null,
-                      hint: Text(l.browseCollectionsSelectCollection),
-                      isExpanded: true,
-                      items: collections.map((Collection c) {
-                        return DropdownMenuItem<int>(
-                          value: c.id,
-                          child:
-                              Text(c.name, overflow: TextOverflow.ellipsis),
-                        );
-                      }).toList(),
-                      onChanged: (int? value) {
-                        setState(() => _selectedId = value);
-                      },
+                    return CollectionPickerField(
+                      value: selectedExists ? _selectedId : null,
+                      hint: l.browseCollectionsSelectCollection,
+                      title: l.browseCollectionsSelectCollection,
+                      onChanged: (int? id) =>
+                          setState(() => _selectedId = id),
                     );
                   },
                   loading: () => const Padding(
