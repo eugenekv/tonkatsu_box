@@ -1,29 +1,23 @@
-// Секция RetroAchievements в карточке игры.
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/ra_api.dart';
+import '../../../features/settings/providers/settings_provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/tracker_achievement.dart';
 import '../../../shared/models/tracker_game_data.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/utils/date_format_preset.dart';
 import '../providers/tracker_provider.dart';
 
-/// Цвет RA бренда (голубой из лого).
 const Color _raBlue = Color(0xFF4A90D9);
-
-/// Цвет RA бренда (золотой из лого).
 const Color _raGold = Color(0xFFD4A843);
-
-/// Цвет hardcore (оранжевый).
 const Color _hardcoreColor = Color(0xFFFF8C00);
 
-/// Фильтр/сортировка достижений в развёрнутом списке.
 enum _AchievementFilter {
   all,
   earned,
@@ -33,10 +27,6 @@ enum _AchievementFilter {
   winCondition,
 }
 
-/// Секция RetroAchievements в детальной карточке игры.
-///
-/// Показывается только если для игры есть tracker_game_data.
-/// Достижения подгружаются lazy при появлении секции.
 class RaAchievementsSection extends ConsumerStatefulWidget {
   const RaAchievementsSection({
     required this.gameId,
@@ -44,11 +34,10 @@ class RaAchievementsSection extends ConsumerStatefulWidget {
     super.key,
   });
 
-  /// IGDB game id.
   final int gameId;
 
-  /// Optional platform scope — same IGDB game on different platforms holds
-  /// distinct RA progress. `null` falls back to the legacy shared record.
+  /// Same IGDB game on different platforms holds distinct RA progress; `null`
+  /// falls back to the legacy shared record.
   final int? platformId;
 
   @override
@@ -94,7 +83,6 @@ class _RaAchievementsSectionState
       data: (TrackerDetailState state) {
         if (!state.hasRaData) return const SizedBox.shrink();
 
-        // Lazy load достижений после того как game data загружена.
         if (state.achievements == null && !state.isLoadingAchievements) {
           Future<void>.microtask(() {
             ref.read(trackerDetailProvider((gameId: widget.gameId, platformId: widget.platformId)).notifier)
@@ -160,7 +148,6 @@ class _RaAchievementsSectionState
               .take(_expanded ? state.achievements!.length : 6)
               .map(_buildAchievementRow),
 
-          // Collapse внизу — только когда развёрнуто
           if (_expanded && state.achievements!.length > 6)
             _buildViewAllButton(state.achievements!.length),
         ],
@@ -168,8 +155,6 @@ class _RaAchievementsSectionState
     );
   }
 
-  /// Beaten progress: показывает сколько progression и win_condition
-  /// осталось до получения статуса Beaten.
   Widget _buildBeatenProgress(List<TrackerAchievement> achievements) {
     final List<TrackerAchievement> progression = achievements
         .where((TrackerAchievement a) => a.isProgression)
@@ -178,7 +163,6 @@ class _RaAchievementsSectionState
         .where((TrackerAchievement a) => a.isWinCondition)
         .toList();
 
-    // Нет typed ачивок — нечего показывать.
     if (progression.isEmpty && winCondition.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -419,7 +403,7 @@ class _RaAchievementsSectionState
             .where((TrackerAchievement a) => a.isWinCondition)
             .toList();
     }
-    // Earned первые (по дате, новые сверху), потом locked (по display_order).
+    // Earned first (newest first), then locked (by displayOrder).
     filtered.sort((TrackerAchievement a, TrackerAchievement b) {
       if (a.earned != b.earned) return a.earned ? -1 : 1;
       if (a.earned) {
@@ -606,7 +590,6 @@ class _RaAchievementsSectionState
     );
   }
 
-  /// Award badge — кружок как на RA (tooltip с названием).
   Widget _buildAwardBadge(TrackerGameData data) {
     final ({String label, Color color, bool filled}) badge =
         _getAwardBadge(data);
@@ -727,11 +710,9 @@ class _RaAchievementsSectionState
     );
   }
 
-  /// Award данные как на RA: filled = залитый кружок, !filled = outline.
   ({String label, Color color, bool filled}) _getAwardBadge(
     TrackerGameData data,
   ) {
-    // Mastered — золотой залитый кружок.
     if (data.isMastered) {
       return (
         label: S.of(context).raMastered,
@@ -739,7 +720,6 @@ class _RaAchievementsSectionState
         filled: true,
       );
     }
-    // Beaten Hardcore — серебряный залитый кружок.
     if (data.isBeaten && data.isHardcore) {
       return (
         label: S.of(context).raBeaten,
@@ -747,7 +727,6 @@ class _RaAchievementsSectionState
         filled: true,
       );
     }
-    // Beaten Softcore — серебряный outline кружок.
     if (data.isBeaten) {
       return (
         label: S.of(context).raBeatenSoftcore,
@@ -755,7 +734,6 @@ class _RaAchievementsSectionState
         filled: false,
       );
     }
-    // Fallback (не должен вызываться, hasAward проверен выше).
     return (
       label: S.of(context).raBeaten,
       color: const Color(0xFFD4D4D8),
@@ -836,11 +814,17 @@ class _RaAchievementsSectionState
     if (diff.inDays == 0) return S.of(context).raToday;
     if (diff.inDays == 1) return S.of(context).raYesterday;
     if (diff.inDays < 7) return S.of(context).raDaysAgo(diff.inDays);
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}';
+    final DateFormatPreset preset = DateFormatPreset.fromId(
+      ref.watch(
+        settingsNotifierProvider.select((SettingsState s) => s.dateFormat),
+      ),
+    );
+    return preset.format(
+      date,
+      locale: Localizations.localeOf(context).toLanguageTag(),
+    );
   }
 }
-
-// -- Вспомогательные виджеты --
 
 class _AchievementIcon extends StatelessWidget {
   const _AchievementIcon({

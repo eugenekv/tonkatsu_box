@@ -4423,6 +4423,54 @@ abstract class S {
   /// **'Select completion date'**
   String get activityDatesSelectCompletion;
 
+  /// No description provided for @settingsDateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Date format'**
+  String get settingsDateFormat;
+
+  /// No description provided for @settingsDateFormatSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How dates are shown across the app'**
+  String get settingsDateFormatSubtitle;
+
+  /// No description provided for @dualDatePickerInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get dualDatePickerInputLabel;
+
+  /// No description provided for @dualDatePickerOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get dualDatePickerOk;
+
+  /// No description provided for @dualDatePickerCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dualDatePickerCancel;
+
+  /// No description provided for @dualDatePickerErrorEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a date'**
+  String get dualDatePickerErrorEmpty;
+
+  /// No description provided for @dualDatePickerErrorFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Use format yyyy-MM-dd'**
+  String get dualDatePickerErrorFormat;
+
+  /// No description provided for @dualDatePickerErrorRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date is out of range'**
+  String get dualDatePickerErrorRange;
+
   /// No description provided for @activityDatesCompletionTime.
   ///
   /// In en, this message translates to:

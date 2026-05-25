@@ -2,16 +2,20 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'gyroscope_parallax_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/services/image_cache_service.dart';
+import '../../features/settings/providers/settings_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../utils/date_format_preset.dart';
 import 'cached_image.dart';
+import 'dual_date_picker_dialog.dart';
 import 'markdown_toolbar.dart';
 import 'mini_markdown_text.dart';
 import 'source_badge.dart';
@@ -22,23 +26,12 @@ import '../utils/duration_formatter.dart';
 typedef OnActivityDateChanged =
     Future<void> Function(String type, DateTime date);
 
-String _formatActivityDate(DateTime date) {
-  const List<String> months = <String>[
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
-}
+String _formatActivityDate(
+  DateTime date,
+  DateFormatPreset preset,
+  String localeName,
+) =>
+    preset.format(date, locale: localeName);
 
 class MediaDetailChip {
   const MediaDetailChip({
@@ -56,7 +49,7 @@ class MediaDetailChip {
 
 /// Shared layout for game / movie / TV detail screens. Type-specific blocks
 /// are injected via [extraSections].
-class MediaDetailView extends StatefulWidget {
+class MediaDetailView extends ConsumerStatefulWidget {
   const MediaDetailView({
     required this.title,
     required this.placeholderIcon,
@@ -166,12 +159,12 @@ class MediaDetailView extends StatefulWidget {
   final ValueChanged<String?> onUserCommentSave;
 
   @override
-  State<MediaDetailView> createState() => _MediaDetailViewState();
+  ConsumerState<MediaDetailView> createState() => _MediaDetailViewState();
 }
 
 enum _EditingField { none, author, user }
 
-class _MediaDetailViewState extends State<MediaDetailView> {
+class _MediaDetailViewState extends ConsumerState<MediaDetailView> {
   _EditingField _editingField = _EditingField.none;
   late final TextEditingController _authorController;
   late final TextEditingController _userController;
@@ -617,6 +610,15 @@ class _MediaDetailViewState extends State<MediaDetailView> {
 
   Widget _buildActivityDatesRow(BuildContext context) {
     final S l = S.of(context);
+    final DateFormatPreset preset = DateFormatPreset.fromId(
+      ref.watch(
+        settingsNotifierProvider.select((SettingsState s) => s.dateFormat),
+      ),
+    );
+    final String localeName =
+        Localizations.localeOf(context).toLanguageTag();
+    String formatter(DateTime d) =>
+        _formatActivityDate(d, preset, localeName);
     return Wrap(
       spacing: AppSpacing.md,
       runSpacing: AppSpacing.xs,
@@ -625,11 +627,13 @@ class _MediaDetailViewState extends State<MediaDetailView> {
           icon: Icons.add_circle_outline,
           label: l.activityDatesAdded,
           date: widget.addedAt,
+          formatter: formatter,
         ),
         _buildDateChip(
           icon: Icons.play_circle_outline,
           label: l.activityDatesStarted,
           date: widget.startedAt,
+          formatter: formatter,
           editable: widget.onActivityDateChanged != null,
           onTap: widget.onActivityDateChanged != null
               ? () => _pickActivityDate(context, 'started', widget.startedAt)
@@ -639,6 +643,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
           icon: Icons.check_circle_outline,
           label: l.activityDatesCompleted,
           date: widget.completedAt,
+          formatter: formatter,
           editable: widget.onActivityDateChanged != null,
           onTap: widget.onActivityDateChanged != null
               ? () =>
@@ -651,6 +656,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
             icon: Icons.update,
             label: l.activityDatesLastActivity,
             date: widget.lastActivityAt,
+            formatter: formatter,
           ),
       ],
     );
@@ -678,6 +684,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
   Widget _buildDateChip({
     required IconData icon,
     required String label,
+    required String Function(DateTime) formatter,
     DateTime? date,
     bool editable = false,
     VoidCallback? onTap,
@@ -692,7 +699,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
           style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
         ),
         Text(
-          date != null ? _formatActivityDate(date) : '\u2014',
+          date != null ? formatter(date) : '\u2014',
           style: AppTypography.bodySmall.copyWith(
             color: date != null
                 ? AppColors.textSecondary
@@ -735,7 +742,7 @@ class _MediaDetailViewState extends State<MediaDetailView> {
     final DateTime firstDate = DateTime(1980);
     final DateTime lastDate = DateTime.now().add(const Duration(days: 365));
 
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDualDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,

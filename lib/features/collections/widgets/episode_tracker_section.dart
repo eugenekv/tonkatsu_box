@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/tmdb_api.dart';
 import '../../../core/database/database_service.dart';
+import '../../../features/settings/providers/settings_provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
@@ -12,6 +13,7 @@ import '../../../shared/theme/app_typography.dart';
 import '../../../shared/models/tv_episode.dart';
 import '../../../shared/models/tv_season.dart';
 import '../../../shared/models/tv_show.dart';
+import '../../../shared/utils/date_format_preset.dart';
 import '../providers/episode_tracker_provider.dart';
 
 /// Секция Episode Tracker с прогресс-баром и списком сезонов.
@@ -442,13 +444,12 @@ class EpisodeTile extends ConsumerWidget {
   /// Аргумент для провайдера трекера.
   final ({int? collectionId, int showId}) trackerArg;
 
-  static const List<String> _months = <String>[
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final DateFormatPreset preset = DateFormatPreset.fromId(
+      ref.watch(settingsNotifierProvider.select((SettingsState s) => s.dateFormat)),
+    );
+    final String localeName = Localizations.localeOf(context).toLanguageTag();
     final String title =
         'E${episode.episodeNumber}: ${episode.name}';
     final List<String> subtitleParts = <String>[];
@@ -461,7 +462,7 @@ class EpisodeTile extends ConsumerWidget {
     if (isWatched && watchedAt != null) {
       subtitleParts.add(
         S.of(context).episodeWatchedDate(
-          '${_months[watchedAt!.month - 1]} ${watchedAt!.day}, ${watchedAt!.year}',
+          preset.format(watchedAt!, locale: localeName),
         ),
       );
     }

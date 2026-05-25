@@ -76,6 +76,11 @@ abstract class SettingsKeys {
 
   static const String hideEmptyMediaTypeChevrons =
       'hide_empty_media_type_chevrons';
+
+  /// Date display format id (see [DateFormatPreset]).
+  static const String dateFormat = 'date_format';
+
+  static const String dateFormatDefault = 'month_day_year';
 }
 
 class SettingsState {
@@ -102,6 +107,7 @@ class SettingsState {
     this.discordRaSyncEnabled = false,
     this.richCollectionsEnabled = false,
     this.hideEmptyMediaTypeChevrons = false,
+    this.dateFormat = SettingsKeys.dateFormatDefault,
   });
 
   final String? clientId;
@@ -157,6 +163,9 @@ class SettingsState {
 
   /// Hide media-type chevrons with zero items in the current filter bar.
   final bool hideEmptyMediaTypeChevrons;
+
+  /// Date display format preset id.
+  final String dateFormat;
 
   String? resolveOverlay({
     String? platformOverlay,
@@ -237,6 +246,7 @@ class SettingsState {
     bool? discordRaSyncEnabled,
     bool? richCollectionsEnabled,
     bool? hideEmptyMediaTypeChevrons,
+    String? dateFormat,
   }) {
     return SettingsState(
       clientId: clientId ?? this.clientId,
@@ -264,6 +274,7 @@ class SettingsState {
           richCollectionsEnabled ?? this.richCollectionsEnabled,
       hideEmptyMediaTypeChevrons:
           hideEmptyMediaTypeChevrons ?? this.hideEmptyMediaTypeChevrons,
+      dateFormat: dateFormat ?? this.dateFormat,
     );
   }
 }
@@ -376,6 +387,9 @@ class SettingsNotifier extends Notifier<SettingsState> {
         _prefs.getBool(SettingsKeys.richCollectionsEnabled) ?? false;
     final bool hideEmptyMediaTypeChevrons =
         _prefs.getBool(SettingsKeys.hideEmptyMediaTypeChevrons) ?? false;
+    final String dateFormat =
+        _prefs.getString(SettingsKeys.dateFormat) ??
+            SettingsKeys.dateFormatDefault;
 
     // Valid token → connected immediately (skip verify);
     // expired with credentials → trigger auto-verify below.
@@ -406,6 +420,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
       discordRaSyncEnabled: discordRaSyncEnabled,
       richCollectionsEnabled: richCollectionsEnabled,
       hideEmptyMediaTypeChevrons: hideEmptyMediaTypeChevrons,
+      dateFormat: dateFormat,
     );
 
     // API keys already wired by apiKeysProvider; only the request-time language param is set here.
@@ -644,6 +659,11 @@ class SettingsNotifier extends Notifier<SettingsState> {
     state = state.copyWith(hideEmptyMediaTypeChevrons: enabled);
   }
 
+  Future<void> setDateFormat(String presetId) async {
+    await _prefs.setString(SettingsKeys.dateFormat, presetId);
+    state = state.copyWith(dateFormat: presetId);
+  }
+
   /// Falls back to built-in key if available, otherwise clears.
   Future<void> resetTmdbApiKeyToDefault() async {
     await _prefs.remove(SettingsKeys.tmdbApiKey);
@@ -754,6 +774,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
     await _prefs.remove(SettingsKeys.discordRaSyncEnabled);
     await _prefs.remove(SettingsKeys.richCollectionsEnabled);
     await _prefs.remove(SettingsKeys.hideEmptyMediaTypeChevrons);
+    await _prefs.remove(SettingsKeys.dateFormat);
     await _prefs.remove(SettingsKeys.raUsername);
     await _prefs.remove(SettingsKeys.raApiKey);
 

@@ -2451,6 +2451,30 @@ class SEn extends S {
   String get activityDatesSelectCompletion => 'Select completion date';
 
   @override
+  String get settingsDateFormat => 'Date format';
+
+  @override
+  String get settingsDateFormatSubtitle => 'How dates are shown across the app';
+
+  @override
+  String get dualDatePickerInputLabel => 'Date';
+
+  @override
+  String get dualDatePickerOk => 'OK';
+
+  @override
+  String get dualDatePickerCancel => 'Cancel';
+
+  @override
+  String get dualDatePickerErrorEmpty => 'Enter a date';
+
+  @override
+  String get dualDatePickerErrorFormat => 'Use format yyyy-MM-dd';
+
+  @override
+  String get dualDatePickerErrorRange => 'Date is out of range';
+
+  @override
   String activityDatesCompletionTime(String duration) {
     return 'Completed in $duration';
   }
