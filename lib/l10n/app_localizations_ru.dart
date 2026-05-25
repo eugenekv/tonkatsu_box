@@ -2491,6 +2491,30 @@ class SRu extends S {
   String get activityDatesSelectCompletion => 'Выберите дату завершения';
 
   @override
+  String get settingsDateFormat => 'Формат даты';
+
+  @override
+  String get settingsDateFormatSubtitle => 'Как отображаются даты в приложении';
+
+  @override
+  String get dualDatePickerInputLabel => 'Дата';
+
+  @override
+  String get dualDatePickerOk => 'OK';
+
+  @override
+  String get dualDatePickerCancel => 'Отмена';
+
+  @override
+  String get dualDatePickerErrorEmpty => 'Введите дату';
+
+  @override
+  String get dualDatePickerErrorFormat => 'Формат: yyyy-MM-dd';
+
+  @override
+  String get dualDatePickerErrorRange => 'Дата вне диапазона';
+
+  @override
   String activityDatesCompletionTime(String duration) {
     return 'Пройдено за $duration';
   }

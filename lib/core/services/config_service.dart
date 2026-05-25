@@ -87,6 +87,7 @@ class ConfigService {
     SettingsKeys.tmdbApiKey,
     SettingsKeys.defaultAuthor,
     SettingsKeys.tmdbLanguage,
+    SettingsKeys.dateFormat,
   ];
 
   /// Ключи с int-значениями.

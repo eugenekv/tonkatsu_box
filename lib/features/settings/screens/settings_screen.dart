@@ -19,6 +19,7 @@ import '../../../shared/navigation/search_providers.dart';
 import '../../../shared/theme/app_assets.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
+import '../../../shared/utils/date_format_preset.dart';
 import '../../../core/services/update_service.dart';
 import '../providers/kodi_settings_provider.dart';
 import '../providers/settings_provider.dart';
@@ -335,6 +336,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             subtitle: l.settingsContentLanguageSubtitle,
             value: _contentLanguageLabel(settings.tmdbLanguage),
             onTap: () => _showContentLanguagePicker(settings),
+          ),
+          SettingsTile(
+            leadingIcon: Icons.calendar_today_outlined,
+            leadingColor: _kAppearanceColor,
+            title: l.settingsDateFormat,
+            subtitle: l.settingsDateFormatSubtitle,
+            value: _dateFormatLabel(settings.dateFormat),
+            onTap: () => _showDateFormatPicker(settings),
           ),
           SettingsTile(
             leadingIcon: Icons.thumb_up_outlined,
@@ -665,6 +674,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  String _dateFormatLabel(String id) {
+    final DateFormatPreset preset = DateFormatPreset.fromId(id);
+    final DateTime sample = DateTime(2026, 5, 25);
+    return preset.format(
+      sample,
+      locale: Localizations.localeOf(context).toLanguageTag(),
+    );
+  }
+
+  void _showDateFormatPicker(SettingsState settings) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        final String localeName =
+            Localizations.localeOf(context).toLanguageTag();
+        final DateTime sample = DateTime(2026, 5, 25);
+        return SimpleDialog(
+          title: Text(S.of(context).settingsDateFormat),
+          children: <Widget>[
+            for (final DateFormatPreset preset in DateFormatPreset.values)
+              SimpleDialogOption(
+                onPressed: () {
+                  ref
+                      .read(settingsNotifierProvider.notifier)
+                      .setDateFormat(preset.id);
+                  Navigator.pop(dialogContext);
+                },
+                child: Row(
+                  children: <Widget>[
+                    if (settings.dateFormat == preset.id)
+                      const Icon(Icons.check, size: 18, color: AppColors.brand)
+                    else
+                      const SizedBox(width: 18),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(preset.format(sample, locale: localeName)),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

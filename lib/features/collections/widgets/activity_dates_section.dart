@@ -1,34 +1,18 @@
-// Секция отображения и редактирования дат активности элемента коллекции.
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../features/settings/providers/settings_provider.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/utils/date_format_preset.dart';
 import '../../../shared/utils/duration_formatter.dart';
+import '../../../shared/widgets/dual_date_picker_dialog.dart';
 
-/// Форматирует [DateTime] в читаемую строку (например, "Jan 15, 2025").
-String _formatDate(DateTime date) {
-  const List<String> months = <String>[
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
-}
-
-/// Колбэк для изменения даты.
-///
-/// [type] — тип даты ('started' или 'completed'),
-/// [date] — выбранная дата.
 typedef OnDateChanged = Future<void> Function(String type, DateTime date);
 
-/// Секция для отображения и редактирования дат активности.
-///
-/// Показывает Added, Started, Completed и Last Activity.
-/// Позволяет редактировать Started и Completed через DatePicker.
-class ActivityDatesSection extends StatelessWidget {
-  /// Создаёт [ActivityDatesSection].
+class ActivityDatesSection extends ConsumerWidget {
   const ActivityDatesSection({
     required this.addedAt,
     required this.isEditable,
@@ -40,29 +24,22 @@ class ActivityDatesSection extends StatelessWidget {
     super.key,
   });
 
-  /// Дата добавления (readonly).
   final DateTime addedAt;
-
-  /// Дата начала.
   final DateTime? startedAt;
-
-  /// Дата завершения.
   final DateTime? completedAt;
-
-  /// Дата последней активности (readonly).
   final DateTime? lastActivityAt;
-
-  /// Время прохождения (startedAt → completedAt).
   final Duration? completionTime;
-
-  /// Можно ли редактировать даты.
   final bool isEditable;
-
-  /// Колбэк при изменении даты.
   final OnDateChanged onDateChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final DateFormatPreset preset = DateFormatPreset.fromId(
+      ref.watch(settingsNotifierProvider.select((SettingsState s) => s.dateFormat)),
+    );
+    final String localeName = Localizations.localeOf(context).toLanguageTag();
+    String fmt(DateTime d) => preset.format(d, locale: localeName);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -85,6 +62,7 @@ class ActivityDatesSection extends StatelessWidget {
           icon: Icons.add_circle_outline,
           label: S.of(context).activityDatesAdded,
           date: addedAt,
+          formatter: fmt,
           editable: false,
         ),
         const SizedBox(height: 6),
@@ -92,6 +70,7 @@ class ActivityDatesSection extends StatelessWidget {
           icon: Icons.play_circle_outline,
           label: S.of(context).activityDatesStarted,
           date: startedAt,
+          formatter: fmt,
           editable: isEditable,
           onTap: () => _pickDate(context, 'started', startedAt),
         ),
@@ -100,6 +79,7 @@ class ActivityDatesSection extends StatelessWidget {
           icon: Icons.check_circle_outline,
           label: S.of(context).activityDatesCompleted,
           date: completedAt,
+          formatter: fmt,
           editable: isEditable,
           onTap: () => _pickDate(context, 'completed', completedAt),
         ),
@@ -128,6 +108,7 @@ class ActivityDatesSection extends StatelessWidget {
             icon: Icons.update,
             label: S.of(context).activityDatesLastActivity,
             date: lastActivityAt,
+            formatter: fmt,
             editable: false,
           ),
         ],
@@ -144,7 +125,7 @@ class ActivityDatesSection extends StatelessWidget {
     final DateTime firstDate = DateTime(1980);
     final DateTime lastDate = DateTime.now().add(const Duration(days: 365));
 
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDualDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,
@@ -165,6 +146,7 @@ class _DateRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.date,
+    required this.formatter,
     required this.editable,
     this.onTap,
   });
@@ -172,6 +154,7 @@ class _DateRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final DateTime? date;
+  final String Function(DateTime) formatter;
   final bool editable;
   final VoidCallback? onTap;
 
@@ -189,7 +172,7 @@ class _DateRow extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          date != null ? _formatDate(date!) : '\u2014',
+          date != null ? formatter(date!) : '\u2014',
           style: AppTypography.body.copyWith(
             fontWeight: date != null ? FontWeight.w500 : FontWeight.w400,
             color: date != null

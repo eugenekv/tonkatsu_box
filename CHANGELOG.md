@@ -7,6 +7,75 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Added
+
+- **Add a date format setting for the whole app**
+
+  Settings → Appearance now has a Date format option with four presets:
+  ISO (2026-05-25), DMY with dots (25.05.2026), MDY with slashes
+  (05/25/2026) and DMY with the localised month name (25 May 2026).
+  The choice is applied wherever the app renders a `DateTime` to the
+  user: collection card Activity Dates, episode tracker watched-date,
+  and RetroAchievements unlock dates. Storage is unchanged — the
+  setting only affects presentation. The preset id is persisted in
+  `SharedPreferences` and is included in the config export / import.
+
+  * lib/shared/utils/date_format_preset.dart (DateFormatPreset,
+    DateFormatPreset.fromId, DateFormatPreset.format): New enum of
+    presets backed by `intl.DateFormat` patterns.
+  * lib/features/settings/providers/settings_provider.dart
+    (SettingsKeys.dateFormat, SettingsKeys.dateFormatDefault,
+    SettingsState.dateFormat, SettingsNotifier.setDateFormat,
+    SettingsNotifier._loadFromPrefs, SettingsNotifier.clearSettings):
+    Persist and expose the chosen preset id.
+  * lib/features/settings/screens/settings_screen.dart
+    (_SettingsScreenState._dateFormatLabel,
+    _SettingsScreenState._showDateFormatPicker): New tile and picker
+    dialog under Appearance.
+  * lib/core/services/config_service.dart (ConfigService._settingsKeys):
+    Add `SettingsKeys.dateFormat` to the exported keys.
+  * lib/features/collections/widgets/activity_dates_section.dart
+    (ActivityDatesSection, _DateRow): Switch from a hardcoded
+    `_formatDate` to the preset chosen in settings; widget becomes
+    `ConsumerWidget`.
+  * lib/features/collections/widgets/episode_tracker_section.dart:
+    Drop the hardcoded month array; format the watched-date through
+    the preset.
+  * lib/features/collections/widgets/ra_achievements_section.dart
+    (_RaAchievementsSectionState._formatDate): Keep the relative
+    today / yesterday / N days ago labels; format the older fallback
+    through the preset.
+  * lib/shared/widgets/media_detail_view.dart (MediaDetailView,
+    _MediaDetailViewState, _MediaDetailViewState._buildActivityDatesRow,
+    _MediaDetailViewState._buildDateChip, _formatActivityDate): Switch
+    to `ConsumerStatefulWidget`; chip formatter takes a `formatter`
+    closure so the preset is resolved once per row build.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb: Add
+    `settingsDateFormat`, `settingsDateFormatSubtitle`.
+
+- **Custom date picker dialog with calendar and text input side by side**
+
+  Replaces Material `showDatePicker` for the Activity Dates picker:
+  shows a `CalendarDatePicker` and a `TextField` (yyyy-MM-dd) at the
+  same time, kept in sync. Tap a day on the calendar to fill the
+  field; type a valid date in the field to move the calendar. The OK
+  button is disabled while the typed value is empty, malformed, or out
+  of range. Desktop lays them out in a row, Android stacks them with
+  the text field on top so it stays visible above the keyboard.
+
+  * lib/shared/widgets/dual_date_picker_dialog.dart
+    (DualDatePickerDialog, _DualDatePickerDialogState, showDualDatePicker):
+    New.
+  * lib/features/collections/widgets/activity_dates_section.dart
+    (ActivityDatesSection._pickDate),
+    lib/shared/widgets/media_detail_view.dart
+    (_MediaDetailViewState._pickActivityDate): Call `showDualDatePicker`
+    instead of `showDatePicker`.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb: Add
+    `dualDatePickerInputLabel`, `dualDatePickerOk`, `dualDatePickerCancel`,
+    `dualDatePickerErrorEmpty`, `dualDatePickerErrorFormat`,
+    `dualDatePickerErrorRange`.
+
 ### Fixed
 
 - **Fix external links not opening on Android 11+**
