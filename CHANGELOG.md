@@ -3663,3 +3663,4 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 - Изменён `SettingsNotifier.clearSettings()` — очищает также SteamGridDB API ключ
 - Изменён `settings_screen.dart` — добавлены секции SteamGridDB API и Developer Tools
 - Обновлены тесты `settings_state_test.dart` и `settings_screen_test.dart` для покрытия новых полей
+
