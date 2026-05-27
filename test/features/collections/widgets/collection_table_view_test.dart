@@ -190,7 +190,7 @@ void main() {
           (WidgetTester tester) async {
         await pumpTableView(tester, items: <CollectionItem>[gameAlpha]);
 
-        expect(find.text('9'), findsOneWidget);
+        expect(find.text('9.0'), findsOneWidget);
       });
 
       testWidgets('should render empty rating cell when null',

@@ -38,6 +38,54 @@ void main() {
       abbreviation: 'PS4',
     );
 
+    group('userRating type', () {
+      Map<String, dynamic> baseRow(Object? userRating) => <String, dynamic>{
+            'id': 1,
+            'collection_id': 10,
+            'media_type': 'game',
+            'external_id': 1942,
+            'status': 'completed',
+            'added_at': testAddedAtUnix,
+            'user_rating': userRating,
+          };
+
+      test('fromDb reads legacy integer rating as double', () {
+        final CollectionItem item = CollectionItem.fromDb(baseRow(8));
+        expect(item.userRating, 8.0);
+      });
+
+      test('fromDb reads fractional REAL rating', () {
+        final CollectionItem item = CollectionItem.fromDb(baseRow(8.5));
+        expect(item.userRating, 8.5);
+      });
+
+      test('fromDb null rating stays null', () {
+        final CollectionItem item = CollectionItem.fromDb(baseRow(null));
+        expect(item.userRating, isNull);
+      });
+
+      test('fromExport reads both int (v2) and double (v3) ratings', () {
+        final CollectionItem v2 = CollectionItem.fromExport(<String, dynamic>{
+          'media_type': 'game',
+          'external_id': 1942,
+          'user_rating': 7,
+        });
+        final CollectionItem v3 = CollectionItem.fromExport(<String, dynamic>{
+          'media_type': 'game',
+          'external_id': 1942,
+          'user_rating': 7.3,
+        });
+        expect(v2.userRating, 7.0);
+        expect(v3.userRating, 7.3);
+      });
+
+      test('toDb / toExport carry the fractional rating', () {
+        final CollectionItem item = CollectionItem.fromDb(baseRow(6.4));
+        expect(item.toDb()['user_rating'], 6.4);
+        expect(item.toExport()['user_rating'], 6.4);
+      });
+    });
+
     group('fromDb', () {
       test('should create CollectionItem из полной записи БД', () {
         final Map<String, dynamic> row = <String, dynamic>{

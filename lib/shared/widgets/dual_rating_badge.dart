@@ -1,21 +1,14 @@
-// Бейдж двойного рейтинга (пользовательский + API).
-
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Бейдж двойного рейтинга: пользовательский и API.
+/// Personal + API rating badge.
 ///
-/// Формат отображения:
-/// - Оба рейтинга: `★ 8 / 7.5`
-/// - Только пользовательский: `★ 8`
-/// - Только API: `★ 7.5`
-/// - Ни одного: не отображается (caller отвечает за скрытие)
-///
-/// [compact] уменьшает размеры для ландшафтного режима.
-/// [inline] убирает фон и использует текстовый стиль (для list mode).
+/// Display format: `★ 8.0 / 7.5` (both), `★ 8.0` (user only), `★ 7.5` (API
+/// only); renders nothing when neither is set — the caller hides it.
+/// [compact] shrinks sizes for landscape; [inline] drops the background and
+/// uses a plain text style for list mode.
 class DualRatingBadge extends StatelessWidget {
-  /// Создаёт бейдж двойного рейтинга.
   const DualRatingBadge({
     this.userRating,
     this.apiRating,
@@ -24,33 +17,28 @@ class DualRatingBadge extends StatelessWidget {
     super.key,
   });
 
-  /// Пользовательский рейтинг (1–10, целое).
-  final int? userRating;
+  /// Personal rating, 1.0–10.0 (step 0.1).
+  final double? userRating;
 
-  /// API рейтинг (0.0–10.0, нормализованный).
+  /// Normalized API rating, 0.0–10.0.
   final double? apiRating;
 
-  /// Компактный режим (уменьшенные размеры для ландшафта).
   final bool compact;
-
-  /// Inline-режим (без фона, текстовый стиль для list mode).
   final bool inline;
 
-  /// Есть ли хотя бы один рейтинг для отображения.
   bool get hasRating => userRating != null || _hasApiRating;
 
   bool get _hasApiRating => apiRating != null && apiRating! > 0;
 
-  /// Форматированная строка рейтинга.
   String get formattedRating {
     final bool hasUser = userRating != null;
     final bool hasApi = _hasApiRating;
 
     if (hasUser && hasApi) {
-      return '$userRating / ${apiRating!.toStringAsFixed(1)}';
+      return '${userRating!.toStringAsFixed(1)} / ${apiRating!.toStringAsFixed(1)}';
     }
     if (hasUser) {
-      return userRating.toString();
+      return userRating!.toStringAsFixed(1);
     }
     if (hasApi) {
       return apiRating!.toStringAsFixed(1);

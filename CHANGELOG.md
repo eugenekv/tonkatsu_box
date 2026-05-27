@@ -305,6 +305,63 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
     `dualDatePickerErrorEmpty`, `dualDatePickerErrorFormat`,
     `dualDatePickerErrorRange`.
 
+### Changed
+
+- **Make the personal rating fractional (1.0–10.0, step 0.1)**
+
+  Personal rating moves from a whole number to a one-decimal value. The
+  rating widget keeps its inline tap flow but gains a leading dash cell that
+  clears the rating to null and fills stars partially for fractional values;
+  the table cell editor reuses the same widget. Badges and the detail screen
+  now render one decimal (`8.5`). AniList import keeps full precision
+  (a 0–100 score maps `85 → 8.5` instead of `8`). The `.xcoll` / `.xcollx`
+  format version bumps to 3; older builds cleanly refuse v3 files, while the
+  current build still reads v2 files (legacy integer ratings load as
+  doubles). The database column stays `INTEGER` and relies on SQLite type
+  affinity to store the fractional value, so no migration is needed.
+
+  * lib/shared/models/collection_item.dart (CollectionItem.userRating):
+    `int? → double?`; read via `(… as num?)?.toDouble()` in
+    `fromDbWithJoins` and `fromExport` for legacy-int back-compat.
+  * lib/shared/widgets/fractional_star_rating.dart (FractionalStarRating):
+    New tap/drag rating widget with a leading clear cell and partial fill;
+    replaces the removed `StarRatingBar`.
+  * lib/shared/widgets/star_rating_bar.dart: Removed.
+  * lib/shared/widgets/media_detail_view.dart (MediaDetailView.userRating,
+    MediaDetailView.onUserRatingChanged): `int? → double?`; use
+    `FractionalStarRating`; format value via `toStringAsFixed(1)`.
+  * lib/features/collections/widgets/collection_table/cells/rating_cell.dart
+    (RatingCell): `double?` rating; popup hosts `FractionalStarRating`.
+  * lib/features/collections/widgets/collection_table/collection_table_view.dart
+    (_CollectionTableViewState._filterRating, onRatingChanged),
+    table_row.dart (TableRow.onRatingChanged), table_header.dart
+    (TableHeader.filterRating): `int? → double?`.
+  * lib/shared/widgets/dual_rating_badge.dart (DualRatingBadge.userRating,
+    DualRatingBadge.formattedRating), media_poster_card.dart
+    (MediaPosterCard.userRating): `int? → double?`; one-decimal formatting.
+  * lib/core/database/dao/collection_dao.dart
+    (CollectionDao.updateItemUserRating), database_service.dart
+    (DatabaseService.updateItemUserRating), collection_repository.dart
+    (CollectionRepository.updateItemUserRating),
+    collections_provider.dart (CollectionItemsNotifier.updateUserRating):
+    `int? → double?`; range assert `1.0–10.0`.
+  * lib/core/database/schema.dart: Note `user_rating` keeps INTEGER affinity
+    while storing fractional values.
+  * lib/core/services/anilist_import_service.dart
+    (AniListImportService._resolveRating): Return `double?`, map POINT_100
+    via `/ 10.0`.
+  * lib/core/services/mal_import_service.dart (MalEntry.score),
+    trakt_zip_import_service.dart, kodi_sync_service.dart,
+    kodi_movie.dart (KodiMovie.userRating), kodi_tv_show.dart
+    (KodiTvShow.userRating): Carry the rating as `double`.
+  * lib/core/services/xcoll_file.dart (xcollFormatVersion,
+    xcollMinReadableVersion, XcollFile._parseV2): Bump format to 3, read v2
+    and v3.
+  * lib/core/services/text_export_service.dart (TextExportService.formatItem):
+    `{myRating}` token uses `toStringAsFixed(1)`.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb, app_localizations*.dart
+    (detailRatingValue): Placeholder type `int → String`.
+
 ### Fixed
 
 - **Fix custom items: cannot change media-type while editing, covers missing from collection preview**

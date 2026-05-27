@@ -14,7 +14,7 @@ void main() {
     String imageUrl = '',
     ImageType cacheImageType = ImageType.gameCover,
     String cacheImageId = '123',
-    int? userRating,
+    double? userRating,
     double? apiRating,
     bool isInCollection = false,
     ItemStatus? status,
@@ -105,7 +105,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(DualRatingBadge), findsOneWidget);
-        expect(find.text('8 / 7.5'), findsOneWidget);
+        expect(find.text('8.0 / 7.5'), findsOneWidget);
       });
 
       testWidgets('не should show DualRatingBadge без рейтингов',

@@ -16,7 +16,7 @@ CollectionItem _gameItem({
   String name = 'Elden Ring',
   int? releaseYear = 2022,
   double? rating = 9.5,
-  int? userRating = 10,
+  double? userRating = 10,
   ItemStatus status = ItemStatus.completed,
   String? genres = 'RPG, Action',
   String? userComment,
@@ -51,7 +51,7 @@ CollectionItem _movieItem({
   String title = 'Inception',
   int? releaseYear = 2010,
   double? rating = 8.8,
-  int? userRating,
+  double? userRating,
 }) {
   return CollectionItem(
     id: id,
@@ -115,7 +115,7 @@ void main() {
           _gameItem(name: 'BG3', userRating: 9),
           1,
         );
-        expect(result, equals('BG3 — 9/10'));
+        expect(result, equals('BG3 — 9.0/10'));
       });
 
       test('should replace {platform} token', () {

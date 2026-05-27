@@ -615,7 +615,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       onUserCommentSave: (String? text) =>
           _saveUserComment(item.id, text),
       userRating: item.userRating,
-      onUserRatingChanged: (int? rating) =>
+      onUserRatingChanged: (double? rating) =>
           _updateUserRating(item.id, rating),
       accentColor: config.accentColor,
       platformOverlayAsset:
@@ -784,7 +784,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         .updateUserComment(id, text);
   }
 
-  Future<void> _updateUserRating(int id, int? rating) async {
+  Future<void> _updateUserRating(int id, double? rating) async {
     await ref
         .read(collectionItemsNotifierProvider(widget.collectionId).notifier)
         .updateUserRating(id, rating);

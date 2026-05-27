@@ -1,24 +1,25 @@
-// Модель файла экспорта/импорта коллекций (.xcoll, .xcollx).
-
 import 'dart:convert';
 
-/// Текущая версия формата.
-const int xcollFormatVersion = 2;
+/// Format version written on export.
+const int xcollFormatVersion = 3;
 
-/// Режим экспорта.
+/// Oldest format version the importer can read.
+///
+/// v2 and v3 are structurally identical apart from `user_rating` (int in v2,
+/// double in v3), which is handled by reading it via `as num?`.
+const int xcollMinReadableVersion = 2;
+
 enum ExportFormat {
-  /// Лёгкий экспорт — только метаданные и ID элементов.
+  /// Light export — metadata and item ids only.
   light('light'),
 
-  /// Полный экспорт — метаданные + canvas + base64 images.
+  /// Full export — metadata + canvas + base64 images.
   full('full');
 
   const ExportFormat(this.value);
 
-  /// Строковое значение для файла.
   final String value;
 
-  /// Создаёт [ExportFormat] из строки.
   static ExportFormat fromString(String value) {
     return ExportFormat.values.firstWhere(
       (ExportFormat f) => f.value == value,
@@ -27,18 +28,14 @@ enum ExportFormat {
   }
 }
 
-/// Контейнер данных канваса для экспорта.
-///
-/// Содержит viewport, элементы и связи канваса.
+/// Canvas data (viewport, items, connections) for export.
 class ExportCanvas {
-  /// Создаёт экземпляр [ExportCanvas].
   const ExportCanvas({
     this.viewport,
     this.items = const <Map<String, dynamic>>[],
     this.connections = const <Map<String, dynamic>>[],
   });
 
-  /// Создаёт [ExportCanvas] из JSON.
   factory ExportCanvas.fromJson(Map<String, dynamic> json) {
     final List<dynamic> rawItems =
         json['items'] as List<dynamic>? ?? <dynamic>[];
@@ -56,16 +53,10 @@ class ExportCanvas {
     );
   }
 
-  /// Данные viewport.
   final Map<String, dynamic>? viewport;
-
-  /// Элементы канваса.
   final List<Map<String, dynamic>> items;
-
-  /// Связи между элементами.
   final List<Map<String, dynamic>> connections;
 
-  /// Преобразует в JSON.
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       if (viewport != null) 'viewport': viewport,
@@ -75,13 +66,11 @@ class ExportCanvas {
   }
 }
 
-/// Модель файла экспорта/импорта коллекций.
+/// Collection export/import file.
 ///
-/// Форматы файлов:
-/// - `.xcoll` — лёгкий экспорт (метаданные + ID элементов)
-/// - `.xcollx` — полный экспорт (+ canvas + base64 images)
+/// `.xcoll` — light export (metadata + item ids);
+/// `.xcollx` — full export (+ canvas + base64 images).
 class XcollFile {
-  /// Создаёт экземпляр [XcollFile].
   const XcollFile({
     required this.version,
     required this.name,
@@ -99,10 +88,7 @@ class XcollFile {
     this.trackerData,
   });
 
-  /// Создаёт [XcollFile] из JSON строки.
-  ///
-  /// Автоматически определяет версию формата (v1 или v2).
-  /// Throws [FormatException] если JSON невалидный.
+  /// Throws [FormatException] on invalid JSON.
   factory XcollFile.fromJsonString(String jsonString) {
     try {
       final Map<String, dynamic> json =
@@ -115,16 +101,14 @@ class XcollFile {
     }
   }
 
-  /// Создаёт [XcollFile] из JSON Map.
-  ///
-  /// Throws [FormatException] если версия файла не поддерживается.
+  /// Throws [FormatException] when the file version is unsupported.
   factory XcollFile.fromJson(Map<String, dynamic> json) {
     final int version = json['version'] as int? ?? 1;
 
-    if (version < xcollFormatVersion) {
+    if (version < xcollMinReadableVersion) {
       throw FormatException(
         'Unsupported file version: $version. '
-        'Minimum supported: $xcollFormatVersion',
+        'Minimum supported: $xcollMinReadableVersion',
       );
     }
 
@@ -140,12 +124,12 @@ class XcollFile {
     final String? description = json['description'] as String?;
     final DateTime created = _parseCreatedDate(json['created']);
 
-    return _parseV2(json, name, author, created, description);
+    return _parseV2(json, version, name, author, created, description);
   }
 
-  /// Парсит v2 формат (.xcoll / .xcollx).
   static XcollFile _parseV2(
     Map<String, dynamic> json,
+    int version,
     String name,
     String author,
     DateTime created,
@@ -205,7 +189,7 @@ class XcollFile {
     final bool includesUserData = json['user_data'] as bool? ?? false;
 
     return XcollFile(
-      version: 2,
+      version: version,
       format: format,
       name: name,
       author: author,
@@ -222,7 +206,6 @@ class XcollFile {
     );
   }
 
-  /// Парсит дату создания из строки или null.
   static DateTime _parseCreatedDate(Object? value) {
     if (value is String) {
       try {
@@ -234,61 +217,42 @@ class XcollFile {
     return DateTime.now();
   }
 
-  /// Версия формата.
   final int version;
-
-  /// Режим экспорта (light / full).
   final ExportFormat format;
-
-  /// Название коллекции.
   final String name;
-
-  /// Автор коллекции.
   final String author;
-
-  /// Дата создания.
   final DateTime created;
-
-  /// Описание коллекции (опционально).
   final String? description;
 
-  /// Включает ли экспорт пользовательские данные
-  /// (статус, даты, заметки, прогресс эпизодов).
+  /// Whether the export carries personal data (status, dates, notes,
+  /// episode progress).
   final bool includesUserData;
 
-  // -- v2 поля --
-
-  /// Элементы коллекции (v2).
   final List<Map<String, dynamic>> items;
 
-  /// Данные канваса коллекции (только full export).
+  /// Full export only.
   final ExportCanvas? canvas;
 
-  /// Base64-изображения обложек (только full export).
-  ///
-  /// Ключ — '{ImageType.folder}/{imageId}' (например, 'game_covers/12345').
-  /// Значение — base64-строка изображения.
+  /// Base64 cover images (full export only). Key is
+  /// `{ImageType.folder}/{imageId}` (e.g. `game_covers/12345`).
   final Map<String, String> images;
 
-  /// Полные данные медиа-объектов (только full export).
-  ///
-  /// Структура: `{games: [...], movies: [...], tv_shows: [...], tv_seasons: [...], tv_episodes: [...]}`.
-  /// Каждый элемент — Map в формате `toDb()` соответствующей модели.
+  /// Full media objects (full export only). Shape:
+  /// `{games: [...], movies: [...], tv_shows: [...], tv_seasons: [...],
+  /// tv_episodes: [...]}`, each entry a model's `toDb()` map.
   final Map<String, dynamic> media;
 
-  /// Тир-листы привязанные к коллекции (только full export).
+  /// Full export only.
   final List<Map<String, dynamic>>? tierLists;
 
-  /// Теги коллекции с привязками к элементам (только full export).
+  /// Collection tags with item bindings (full export only).
   final List<Map<String, dynamic>>? tags;
 
-  /// Данные трекеров (RA progress) для игр (только full export + user data).
+  /// Tracker (RA progress) data for games (full export + user data only).
   final List<Map<String, dynamic>>? trackerData;
 
-  /// Является ли полным экспортом.
   bool get isFull => format == ExportFormat.full;
 
-  /// Преобразует в JSON Map.
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'version': version,
@@ -308,7 +272,6 @@ class XcollFile {
     };
   }
 
-  /// Преобразует в JSON строку с форматированием.
   String toJsonString() {
     const JsonEncoder encoder = JsonEncoder.withIndent('  ');
     return encoder.convert(toJson());

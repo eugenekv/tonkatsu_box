@@ -1,16 +1,11 @@
-// Модель сериала из Kodi VideoLibrary.
-
 import 'kodi_date_parser.dart';
 import 'kodi_unique_ids.dart';
 
-/// Сериал из Kodi VideoLibrary.GetTVShows.
+/// A TV show from Kodi `VideoLibrary.GetTVShows`.
 ///
-/// `playcount`/`lastplayed` на уровне шоу в Kodi отражают суммарное
-/// воспроизведение — как правило 0 на уровне TVShow (заполняется на
-/// уровне эпизодов). Используется для матчинга и чтобы решить, идти
-/// ли за эпизодами.
+/// Show-level `playcount`/`lastplayed` is usually 0 in Kodi (tracked per
+/// episode); used for matching and to decide whether to fetch episodes.
 class KodiTvShow {
-  /// Создаёт [KodiTvShow].
   const KodiTvShow({
     required this.tvShowId,
     required this.title,
@@ -21,7 +16,6 @@ class KodiTvShow {
     this.userRating,
   });
 
-  /// Парсит элемент массива `tvshows` из ответа `VideoLibrary.GetTVShows`.
   factory KodiTvShow.fromJson(Map<String, dynamic> json) {
     return KodiTvShow(
       tvShowId: json['tvshowid'] as int,
@@ -36,25 +30,19 @@ class KodiTvShow {
     );
   }
 
-  /// Внутренний ID шоу в Kodi.
   final int tvShowId;
-
-  /// Название шоу.
   final String title;
-
-  /// Год первого эфира.
   final int? year;
 
-  /// Суммарный playcount (часто 0 — смотри эпизоды).
+  /// Aggregate playcount, often 0 — see per-episode data.
   final int playcount;
 
-  /// Когда последний раз воспроизводился какой-либо эпизод.
   final DateTime? lastPlayed;
 
-  /// Оценка пользователя (0–10).
-  final int? userRating;
+  /// User rating, 0–10.
+  final double? userRating;
 
-  /// Внешние идентификаторы (TMDB / IMDB / TVDB).
+  /// External ids (TMDB / IMDB / TVDB) for matching.
   final KodiUniqueIds uniqueIds;
 
   static int? _parseYear(Object? raw) {
@@ -66,9 +54,9 @@ class KodiTvShow {
     return null;
   }
 
-  static int? _parseRating(Object? raw) {
-    if (raw is int && raw > 0) return raw;
-    if (raw is double && raw > 0) return raw.round();
+  static double? _parseRating(Object? raw) {
+    if (raw is int && raw > 0) return raw.toDouble();
+    if (raw is double && raw > 0) return raw;
     return null;
   }
 }

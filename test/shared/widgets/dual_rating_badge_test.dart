@@ -5,7 +5,7 @@ import 'package:xerabora/shared/widgets/dual_rating_badge.dart';
 
 void main() {
   Widget buildBadge({
-    int? userRating,
+    double? userRating,
     double? apiRating,
     bool compact = false,
     bool inline = false,
@@ -66,12 +66,12 @@ void main() {
           userRating: 8,
           apiRating: 7.5,
         );
-        expect(badge.formattedRating, '8 / 7.5');
+        expect(badge.formattedRating, '8.0 / 7.5');
       });
 
       test('should show только userRating', () {
         const DualRatingBadge badge = DualRatingBadge(userRating: 10);
-        expect(badge.formattedRating, '10');
+        expect(badge.formattedRating, '10.0');
       });
 
       test('should show только apiRating', () {
@@ -94,7 +94,7 @@ void main() {
           userRating: 1,
           apiRating: 0.1,
         );
-        expect(badge.formattedRating, '1 / 0.1');
+        expect(badge.formattedRating, '1.0 / 0.1');
       });
 
       test('должен игнорировать apiRating == 0 при наличии userRating', () {
@@ -102,7 +102,7 @@ void main() {
           userRating: 5,
           apiRating: 0.0,
         );
-        expect(badge.formattedRating, '5');
+        expect(badge.formattedRating, '5.0');
       });
     });
 
@@ -120,7 +120,7 @@ void main() {
         await tester.pumpWidget(buildBadge(userRating: 8));
         await tester.pumpAndSettle();
 
-        expect(find.text('8'), findsOneWidget);
+        expect(find.text('8.0'), findsOneWidget);
       });
 
       testWidgets('should show оба рейтинга',
@@ -128,7 +128,7 @@ void main() {
         await tester.pumpWidget(buildBadge(userRating: 8, apiRating: 7.5));
         await tester.pumpAndSettle();
 
-        expect(find.text('8 / 7.5'), findsOneWidget);
+        expect(find.text('8.0 / 7.5'), findsOneWidget);
       });
 
       testWidgets('should show только apiRating',
@@ -146,7 +146,7 @@ void main() {
             .pumpWidget(buildBadge(userRating: 8, apiRating: 7.5, inline: true));
         await tester.pumpAndSettle();
 
-        expect(find.text('8 / 7.5'), findsOneWidget);
+        expect(find.text('8.0 / 7.5'), findsOneWidget);
       });
 
       testWidgets('без рейтинга не показывает текст',

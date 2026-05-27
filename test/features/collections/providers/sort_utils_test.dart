@@ -11,7 +11,7 @@ CollectionItem _makeItem({
   required String name,
   int sortOrder = 0,
   ItemStatus status = ItemStatus.notStarted,
-  int? userRating,
+  double? userRating,
   DateTime? addedAt,
   double? apiRating,
 }) {

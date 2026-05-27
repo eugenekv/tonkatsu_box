@@ -324,7 +324,7 @@ class AniListImportService {
       );
     }
 
-    final int? rating = _resolveRating(entry.scoreRaw100);
+    final double? rating = _resolveRating(entry.scoreRaw100);
     if (rating != null) {
       await _db.updateItemUserRating(itemId, rating);
     }
@@ -382,7 +382,7 @@ class AniListImportService {
       );
     }
 
-    final int? rating = _resolveRating(entry.scoreRaw100);
+    final double? rating = _resolveRating(entry.scoreRaw100);
     if (rating != null && rating != existing.userRating) {
       await _db.updateItemUserRating(existing.id, rating);
     }
@@ -461,12 +461,12 @@ class AniListImportService {
     );
   }
 
-  /// Normalizes AniList POINT_100 score to xerabora 1..10.
-  static int? _resolveRating(int? scoreRaw100) {
+  /// Normalizes AniList POINT_100 score to xerabora 1.0..10.0 (step 0.1).
+  static double? _resolveRating(int? scoreRaw100) {
     if (scoreRaw100 == null || scoreRaw100 <= 0) return null;
-    final int normalized = scoreRaw100 ~/ 10;
-    if (normalized <= 0) return null;
-    if (normalized > 10) return 10;
+    final double normalized = scoreRaw100 / 10.0;
+    if (normalized < 1.0) return 1.0;
+    if (normalized > 10.0) return 10.0;
     return normalized;
   }
 

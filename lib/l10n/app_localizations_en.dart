@@ -2195,7 +2195,7 @@ class SEn extends S {
   String get detailMyRating => 'My Rating';
 
   @override
-  String detailRatingValue(int rating) {
+  String detailRatingValue(String rating) {
     return '$rating/10';
   }
 

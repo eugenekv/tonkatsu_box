@@ -1,14 +1,11 @@
-// Модель фильма из Kodi VideoLibrary.
-
 import 'kodi_date_parser.dart';
 import 'kodi_unique_ids.dart';
 
-/// Фильм из Kodi VideoLibrary.GetMovies.
+/// A movie from Kodi `VideoLibrary.GetMovies`.
 ///
-/// DTO, не сохраняется в SQLite — используется только в `KodiSyncService`
-/// для матчинга с локальной коллекцией и wishlist-ом.
+/// DTO, never persisted to SQLite — used only by `KodiSyncService` to match
+/// against the local collection and wishlist.
 class KodiMovie {
-  /// Создаёт [KodiMovie].
   const KodiMovie({
     required this.movieId,
     required this.title,
@@ -22,11 +19,8 @@ class KodiMovie {
     this.communityRating,
   });
 
-  /// Парсит элемент массива `movies` из ответа `VideoLibrary.GetMovies`.
-  ///
-  /// Обязательные поля: `movieid`, `title`. Остальное — опциональные.
-  /// `lastplayed` приходит в формате `"YYYY-MM-DD HH:MM:SS"` (local time);
-  /// пустая строка трактуется как "никогда не воспроизводился".
+  /// `lastplayed` is `"YYYY-MM-DD HH:MM:SS"` (local time); an empty string
+  /// means "never played".
   factory KodiMovie.fromJson(Map<String, dynamic> json) {
     final String? setRaw = json['set'] as String?;
     return KodiMovie(
@@ -45,40 +39,30 @@ class KodiMovie {
     );
   }
 
-  /// Внутренний ID фильма в Kodi.
   final int movieId;
-
-  /// Название фильма.
   final String title;
-
-  /// Год выпуска (может отсутствовать — Kodi возвращает 0 или поле не
-  /// приходит).
   final int? year;
 
-  /// Сколько раз воспроизводился (0 = не смотрели).
+  /// Play count, 0 = unwatched.
   final int playcount;
 
-  /// Когда последний раз воспроизводился (null если playcount == 0
-  /// или поле пустое).
+  /// Null when playcount == 0 or the field was empty.
   final DateTime? lastPlayed;
 
-  /// Оценка пользователя в Kodi по шкале 0–10 (null если не выставлена).
-  final int? userRating;
+  /// Kodi user rating, 0–10, null when unset.
+  final double? userRating;
 
-  /// Внешние идентификаторы — для матчинга с TMDB.
+  /// External ids for TMDB matching.
   final KodiUniqueIds uniqueIds;
 
-  /// Movie set / collection (e.g. "Harry Potter Collection").
-  /// null если фильм не входит в набор.
+  /// Movie set / collection (e.g. "Harry Potter Collection"), null if none.
   final String? set;
 
-  /// Когда фильм был добавлен в библиотеку Kodi.
   final DateTime? dateAdded;
 
-  /// Community рейтинг от scraper'а (TMDB/IMDB), 0.0–10.0.
+  /// Scraper (TMDB/IMDB) community rating, 0.0–10.0.
   final double? communityRating;
 
-  /// Пользователь смотрел фильм.
   bool get isWatched => playcount > 0;
 
   static int? _parseYear(Object? raw) {
@@ -90,9 +74,9 @@ class KodiMovie {
     return null;
   }
 
-  static int? _parseRating(Object? raw) {
-    if (raw is int && raw > 0) return raw;
-    if (raw is double && raw > 0) return raw.round();
+  static double? _parseRating(Object? raw) {
+    if (raw is int && raw > 0) return raw.toDouble();
+    if (raw is double && raw > 0) return raw;
     return null;
   }
 

@@ -706,7 +706,7 @@ class TraktZipImportService {
             if (existing.userRating == null) {
               await _database.updateItemUserRating(
                 existing.id,
-                rating.rating.clamp(1, 10),
+                rating.rating.clamp(1, 10).toDouble(),
               );
               itemsUpdated++;
               updatedByType[resolved.mediaType] =
@@ -728,7 +728,7 @@ class TraktZipImportService {
               if (itemId != null) {
                 await _database.updateItemUserRating(
                   itemId,
-                  rating.rating.clamp(1, 10),
+                  rating.rating.clamp(1, 10).toDouble(),
                 );
                 itemsImported++;
                 importedByType[resolved.mediaType] =

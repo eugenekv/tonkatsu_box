@@ -94,7 +94,7 @@ CollectionItem createTestCollectionItem({
   ItemStatus status = ItemStatus.notStarted,
   String? authorComment,
   String? userComment,
-  int? userRating,
+  double? userRating,
   String? overrideName,
   int currentSeason = 0,
   int currentEpisode = 0,

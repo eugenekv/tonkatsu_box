@@ -22,7 +22,7 @@ CollectionItem _makeItem({
   ItemStatus status = ItemStatus.notStarted,
   int sortOrder = 0,
   String gameName = 'Test Game',
-  int? userRating,
+  double? userRating,
 }) {
   return CollectionItem(
     id: id,

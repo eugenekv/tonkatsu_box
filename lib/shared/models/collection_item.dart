@@ -79,7 +79,7 @@ class CollectionItem with Exportable {
       status: ItemStatus.fromString(row['status'] as String),
       authorComment: row['author_comment'] as String?,
       userComment: row['user_comment'] as String?,
-      userRating: row['user_rating'] as int?,
+      userRating: (row['user_rating'] as num?)?.toDouble(),
       overrideName: row['override_name'] as String?,
       addedAt: DateTime.fromMillisecondsSinceEpoch(
         (row['added_at'] as int) * 1000,
@@ -130,7 +130,7 @@ class CollectionItem with Exportable {
           : ItemStatus.notStarted,
       authorComment: json['comment'] as String?,
       userComment: json['user_comment'] as String?,
-      userRating: json['user_rating'] as int?,
+      userRating: (json['user_rating'] as num?)?.toDouble(),
       overrideName: json['override_name'] as String?,
       sortOrder: (json['sort_order'] as int?) ?? 0,
       addedAt: json['added_at'] != null
@@ -195,8 +195,8 @@ class CollectionItem with Exportable {
   /// Private note the current user wrote on this item.
   final String? userComment;
 
-  /// User rating 1–10. `null` means "not rated", not zero.
-  final int? userRating;
+  /// User rating 1.0–10.0 (step 0.1). `null` means "not rated", not zero.
+  final double? userRating;
 
   /// User-set display name that overrides the cached API title. `null` means
   /// "no override" — UI falls back to the joined media's name.
@@ -613,7 +613,7 @@ class CollectionItem with Exportable {
     bool clearAuthorComment = false,
     String? userComment,
     bool clearUserComment = false,
-    int? userRating,
+    double? userRating,
     bool clearUserRating = false,
     String? overrideName,
     bool clearOverrideName = false,

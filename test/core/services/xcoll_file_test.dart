@@ -651,8 +651,12 @@ void main() {
   });
 
   group('xcollFormatVersion', () {
-    test('should be equal 2', () {
-      expect(xcollFormatVersion, equals(2));
+    test('should be equal 3', () {
+      expect(xcollFormatVersion, equals(3));
+    });
+
+    test('min readable version stays 2 (back-compat with legacy exports)', () {
+      expect(xcollMinReadableVersion, equals(2));
     });
   });
 }

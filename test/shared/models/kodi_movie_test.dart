@@ -87,13 +87,13 @@ void main() {
       expect(movie.userRating, isNull);
     });
 
-    test('userrating как double округляется', () {
+    test('userrating как double сохраняет дробную часть', () {
       final KodiMovie movie = KodiMovie.fromJson(<String, dynamic>{
         'movieid': 1,
         'title': 'Test',
         'userrating': 8.6,
       });
-      expect(movie.userRating, 9);
+      expect(movie.userRating, 8.6);
     });
 
     test('set парсится из непустой строки', () {

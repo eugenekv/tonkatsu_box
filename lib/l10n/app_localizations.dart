@@ -3965,7 +3965,7 @@ abstract class S {
   ///
   /// In en, this message translates to:
   /// **'{rating}/10'**
-  String detailRatingValue(int rating);
+  String detailRatingValue(String rating);
 
   /// No description provided for @detailActivityProgress.
   ///

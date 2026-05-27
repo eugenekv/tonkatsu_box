@@ -43,7 +43,7 @@ class CollectionTableView extends ConsumerStatefulWidget {
   final void Function(CollectionItem item, Offset globalPosition)?
       onItemSecondaryTap;
   final List<CollectionTag> tags;
-  final void Function(int itemId, int? rating)? onRatingChanged;
+  final void Function(int itemId, double? rating)? onRatingChanged;
   final void Function(int itemId, ItemStatus status, MediaType mediaType)?
       onStatusChanged;
   final void Function(int itemId, int? tagId)? onTagChanged;
@@ -68,7 +68,7 @@ class _CollectionTableViewState extends ConsumerState<CollectionTableView> {
 
   ItemStatus? _filterStatus;
   MediaType? _filterType;
-  int? _filterRating;
+  double? _filterRating;
   int? _filterTagId;
   String? _filterPlatform;
 
@@ -234,10 +234,10 @@ class _CollectionTableViewState extends ConsumerState<CollectionTableView> {
             (MediaType a, MediaType b) => a.index.compareTo(b.index),
           );
         case TableColumn.rating:
-          _filterRating = _cycleFilter<int>(
+          _filterRating = _cycleFilter<double>(
             _filterRating,
             widget.items.map((CollectionItem i) => i.userRating ?? 0),
-            (int a, int b) => a.compareTo(b),
+            (double a, double b) => a.compareTo(b),
           );
         case TableColumn.tag:
           _filterTagId = _cycleFilter<int>(
@@ -312,8 +312,8 @@ class _CollectionTableViewState extends ConsumerState<CollectionTableView> {
         case TableColumn.tag:
           return _tagName(a).compareTo(_tagName(b)) * dir;
         case TableColumn.rating:
-          final int ra = a.userRating ?? 0;
-          final int rb = b.userRating ?? 0;
+          final double ra = a.userRating ?? 0;
+          final double rb = b.userRating ?? 0;
           return ra.compareTo(rb) * dir;
         case TableColumn.year:
           final int ya = a.releaseYear ?? 0;
