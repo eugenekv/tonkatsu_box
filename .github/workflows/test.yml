@@ -44,6 +44,15 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
+      # Drop generated / non-product code so the percentage reflects real,
+      # testable code (l10n is pure generated strings; debug screens are tools).
+      - name: Strip generated code from coverage
+        run: |
+          sudo apt-get update && sudo apt-get install -y lcov
+          lcov --remove coverage/lcov.info \
+            'lib/l10n/*' '*.g.dart' '*.freezed.dart' '*_debug_screen.dart' \
+            -o coverage/lcov.info --ignore-errors unused
+
       - name: Compute coverage summary
         id: cov
         run: |
