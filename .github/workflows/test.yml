@@ -50,6 +50,7 @@ jobs:
           LF=$(awk -F: '/^LF:/ {s+=$2} END {print s+0}' coverage/lcov.info)
           LH=$(awk -F: '/^LH:/ {s+=$2} END {print s+0}' coverage/lcov.info)
           PCT=$(awk "BEGIN { if ($LF>0) printf \"%.1f\", ($LH/$LF)*100; else print \"0.0\" }")
+          echo "Coverage: ${PCT}% of lines (${LH}/${LF})"
           echo "pct=$PCT" >> "$GITHUB_OUTPUT"
           {
             echo "## Coverage"
