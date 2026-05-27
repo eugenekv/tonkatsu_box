@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../shared/theme/app_colors.dart';
 import '../../../../../shared/theme/app_typography.dart';
+import '../../../../../shared/widgets/fractional_star_rating.dart';
 
 class RatingCell extends StatelessWidget {
   const RatingCell({
@@ -10,8 +12,8 @@ class RatingCell extends StatelessWidget {
     super.key,
   });
 
-  final int? rating;
-  final ValueChanged<int?>? onRatingChanged;
+  final double? rating;
+  final ValueChanged<double?>? onRatingChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class RatingCell extends StatelessWidget {
               ),
               const SizedBox(width: 2),
               Text(
-                rating.toString(),
+                rating!.toStringAsFixed(1),
                 style: AppTypography.body.copyWith(
                   color: AppColors.ratingStar,
                   fontWeight: FontWeight.w600,
@@ -62,7 +64,7 @@ class RatingCell extends StatelessWidget {
     final Offset offset = box.localToGlobal(Offset.zero);
     final Size size = box.size;
 
-    showMenu<int?>(
+    showMenu<void>(
       context: context,
       position: RelativeRect.fromLTRB(
         offset.dx,
@@ -70,91 +72,89 @@ class RatingCell extends StatelessWidget {
         offset.dx + size.width,
         offset.dy + size.height,
       ),
-      constraints: const BoxConstraints(maxWidth: 240),
-      items: <PopupMenuEntry<int?>>[
-        _RatingPopupItem(currentRating: rating),
+      constraints: const BoxConstraints(maxWidth: 320),
+      items: <PopupMenuEntry<void>>[
+        _RatingPopupItem(initial: rating, onCommit: onRatingChanged!),
       ],
-    ).then((int? value) {
-      // value == -1 → clear, null → dismissed
-      if (value == null) return;
-      onRatingChanged!(value == -1 ? null : value);
-    });
+    );
   }
 }
 
-class _RatingPopupItem extends PopupMenuEntry<int?> {
-  const _RatingPopupItem({required this.currentRating});
+class _RatingPopupItem extends PopupMenuEntry<void> {
+  const _RatingPopupItem({required this.initial, required this.onCommit});
 
-  final int? currentRating;
-
-  @override
-  double get height => 40;
+  final double? initial;
+  final ValueChanged<double?> onCommit;
 
   @override
-  bool represents(int? value) => false;
+  double get height => 72;
+
+  @override
+  bool represents(void value) => false;
 
   @override
   State<_RatingPopupItem> createState() => _RatingPopupItemState();
 }
 
 class _RatingPopupItemState extends State<_RatingPopupItem> {
-  int? _hoveredRating;
+  static const double _starSize = 20;
+
+  late double? _value = widget.initial;
+  bool _committed = false;
+
+  /// Applies the picked value once — on OK, or when the menu is dismissed by
+  /// tapping outside (which disposes this entry).
+  void _commit() {
+    if (_committed) return;
+    _committed = true;
+    if (_value != widget.initial) widget.onCommit(_value);
+  }
+
+  @override
+  void dispose() {
+    _commit();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _buildClearButton(),
-          const SizedBox(width: 4),
-          for (int i = 1; i <= 10; i++) _buildStar(i),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClearButton() {
-    return InkWell(
-      onTap: () => Navigator.of(context).pop(-1),
-      borderRadius: BorderRadius.circular(4),
-      child: const Padding(
-        padding: EdgeInsets.all(2),
-        child: Icon(
-          Icons.close_rounded,
-          size: 16,
-          color: AppColors.textTertiary,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStar(int value) {
-    final bool isActive =
-        widget.currentRating != null && value <= widget.currentRating!;
-    final bool isHovered =
-        _hoveredRating != null && value <= _hoveredRating!;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hoveredRating = value),
-      onExit: (_) => setState(() => _hoveredRating = null),
-      child: GestureDetector(
-        onTap: () => Navigator.of(context).pop(value),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 1),
-          child: Icon(
-            isHovered || isActive
-                ? Icons.star_rounded
-                : Icons.star_border_rounded,
-            size: 18,
-            color: isHovered
-                ? AppColors.ratingStar
-                : isActive
-                    ? AppColors.ratingStar.withAlpha(180)
-                    : AppColors.textTertiary,
+          SizedBox(
+            // Both dimensions are fixed so the surrounding IntrinsicWidth /
+            // IntrinsicHeight never descend into the rating's LayoutBuilder.
+            width: FractionalStarRating.naturalWidth(_starSize),
+            height: _starSize,
+            child: FractionalStarRating(
+              value: _value,
+              starSize: _starSize,
+              onChanged: (double? v) => setState(() => _value = v),
+            ),
           ),
-        ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                _value == null ? '—' : _value!.toStringAsFixed(1),
+                style: AppTypography.body.copyWith(
+                  color: AppColors.ratingStar,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  _commit();
+                  Navigator.of(context).pop();
+                },
+                child: Text(S.of(context).confirm),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

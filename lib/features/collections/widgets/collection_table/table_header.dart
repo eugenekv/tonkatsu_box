@@ -38,7 +38,7 @@ class TableHeader extends StatelessWidget {
   final S l;
   final ItemStatus? filterStatus;
   final MediaType? filterType;
-  final int? filterRating;
+  final double? filterRating;
   final int? filterTagId;
   final String? filterPlatform;
   final Map<int, CollectionTag> tagMap;
@@ -114,7 +114,9 @@ class TableHeader extends StatelessWidget {
           ),
           _col(
             filterRating != null
-                ? (filterRating == 0 ? '—' : '★ $filterRating')
+                ? (filterRating == 0
+                    ? '—'
+                    : '★ ${filterRating!.toStringAsFixed(1)}')
                 : l.collectionTableRating,
             TableColumn.rating,
             width: 60,

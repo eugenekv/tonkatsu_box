@@ -19,7 +19,7 @@ import 'dual_date_picker_dialog.dart';
 import 'markdown_toolbar.dart';
 import 'mini_markdown_text.dart';
 import 'source_badge.dart';
-import 'star_rating_bar.dart';
+import 'fractional_star_rating.dart';
 import '../utils/duration_formatter.dart';
 
 /// `type` is either 'started' or 'completed'.
@@ -129,9 +129,9 @@ class MediaDetailView extends ConsumerStatefulWidget {
   /// Private user notes.
   final String? userComment;
 
-  /// 1..10.
-  final int? userRating;
-  final ValueChanged<int?>? onUserRatingChanged;
+  /// 1.0..10.0 (step 0.1).
+  final double? userRating;
+  final ValueChanged<double?>? onUserRatingChanged;
   final DateTime? addedAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
@@ -591,7 +591,9 @@ class _MediaDetailViewState extends ConsumerState<MediaDetailView> {
             if (widget.userRating != null) ...<Widget>[
               const SizedBox(width: AppSpacing.sm),
               Text(
-                S.of(context).detailRatingValue(widget.userRating!),
+                S.of(context).detailRatingValue(
+                      widget.userRating!.toStringAsFixed(1),
+                    ),
                 style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -600,8 +602,8 @@ class _MediaDetailViewState extends ConsumerState<MediaDetailView> {
           ],
         ),
         const SizedBox(height: 6),
-        StarRatingBar(
-          rating: widget.userRating,
+        FractionalStarRating(
+          value: widget.userRating,
           onChanged: widget.onUserRatingChanged!,
         ),
       ],

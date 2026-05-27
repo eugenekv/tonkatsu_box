@@ -8,21 +8,24 @@ Tonkatsu Box supports two file formats for sharing collections.
 
 | Extension | Version | Description |
 |-----------|---------|-------------|
-| `.xcoll` | v2 | Light export — metadata + element IDs |
-| `.xcollx` | v2 | Full export — + canvas + base64 images |
+| `.xcoll` | v3 | Light export — metadata + element IDs |
+| `.xcollx` | v3 | Full export — + canvas + base64 images |
 
 > [!WARNING]
-> **The legacy `.rcoll` (v1) format is deprecated and no longer supported.** Files in v1 format will be rejected with a `FormatException`. All collections should use `.xcoll` or `.xcollx` (v2) going forward.
+> **The legacy `.rcoll` (v1) format is deprecated and no longer supported.** Files in v1 format will be rejected with a `FormatException`. All collections should use `.xcoll` or `.xcollx` going forward.
+
+> [!NOTE]
+> **v3 supersedes v2:** `user_rating` is now a one-decimal number (e.g. `8.5`) instead of an integer. The current build reads both v2 and v3 (legacy integer ratings load as doubles); older builds reject v3 files cleanly.
 
 ---
 
-## v2 Format (`.xcoll` / `.xcollx`)
+## Format (`.xcoll` / `.xcollx`)
 
 ### Light Export (`.xcoll`)
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "format": "light",
   "name": "My Collection",
   "author": "username",
@@ -53,7 +56,7 @@ Includes everything from light export plus `canvas`, `images`, and `media`:
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "format": "full",
   "name": "My Collection",
   "author": "username",
@@ -131,11 +134,11 @@ Includes everything from light export plus `canvas`, `images`, and `media`:
 
 ---
 
-### v2 Top-Level Fields
+### Top-Level Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| version | number | yes | Always `2` |
+| version | number | yes | Always `3` (v2 also accepted on import) |
 | format | string | yes | `"light"` or `"full"` |
 | name | string | yes | Collection name |
 | author | string | yes | Creator name |
@@ -157,7 +160,7 @@ Includes everything from light export plus `canvas`, `images`, and `media`:
 | external_id | number | yes | IGDB ID (games), TMDB ID (movies/TV), VNDB numeric ID (visual novels), or AniList ID (manga) |
 | platform_id | number | no | IGDB platform ID (games) or AnimationSource (animation: 0=movie, 1=tvShow) |
 | comment | string | no | Author's comment |
-| user_rating | number | no | User rating (1-10) |
+| user_rating | number | no | User rating (1.0–10.0, one decimal). Integers from v2 files load as doubles |
 | _canvas | object | no | Per-item canvas data (full only) |
 | tag_name | string | no | Name of the assigned tag/section (full only, resolved to `tag_id` on import) |
 

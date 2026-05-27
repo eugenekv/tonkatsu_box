@@ -240,7 +240,7 @@ abstract final class DatabaseSchema {
         started_at INTEGER,
         completed_at INTEGER,
         last_activity_at INTEGER,
-        user_rating INTEGER,
+        user_rating INTEGER, -- stores fractional rating 1.0-10.0; REAL via type affinity, type kept INTEGER for history
         tag_id INTEGER,
         time_spent_minutes INTEGER NOT NULL DEFAULT 0,
         override_name TEXT,

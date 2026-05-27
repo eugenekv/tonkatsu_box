@@ -227,7 +227,7 @@ class CollectionRepository {
     await _db.updateItemUserComment(id, comment);
   }
 
-  Future<void> updateItemUserRating(int id, int? rating) async {
+  Future<void> updateItemUserRating(int id, double? rating) async {
     await _db.updateItemUserRating(id, rating);
   }
 

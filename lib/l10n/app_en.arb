@@ -1018,7 +1018,7 @@
   "detailRatingValue": "{rating}/10",
   "@detailRatingValue": {
     "placeholders": {
-      "rating": {"type": "int"}
+      "rating": {"type": "String"}
     }
   },
   "detailActivityProgress": "Activity & Progress",

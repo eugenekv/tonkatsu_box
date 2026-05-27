@@ -2233,7 +2233,7 @@ class SRu extends S {
   String get detailMyRating => 'Мой рейтинг';
 
   @override
-  String detailRatingValue(int rating) {
+  String detailRatingValue(String rating) {
     return '$rating/10';
   }
 

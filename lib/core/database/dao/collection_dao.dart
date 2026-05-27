@@ -518,7 +518,7 @@ class CollectionDao {
     );
   }
 
-  Future<void> updateItemUserRating(int id, int? rating) async {
+  Future<void> updateItemUserRating(int id, double? rating) async {
     final Database db = await _getDatabase();
     await db.update(
       'collection_items',

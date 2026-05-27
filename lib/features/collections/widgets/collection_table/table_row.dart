@@ -38,7 +38,7 @@ class TableRow extends StatefulWidget {
   final CollectionItem item;
   final VoidCallback onTap;
   final void Function(Offset globalPosition)? onSecondaryTap;
-  final void Function(int itemId, int? rating)? onRatingChanged;
+  final void Function(int itemId, double? rating)? onRatingChanged;
   final void Function(int itemId, ItemStatus status, MediaType mediaType)?
       onStatusChanged;
   final void Function(int itemId, int? tagId)? onTagChanged;
@@ -131,7 +131,7 @@ class _RowContent extends ConsumerWidget {
   final int? dragIndex;
   final bool isSelected;
   final VoidCallback? onToggleSelect;
-  final void Function(int itemId, int? rating)? onRatingChanged;
+  final void Function(int itemId, double? rating)? onRatingChanged;
   final void Function(int itemId, ItemStatus status, MediaType mediaType)?
       onStatusChanged;
   final void Function(int itemId, int? tagId)? onTagChanged;
@@ -248,7 +248,7 @@ class _RowContent extends ConsumerWidget {
           child: RatingCell(
             rating: item.userRating,
             onRatingChanged: onRatingChanged != null
-                ? (int? r) => onRatingChanged!(item.id, r)
+                ? (double? r) => onRatingChanged!(item.id, r)
                 : null,
           ),
         ),

@@ -54,7 +54,7 @@ class TextExportService {
       'name': item.displayName(animeMangaTitleLanguage),
       'year': item.releaseYear?.toString(),
       'rating': _formatApiRating(item.apiRating),
-      'myRating': item.userRating?.toString(),
+      'myRating': item.userRating?.toStringAsFixed(1),
       'platform': _platformOrNull(item),
       'status': _statusLabel(item.status),
       'genres': item.genresString,

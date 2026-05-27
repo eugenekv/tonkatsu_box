@@ -607,8 +607,8 @@ class DatabaseService {
   Future<void> updateItemUserComment(int id, String? comment) =>
       collectionDao.updateItemUserComment(id, comment);
 
-  /// Rating range: 1-10 or null.
-  Future<void> updateItemUserRating(int id, int? rating) =>
+  /// Rating range: 1.0-10.0 (step 0.1) or null.
+  Future<void> updateItemUserRating(int id, double? rating) =>
       collectionDao.updateItemUserRating(id, rating);
 
   /// Empty / whitespace-only `name` clears the override (NULL).

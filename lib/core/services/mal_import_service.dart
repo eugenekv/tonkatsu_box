@@ -219,8 +219,8 @@ class MalEntry {
   /// Mapped status.
   final ItemStatus status;
 
-  /// User score (1-10) or null.
-  final int? score;
+  /// User score (1.0-10.0) or null.
+  final double? score;
 
   /// Watched episodes (anime only).
   final int watchedEpisodes;
@@ -362,7 +362,8 @@ class MalImportService {
     );
 
     final int? scoreRaw = _parseInt(node.getElement('my_score')?.innerText);
-    final int? score = (scoreRaw == null || scoreRaw <= 0) ? null : scoreRaw;
+    final double? score =
+        (scoreRaw == null || scoreRaw <= 0) ? null : scoreRaw.toDouble();
 
     final int watchedEpisodes = kind == MalFileKind.anime
         ? _parseInt(node.getElement('my_watched_episodes')?.innerText) ?? 0
@@ -976,7 +977,7 @@ class MalImportService {
     lines.add('Status: $statusLabel');
 
     if (entry.score != null) {
-      lines.add('Score: ${entry.score}/10');
+      lines.add('Score: ${entry.score!.toStringAsFixed(0)}/10');
     }
 
     if (entry.tags != null) {

@@ -121,7 +121,7 @@ class CollectionItemsView extends ConsumerWidget {
                 }
               : null,
           onRatingChanged: canEdit
-              ? (int itemId, int? rating) {
+              ? (int itemId, double? rating) {
                   ref
                       .read(collectionItemsNotifierProvider(collectionId)
                           .notifier)

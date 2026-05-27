@@ -1023,11 +1023,11 @@ class CollectionItemsNotifier
     ref.invalidate(allItemsNotifierProvider);
   }
 
-  /// [rating] is 1-10, or null to clear.
-  Future<void> updateUserRating(int id, int? rating) async {
+  /// [rating] is 1.0-10.0 (step 0.1), or null to clear.
+  Future<void> updateUserRating(int id, double? rating) async {
     assert(
-      rating == null || (rating >= 1 && rating <= 10),
-      'Rating must be 1-10 or null, got $rating',
+      rating == null || (rating >= 1.0 && rating <= 10.0),
+      'Rating must be 1.0-10.0 or null, got $rating',
     );
     await _repository.updateItemUserRating(id, rating);
 

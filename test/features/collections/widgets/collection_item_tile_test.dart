@@ -26,7 +26,7 @@ CollectionItem _makeItem({
   int? platformId,
   String? authorComment,
   String? userComment,
-  int? userRating,
+  double? userRating,
   Game? game,
   Movie? movie,
   TvShow? tvShow,

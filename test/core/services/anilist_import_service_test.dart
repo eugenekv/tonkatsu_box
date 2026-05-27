@@ -327,9 +327,9 @@ void main() {
         );
 
         // Score 0 → no rating call at all.
-        // Score 100 → 10. Score 47 → 4 (integer division).
-        verify(() => mockDb.updateItemUserRating(999, 10)).called(1);
-        verify(() => mockDb.updateItemUserRating(999, 4)).called(1);
+        // Score 100 → 10.0. Score 47 → 4.7 (POINT_100 / 10.0).
+        verify(() => mockDb.updateItemUserRating(999, 10.0)).called(1);
+        verify(() => mockDb.updateItemUserRating(999, 4.7)).called(1);
         verifyNever(() => mockDb.updateItemUserRating(999, 0));
       });
 

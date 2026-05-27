@@ -29,7 +29,7 @@ CollectionItem _makeItem({
   required int id,
   String name = 'Item',
   DateTime? addedAt,
-  int? userRating,
+  double? userRating,
   ItemStatus status = ItemStatus.notStarted,
   int collectionId = 1,
   int? platformId,

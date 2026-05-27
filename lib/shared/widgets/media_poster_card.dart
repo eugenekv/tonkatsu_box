@@ -1,5 +1,3 @@
-// Единая вертикальная постерная карточка с вариантами размера.
-
 import 'package:flutter/material.dart';
 
 import '../../core/services/image_cache_service.dart';
@@ -13,27 +11,24 @@ import '../theme/app_typography.dart';
 import 'cached_image.dart';
 import 'dual_rating_badge.dart';
 
-/// Вариант отображения карточки.
 enum CardVariant {
-  /// Полноразмерная сетка (коллекция + поиск).
+  /// Full-size grid (collection + search).
   grid,
 
-  /// Компактная сетка (ландшафт Android).
+  /// Compact grid (Android landscape).
   compact,
 
-  /// Карточка на Board (цветная рамка типа, без hover).
+  /// Board card (typed colored border, no hover).
   canvas,
 }
 
-/// Единая вертикальная постерная карточка медиа-элемента.
+/// Vertical poster card for a media item.
 ///
-/// Заменяет [PosterCard], [CanvasGameCard] и [CanvasMediaCard].
-/// Поведение определяется параметром [variant]:
-/// - [CardVariant.grid] — hover-анимация, рейтинг, статус, title+subtitle
-/// - [CardVariant.compact] — уменьшенная grid (ландшафт)
-/// - [CardVariant.canvas] — Card с цветной рамкой, без анимации
+/// Behavior is driven by [variant]:
+/// - [CardVariant.grid] — hover animation, rating, status, title+subtitle
+/// - [CardVariant.compact] — smaller grid (landscape)
+/// - [CardVariant.canvas] — card with colored border, no animation
 class MediaPosterCard extends StatefulWidget {
-  /// Создаёт [MediaPosterCard].
   const MediaPosterCard({
     required this.variant,
     required this.title,
@@ -63,81 +58,67 @@ class MediaPosterCard extends StatefulWidget {
     super.key,
   });
 
-  /// Вариант отображения.
   final CardVariant variant;
-
-  /// Название элемента.
   final String title;
-
-  /// URL изображения постера.
   final String imageUrl;
-
-  /// Тип изображения для кэширования.
   final ImageType cacheImageType;
-
-  /// ID изображения для кэширования.
   final String cacheImageId;
 
-  /// Пользовательский рейтинг (1–10). Grid/compact only.
-  final int? userRating;
+  /// Personal rating (1.0–10.0). Grid/compact only.
+  final double? userRating;
 
-  /// API рейтинг (0.0–10.0). Grid/compact only.
+  /// API rating (0.0–10.0). Grid/compact only.
   final double? apiRating;
 
-  /// Находится ли элемент в коллекции. Grid/compact only.
+  /// Grid/compact only.
   final bool isInCollection;
 
-  /// Статус элемента. Grid/compact only.
+  /// Grid/compact only.
   final ItemStatus? status;
 
-  /// Год выпуска. Grid/compact only.
+  /// Grid/compact only.
   final int? year;
 
-  /// Подзаголовок (жанр, платформа). Grid/compact only.
+  /// Genre / platform. Grid/compact only.
   final String? subtitle;
 
-  /// Краткое название платформы (SNES, GBA). Grid/compact only.
+  /// Short platform name (SNES, GBA). Grid/compact only.
   final String? platformLabel;
 
-  /// Цвет семейства платформы (Sony=синий, Nintendo=красный и т.д.).
+  /// Platform family color (Sony=blue, Nintendo=red, ...).
   final Color? platformColor;
 
-  /// Путь к ассету оверлея платформы (PNG 600×900).
-  ///
-  /// Если задан, рисуется поверх постера вместо текстового бейджа.
+  /// Platform overlay asset (PNG 600×900); when set, drawn over the poster
+  /// instead of a text badge.
   final String? platformOverlayAsset;
 
-  /// Тип медиа — для цвета рамки и иконки placeholder (canvas).
+  /// Drives the border color and placeholder icon (canvas).
   final MediaType? mediaType;
 
-  /// Кастомная иконка placeholder. Fallback: [Icons.image_outlined].
+  /// Fallback: [Icons.image_outlined].
   final IconData? placeholderIcon;
 
-  /// Обработчик нажатия.
   final VoidCallback? onTap;
-
-  /// Обработчик долгого нажатия.
   final VoidCallback? onLongPress;
 
-  /// Обработчик правого клика (координаты для showMenu).
+  /// Right-click; carries the global position for showMenu.
   final void Function(Offset globalPosition)? onSecondaryTap;
 
-  /// Обработчик "Открыть в коллекции" (только если isInCollection).
+  /// Only meaningful when isInCollection.
   final VoidCallback? onOpenInCollection;
 
-  /// Callback при изменении фокуса (для трекинга клавиатурного выделения).
   final ValueChanged<bool>? onFocusChanged;
 
-  /// Название тега (секции) элемента. Grid/compact only.
+  /// Tag (section) name. Grid/compact only.
   final String? tagName;
 
-  /// Цвет тега (ARGB int). Grid/compact only.
+  /// Tag color (ARGB int). Grid/compact only.
   final int? tagColor;
 
-  /// Включить свечение постера цветом тега.
+  /// Glow the poster with the tag color.
   final bool tagGlow;
 
-  /// Callback при тапе на тег-бейдж (для выбора/смены тега).
+  /// Fired on tag-badge tap (to pick/change the tag).
   final void Function(Offset globalPosition)? onTagTap;
 
   @override
@@ -237,7 +218,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   _buildGridPoster(),
-                  // Текстовый блок — фиксированная высота для ровной сетки.
+                  // Fixed height keeps grid rows aligned.
                   Tooltip(
                     message: widget.title,
                     waitDuration: const Duration(milliseconds: 500),
@@ -295,12 +276,11 @@ class _MediaPosterCardState extends State<MediaPosterCard>
           child: Stack(
             fit: StackFit.expand,
           children: <Widget>[
-            // Постер
             _buildCachedImage(
               placeholder: _buildGridPlaceholder(),
             ),
 
-            // Оверлей платформы (сразу поверх постера, под бейджами)
+            // Platform overlay sits above the poster, below the badges.
             if (widget.platformOverlayAsset != null &&
                 !widget.isInCollection)
               Positioned.fill(
@@ -310,7 +290,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
                 ),
               ),
 
-            // Затемнение: idle ~25%, hover → прозрачный.
+            // Scrim: ~25% at idle, fades to transparent on hover.
             AnimatedBuilder(
               animation: _hoverController!,
               builder: (BuildContext context, Widget? child) {
@@ -324,7 +304,6 @@ class _MediaPosterCardState extends State<MediaPosterCard>
               },
             ),
 
-            // Hover-рамка
             AnimatedBuilder(
               animation: _hoverController!,
               builder: (BuildContext context, Widget? child) {
@@ -346,7 +325,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
               },
             ),
 
-            // Рейтинг badge (top-left, скрыт при оверлее — выносится в subtitle)
+            // Rating badge (top-left); hidden under an overlay — moved to the subtitle.
             if (_hasAnyRating && !hasOverlay)
               Positioned(
                 top: _isCompact ? 2 : AppSpacing.xs,
@@ -358,7 +337,6 @@ class _MediaPosterCardState extends State<MediaPosterCard>
                 ),
               ),
 
-            // Отметка "в коллекции" (top-right)
             if (widget.isInCollection)
               Positioned(
                 top: _isCompact ? 2 : AppSpacing.xs,
@@ -382,7 +360,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
                       ),
               ),
 
-            // Платформа-бейдж (top-right, fallback когда нет оверлея)
+            // Platform text badge (top-right) — fallback when there's no overlay.
             if (widget.platformOverlayAsset == null &&
                 widget.platformLabel != null &&
                 widget.platformColor != null &&
@@ -411,7 +389,6 @@ class _MediaPosterCardState extends State<MediaPosterCard>
                 ),
               ),
 
-            // Статус-бейдж (bottom-left)
             if (widget.status != null &&
                 widget.status != ItemStatus.notStarted)
               Positioned(
@@ -431,7 +408,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
                 ),
               ),
 
-            // Тег-бейдж (bottom-right) — кликабельный для выбора тега
+            // Tag badge (bottom-right) — tappable to pick a tag.
             if (widget.onTagTap != null || widget.tagName != null)
               Positioned(
                 bottom: _isCompact ? 2 : AppSpacing.xs,
@@ -463,7 +440,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
     );
   }
 
-  /// Subtitle row: [rating ·] platform · year · MediaType (цветной) · genre.
+  /// Subtitle row: [rating ·] platform · year · MediaType (colored) · genre.
   Widget _buildSubtitleRow(BuildContext context) {
     final bool hasOverlay =
         widget.platformOverlayAsset != null && !widget.isInCollection;
@@ -471,7 +448,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
         ? AppTypography.posterSubtitle.copyWith(fontSize: 7)
         : AppTypography.posterSubtitle;
 
-    // Части до типа: rating (если оверлей), platform, year.
+    // Parts before the type: rating (if overlay), platform, year.
     final List<String> before = <String>[];
     String? overlayRating;
     if (hasOverlay && _hasAnyRating) {
@@ -480,9 +457,9 @@ class _MediaPosterCardState extends State<MediaPosterCard>
           widget.apiRating != null && widget.apiRating! > 0;
       if (hasUser && hasApi) {
         overlayRating =
-            '★${widget.userRating} / ${widget.apiRating!.toStringAsFixed(1)}';
+            '★${widget.userRating!.toStringAsFixed(1)} / ${widget.apiRating!.toStringAsFixed(1)}';
       } else if (hasUser) {
-        overlayRating = '★${widget.userRating}';
+        overlayRating = '★${widget.userRating!.toStringAsFixed(1)}';
       } else if (hasApi) {
         overlayRating = '★${widget.apiRating!.toStringAsFixed(1)}';
       }
@@ -493,7 +470,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
     if (widget.year != null) before.add(widget.year.toString());
     final String beforeText = before.join(' \u00b7 ');
 
-    // Часть после типа: genre/subtitle.
+    // Part after the type: genre/subtitle.
     final String? afterText = widget.subtitle;
 
     const Color ratingColor = Color(0xFFFFD700); // gold
@@ -579,14 +556,12 @@ class _MediaPosterCardState extends State<MediaPosterCard>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // Постер
             Expanded(
               child: _buildCachedImage(
                 placeholder: _buildCanvasPlaceholder(colorScheme),
               ),
             ),
 
-            // Название
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -622,7 +597,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
   // Common
   // ---------------------------------------------------------------------------
 
-  /// Ширина декодирования постера в пикселях (2x для HiDPI).
+  /// Poster decode width in px (2x for HiDPI).
   static const int _posterDecodeWidth = 300;
 
   Widget _buildCachedImage({required Widget placeholder}) {
@@ -640,7 +615,7 @@ class _MediaPosterCardState extends State<MediaPosterCard>
   }
 }
 
-/// Обёртка постера с цветной рамкой и бегущим бликом по периметру.
+/// Wraps the poster with a colored border and a highlight running its edge.
 class _TagGlowWrapper extends StatefulWidget {
   const _TagGlowWrapper({
     required this.borderRadius,
@@ -713,7 +688,7 @@ class _TagGlowWrapperState extends State<_TagGlowWrapper>
   }
 }
 
-/// Рисует цветную рамку с бегущим ярким бликом.
+/// Paints a colored border with a running bright highlight.
 class _GlowBorderPainter extends CustomPainter {
   _GlowBorderPainter({
     required this.color,
@@ -732,14 +707,13 @@ class _GlowBorderPainter extends CustomPainter {
       Radius.circular(borderRadius),
     );
 
-    // Базовая рамка.
     final Paint borderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5
       ..color = color.withAlpha(100);
     canvas.drawRRect(rrect, borderPaint);
 
-    // Бегущий блик — SweepGradient, вращающийся по progress.
+    // Running highlight: a SweepGradient rotated by progress.
     final double angle = progress * 2 * 3.14159265;
     final Paint highlightPaint = Paint()
       ..style = PaintingStyle.stroke
@@ -764,7 +738,7 @@ class _GlowBorderPainter extends CustomPainter {
       color != oldDelegate.color;
 }
 
-/// Кнопка "Открыть в коллекции" поверх постера.
+/// Tappable tag badge shown over the poster.
 class _TagBadge extends StatelessWidget {
   const _TagBadge({
     required this.tagName,
