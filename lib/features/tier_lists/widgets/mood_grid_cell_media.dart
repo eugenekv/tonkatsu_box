@@ -21,12 +21,33 @@ class MoodGridCellMedia {
     required this.coverUrl,
     required this.imageType,
     required this.placeholderIcon,
+    this.year,
+    this.genre,
+    this.rating,
   });
+
+  /// Empty payload — used as a stable fallback when no media reference
+  /// resolves. Callers can check [title] / [coverUrl] for null.
+  static const MoodGridCellMedia empty = MoodGridCellMedia(
+    title: null,
+    coverUrl: null,
+    imageType: ImageType.gameCover,
+    placeholderIcon: Icons.image_outlined,
+  );
 
   final String? title;
   final String? coverUrl;
   final ImageType imageType;
   final IconData placeholderIcon;
+
+  /// Release year (game / movie / show / VN / anime / manga / custom).
+  final int? year;
+
+  /// Comma-joined genre list. Empty → null.
+  final String? genre;
+
+  /// Rating normalised to a 0–10 scale with one decimal of precision.
+  final double? rating;
 }
 
 /// Resolves a (mediaType, externalId, platformId) triple to display data.
@@ -48,6 +69,10 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: game?.coverUrl,
         imageType: ImageType.gameCover,
         placeholderIcon: Icons.videogame_asset,
+        year: game?.releaseDate?.year,
+        genre: _joinGenres(game?.genres),
+        // IGDB rating is 0–100 → normalise to 0–10.
+        rating: game?.rating != null ? game!.rating! / 10.0 : null,
       );
     case MediaType.movie:
       final Movie? movie = await db.getMovieByTmdbId(externalId);
@@ -56,6 +81,9 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: movie?.posterUrl,
         imageType: ImageType.moviePoster,
         placeholderIcon: Icons.movie_outlined,
+        year: movie?.releaseYear,
+        genre: _joinGenres(movie?.genres),
+        rating: movie?.rating,
       );
     case MediaType.tvShow:
       final TvShow? tvShow = await db.getTvShowByTmdbId(externalId);
@@ -64,6 +92,9 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: tvShow?.posterUrl,
         imageType: ImageType.tvShowPoster,
         placeholderIcon: Icons.tv_outlined,
+        year: tvShow?.firstAirYear,
+        genre: _joinGenres(tvShow?.genres),
+        rating: tvShow?.rating,
       );
     case MediaType.animation:
       final bool isTvBased = platformId == AnimationSource.tvShow;
@@ -74,6 +105,9 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
           coverUrl: tvShow?.posterUrl,
           imageType: ImageType.tvShowPoster,
           placeholderIcon: Icons.animation,
+          year: tvShow?.firstAirYear,
+          genre: _joinGenres(tvShow?.genres),
+          rating: tvShow?.rating,
         );
       }
       final Movie? movie = await db.getMovieByTmdbId(externalId);
@@ -82,6 +116,9 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: movie?.posterUrl,
         imageType: ImageType.moviePoster,
         placeholderIcon: Icons.animation,
+        year: movie?.releaseYear,
+        genre: _joinGenres(movie?.genres),
+        rating: movie?.rating,
       );
     case MediaType.visualNovel:
       final VisualNovel? vn = await db.getVisualNovel(externalId);
@@ -90,6 +127,9 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: vn?.imageUrl,
         imageType: ImageType.vnCover,
         placeholderIcon: Icons.menu_book,
+        year: _yearFromVndbDate(vn?.released),
+        genre: _joinGenres(vn?.tags),
+        rating: vn?.rating,
       );
     case MediaType.anime:
       final Anime? anime = await db.getAnime(externalId);
@@ -98,6 +138,11 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: anime?.coverUrl,
         imageType: ImageType.animeCover,
         placeholderIcon: Icons.play_circle_outline,
+        year: anime?.seasonYear ?? anime?.startYear,
+        genre: _joinGenres(anime?.genres),
+        // AniList score is 0–100 → normalise to 0–10.
+        rating:
+            anime?.averageScore != null ? anime!.averageScore! / 10.0 : null,
       );
     case MediaType.manga:
       final Manga? manga = await db.getManga(externalId);
@@ -106,6 +151,10 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: manga?.coverUrl,
         imageType: ImageType.mangaCover,
         placeholderIcon: Icons.auto_stories,
+        year: manga?.startYear,
+        genre: _joinGenres(manga?.genres),
+        rating:
+            manga?.averageScore != null ? manga!.averageScore! / 10.0 : null,
       );
     case MediaType.custom:
       final CustomMedia? custom = await db.customMediaDao.getById(externalId);
@@ -114,6 +163,25 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         coverUrl: custom?.coverUrl,
         imageType: ImageType.customCover,
         placeholderIcon: Icons.bookmark_outline,
+        year: custom?.year,
+        genre: _normaliseCustomGenres(custom?.genres),
       );
   }
+}
+
+String? _joinGenres(List<String>? genres) {
+  if (genres == null || genres.isEmpty) return null;
+  return genres.join(', ');
+}
+
+String? _normaliseCustomGenres(String? genres) {
+  if (genres == null) return null;
+  final String trimmed = genres.trim();
+  return trimmed.isEmpty ? null : trimmed;
+}
+
+/// VNDB releases are stored as `YYYY-MM-DD` or `YYYY-MM` or `YYYY`.
+int? _yearFromVndbDate(String? raw) {
+  if (raw == null || raw.length < 4) return null;
+  return int.tryParse(raw.substring(0, 4));
 }

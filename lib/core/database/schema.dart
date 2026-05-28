@@ -642,6 +642,7 @@ abstract final class DatabaseSchema {
         name TEXT NOT NULL,
         rows INTEGER NOT NULL DEFAULT 1,
         cols INTEGER NOT NULL DEFAULT 5,
+        caption_template TEXT,
         created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
         updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
       )

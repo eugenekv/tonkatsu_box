@@ -4376,6 +4376,16 @@ class SRu extends S {
   String get moodGridClearItem => 'Убрать элемент';
 
   @override
+  String get moodGridCaptionTemplate => 'Подписи строк';
+
+  @override
+  String get moodGridCaptionTemplateHint =>
+      'Шаблон применяется к каждой ячейке. Доступные токены: name, year, genre, rating.';
+
+  @override
+  String get moodGridCaptionTemplateClear => 'Очистить';
+
+  @override
   String get moodGridPickerTitle => 'Выбор элемента';
 
   @override

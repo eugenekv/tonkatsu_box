@@ -9,6 +9,81 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Configurable row captions on mood grids**
+
+  Each mood grid can render a text column to the right of every row, with one
+  line per cell. Content is driven by a per-grid template — supported tokens
+  are `{{name}}`, `{{year}}`, `{{genre}}`, `{{rating}}` — so the user can
+  decide whether captions show "Elden Ring" or "Elden Ring (2022) — 9.4".
+  The template is edited from a dialog under the floating-action button,
+  with chips that insert tokens at the cursor. Captions appear in both the
+  editor and the PNG export. By default the template is empty and no column
+  is rendered, so existing grids look unchanged until the user opts in.
+
+  * lib/core/database/schema.dart (DatabaseSchema.createMoodGridsTable):
+    Add `caption_template TEXT` column.
+  * lib/core/database/migrations/migration_v43.dart (MigrationV43): New —
+    `ALTER TABLE mood_grids ADD COLUMN caption_template TEXT`.
+  * lib/core/database/migrations/migration_registry.dart
+    (MigrationRegistry.all): Register `MigrationV43`.
+  * lib/core/database/database_service.dart: Bump database version to 43.
+  * lib/shared/models/mood_grid.dart (MoodGrid.captionTemplate,
+    MoodGrid.fromDb, MoodGrid.toDb, MoodGrid.fromExport, MoodGrid.toExport,
+    MoodGrid.copyWith, MoodGrid.copyWith.clearCaptionTemplate): New nullable
+    field plumbed through serialisation and `copyWith` (with an explicit
+    `clearCaptionTemplate` flag).
+  * lib/core/database/dao/mood_grid_dao.dart
+    (MoodGridDao.setCaptionTemplate): New — persists the template, normalises
+    empty strings to NULL, bumps `updated_at`.
+  * lib/features/tier_lists/services/mood_grid_caption.dart
+    (renderRowCaption, kMoodGridCaptionTokens): New — token substitution
+    engine and the public token list used by the editor dialog.
+  * lib/features/tier_lists/widgets/mood_grid_cell_media.dart
+    (MoodGridCellMedia.year, MoodGridCellMedia.genre,
+    MoodGridCellMedia.rating, MoodGridCellMedia.empty,
+    resolveMoodGridCellMedia): Extend cell payload with year / genre /
+    rating per media type; IGDB game rating and AniList scores normalised
+    to a 0–10 scale; static `empty` sentinel for null-free indexing.
+  * lib/features/tier_lists/widgets/mood_grid_cell_widget.dart
+    (MoodGridCellWidget, MoodGridCellWidget.media): Drop the per-cell
+    `FutureBuilder` and the `ConsumerWidget` dependency; the parent passes
+    resolved media directly.
+  * lib/features/tier_lists/providers/mood_grid_detail_provider.dart
+    (MoodGridDetailState.mediaByPosition,
+    MoodGridDetailNotifier.setCaptionTemplate,
+    MoodGridDetailNotifier._resolveAll,
+    MoodGridDetailNotifier._resolveOne,
+    MoodGridDetailNotifier._replaceCellAndMedia): Preload media for every
+    cell in parallel via `Future.wait`, re-resolve only the touched cell on
+    item change, expose `setCaptionTemplate`.
+  * lib/features/tier_lists/widgets/mood_grid_row_captions.dart
+    (MoodGridRowCaptions): New widget — tight-packed list of caption lines
+    rendered through the template.
+  * lib/features/tier_lists/widgets/mood_grid_view.dart (MoodGridView,
+    MoodGridView.mediaByPosition, MoodGridView.captionWidth): Append the
+    caption column to each row when a template is set.
+  * lib/features/tier_lists/widgets/mood_grid_export_view.dart
+    (MoodGridExportView, MoodGridExportView.mediaByPosition): Same caption
+    column in the offscreen PNG render.
+  * lib/features/tier_lists/screens/mood_grid_detail_screen.dart
+    (_MoodGridDetailScreenState._editCaptionTemplate,
+    _CaptionTemplateDialog): New FAB entry and dialog with a multi-line
+    `TextField`, token chips that insert at the cursor, plus Save / Clear /
+    Cancel actions.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb,
+    lib/l10n/app_localizations.dart, lib/l10n/app_localizations_en.dart,
+    lib/l10n/app_localizations_ru.dart (moodGridCaptionTemplate,
+    moodGridCaptionTemplateHint, moodGridCaptionTemplateClear): New
+    strings for the editor dialog.
+  * test/features/tier_lists/services/mood_grid_caption_test.dart
+    (renderRowCaption, kMoodGridCaptionTokens): New — token substitution
+    happy path, missing fields, rating decimal formatting, empty template,
+    empty media, token list snapshot.
+  * test/shared/models/mood_grid_test.dart (MoodGrid.captionTemplate,
+    MoodGrid.copyWith.clearCaptionTemplate): captionTemplate round-trips
+    through `toDb`/`fromDb` and `toExport`/`fromExport`; `copyWith` sets
+    and clears it.
+
 - **Export selected items as a poster mosaic PNG from the bulk action bar**
 
   Selecting items in a collection or on All Items reveals a new image
