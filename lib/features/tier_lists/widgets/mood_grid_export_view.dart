@@ -6,34 +6,36 @@ import '../../../shared/theme/app_assets.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import 'mood_grid_cell_media.dart';
 import 'mood_grid_cell_widget.dart';
+import 'mood_grid_row_captions.dart';
 
-/// Off-screen render of a mood grid used by [RepaintBoundary.toImage] for
-/// PNG export. Renders the grid title, the cells, and a small watermark.
+/// Off-screen render of a mood grid for `RepaintBoundary.toImage` export.
 class MoodGridExportView extends StatelessWidget {
-  /// Creates a [MoodGridExportView].
   const MoodGridExportView({
     required this.repaintKey,
     required this.grid,
     required this.cells,
+    required this.mediaByPosition,
     super.key,
   });
 
-  /// Key on the surrounding [RepaintBoundary].
   final GlobalKey repaintKey;
-
-  /// Grid being rendered.
   final MoodGrid grid;
-
-  /// All cells, ordered by position.
   final List<MoodGridCell> cells;
+  final Map<int, MoodGridCellMedia> mediaByPosition;
 
   static const double _cellWidth = 140;
+  static const double _captionWidth = 240;
 
   @override
   Widget build(BuildContext context) {
-    final double width =
+    final String template = grid.captionTemplate ?? '';
+    final bool showCaptions = template.trim().isNotEmpty;
+    final double cellsWidth =
         _cellWidth * grid.cols + AppSpacing.md * (grid.cols + 1);
+    final double width =
+        cellsWidth + (showCaptions ? _captionWidth + AppSpacing.md : 0);
 
     return RepaintBoundary(
       key: repaintKey,
@@ -55,6 +57,7 @@ class MoodGridExportView extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     for (int col = 0; col < grid.cols; col++)
                       Padding(
@@ -63,8 +66,16 @@ class MoodGridExportView extends StatelessWidget {
                         ),
                         child: MoodGridCellWidget(
                           cell: _cellAt(row, col),
+                          media: mediaByPosition[row * grid.cols + col] ??
+                              MoodGridCellMedia.empty,
                           width: _cellWidth,
                         ),
+                      ),
+                    if (showCaptions)
+                      MoodGridRowCaptions(
+                        template: template,
+                        rowMedia: _rowMedia(row),
+                        width: _captionWidth,
                       ),
                   ],
                 ),
@@ -100,5 +111,12 @@ class MoodGridExportView extends StatelessWidget {
       (MoodGridCell c) => c.position == pos,
       orElse: () => MoodGridCell(id: -1, gridId: grid.id, position: pos),
     );
+  }
+
+  List<MoodGridCellMedia> _rowMedia(int row) {
+    return <MoodGridCellMedia>[
+      for (int col = 0; col < grid.cols; col++)
+        mediaByPosition[row * grid.cols + col] ?? MoodGridCellMedia.empty,
+    ];
   }
 }

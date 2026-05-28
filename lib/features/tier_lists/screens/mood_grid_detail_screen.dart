@@ -18,6 +18,7 @@ import '../../../shared/widgets/draggable_fab.dart';
 import '../../../shared/widgets/sub_screen_title_bar.dart';
 import '../providers/mood_grid_detail_provider.dart';
 import '../providers/mood_grids_provider.dart';
+import '../services/mood_grid_caption.dart';
 import '../widgets/mood_grid_export_view.dart';
 import '../widgets/mood_grid_item_picker.dart';
 import '../widgets/mood_grid_view.dart';
@@ -61,6 +62,7 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
                       MoodGridView(
                         grid: state.grid,
                         cells: state.cells,
+                        mediaByPosition: state.mediaByPosition,
                         onCellTap: (MoodGridCell c) => _pickItem(c),
                         onCellContextMenu:
                             (MoodGridCell c, Offset pos) =>
@@ -73,6 +75,7 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
                           repaintKey: _exportKey,
                           grid: state.grid,
                           cells: state.cells,
+                          mediaByPosition: state.mediaByPosition,
                         ),
                       ),
                     ],
@@ -91,6 +94,11 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
                   icon: Icons.text_fields,
                   label: l.moodGridRename,
                   onTap: () => _renameGrid(state.grid.name, l),
+                ),
+                DraggableFabItem(
+                  icon: Icons.view_column_outlined,
+                  label: l.moodGridCaptionTemplate,
+                  onTap: () => _editCaptionTemplate(state.grid.captionTemplate, l),
                 ),
                 const DraggableFabDivider(),
                 DraggableFabItem(
@@ -354,6 +362,18 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _editCaptionTemplate(String? current, S l) async {
+    final String? result = await showDialog<String>(
+      context: context,
+      builder: (BuildContext ctx) =>
+          _CaptionTemplateDialog(initial: current ?? '{{name}}', l: l),
+    );
+    if (result == null) return;
+    await ref
+        .read(moodGridDetailProvider(widget.gridId).notifier)
+        .setCaptionTemplate(result);
+  }
+
   Future<void> _exportAsImage(String gridName, S l) async {
     try {
       await WidgetsBinding.instance.endOfFrame;
@@ -472,6 +492,104 @@ class _StepIcon extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(icon),
       ),
+    );
+  }
+}
+
+class _CaptionTemplateDialog extends StatefulWidget {
+  const _CaptionTemplateDialog({required this.initial, required this.l});
+
+  final String initial;
+  final S l;
+
+  @override
+  State<_CaptionTemplateDialog> createState() =>
+      _CaptionTemplateDialogState();
+}
+
+class _CaptionTemplateDialogState extends State<_CaptionTemplateDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _insertToken(String token) {
+    final TextSelection sel = _controller.selection;
+    final String text = _controller.text;
+    final String insert = '{{$token}}';
+    final int start = sel.isValid ? sel.start : text.length;
+    final int end = sel.isValid ? sel.end : text.length;
+    final String next = text.replaceRange(start, end, insert);
+    _controller.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: start + insert.length),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final S l = widget.l;
+    return AlertDialog(
+      title: Text(l.moodGridCaptionTemplate),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              l.moodGridCaptionTemplateHint,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _controller,
+              maxLines: 3,
+              minLines: 1,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: <Widget>[
+                for (final String token in kMoodGridCaptionTokens)
+                  ActionChip(
+                    label: Text('{{$token}}'),
+                    onPressed: () => _insertToken(token),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(''),
+          child: Text(l.moodGridCaptionTemplateClear),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: Text(l.save),
+        ),
+      ],
     );
   }
 }

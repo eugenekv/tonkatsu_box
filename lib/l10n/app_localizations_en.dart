@@ -4293,6 +4293,16 @@ class SEn extends S {
   String get moodGridClearItem => 'Clear item';
 
   @override
+  String get moodGridCaptionTemplate => 'Row captions';
+
+  @override
+  String get moodGridCaptionTemplateHint =>
+      'Template applied per cell. Available tokens: name, year, genre, rating.';
+
+  @override
+  String get moodGridCaptionTemplateClear => 'Clear';
+
+  @override
   String get moodGridPickerTitle => 'Pick item';
 
   @override

@@ -100,6 +100,21 @@ class MoodGridDao {
     );
   }
 
+  /// Sets the right-column caption template. Pass null/empty to disable.
+  Future<void> setCaptionTemplate(int id, String? template) async {
+    final Database db = await _getDatabase();
+    await db.update(
+      'mood_grids',
+      <String, dynamic>{
+        'caption_template':
+            (template == null || template.isEmpty) ? null : template,
+        'updated_at': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
+      where: 'id = ?',
+      whereArgs: <Object?>[id],
+    );
+  }
+
   /// Renames a grid and bumps `updated_at`.
   Future<void> renameMoodGrid(int id, String name) async {
     final Database db = await _getDatabase();

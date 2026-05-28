@@ -12,6 +12,7 @@ class MoodGrid {
     required this.cols,
     required this.createdAt,
     required this.updatedAt,
+    this.captionTemplate,
   });
 
   /// Reconstructs a [MoodGrid] from a row of `mood_grids`.
@@ -21,6 +22,7 @@ class MoodGrid {
       name: row['name'] as String,
       rows: row['rows'] as int,
       cols: row['cols'] as int,
+      captionTemplate: row['caption_template'] as String?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         (row['created_at'] as int) * 1000,
       ),
@@ -37,6 +39,7 @@ class MoodGrid {
       name: json['name'] as String,
       rows: json['rows'] as int,
       cols: json['cols'] as int,
+      captionTemplate: json['caption_template'] as String?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         ((json['created_at'] as num?)?.toInt() ?? 0) * 1000,
       ),
@@ -64,6 +67,11 @@ class MoodGrid {
   /// Last update timestamp.
   final DateTime updatedAt;
 
+  /// Template rendered for each cell as the right-column caption.
+  /// Supported tokens: `{{name}}`, `{{year}}`, `{{genre}}`, `{{rating}}`.
+  /// `null` or empty disables captions.
+  final String? captionTemplate;
+
   /// Total cell count.
   int get cellCount => rows * cols;
 
@@ -74,6 +82,7 @@ class MoodGrid {
       'name': name,
       'rows': rows,
       'cols': cols,
+      'caption_template': captionTemplate,
       'created_at': createdAt.millisecondsSinceEpoch ~/ 1000,
       'updated_at': updatedAt.millisecondsSinceEpoch ~/ 1000,
     };
@@ -86,17 +95,21 @@ class MoodGrid {
       'name': name,
       'rows': rows,
       'cols': cols,
+      'caption_template': captionTemplate,
       'created_at': createdAt.millisecondsSinceEpoch ~/ 1000,
       'updated_at': updatedAt.millisecondsSinceEpoch ~/ 1000,
     };
   }
 
-  /// Returns a copy with the listed fields replaced.
+  /// Returns a copy with the listed fields replaced. Pass
+  /// `clearCaptionTemplate: true` to set [captionTemplate] back to null.
   MoodGrid copyWith({
     int? id,
     String? name,
     int? rows,
     int? cols,
+    String? captionTemplate,
+    bool clearCaptionTemplate = false,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -105,6 +118,9 @@ class MoodGrid {
       name: name ?? this.name,
       rows: rows ?? this.rows,
       cols: cols ?? this.cols,
+      captionTemplate: clearCaptionTemplate
+          ? null
+          : (captionTemplate ?? this.captionTemplate),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

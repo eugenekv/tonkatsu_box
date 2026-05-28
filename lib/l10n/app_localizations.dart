@@ -7699,6 +7699,24 @@ abstract class S {
   /// **'Clear item'**
   String get moodGridClearItem;
 
+  /// No description provided for @moodGridCaptionTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Row captions'**
+  String get moodGridCaptionTemplate;
+
+  /// No description provided for @moodGridCaptionTemplateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Template applied per cell. Available tokens: name, year, genre, rating.'**
+  String get moodGridCaptionTemplateHint;
+
+  /// No description provided for @moodGridCaptionTemplateClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get moodGridCaptionTemplateClear;
+
   /// No description provided for @moodGridPickerTitle.
   ///
   /// In en, this message translates to:

@@ -75,6 +75,62 @@ void main() {
       expect(copy.rows, 1);
     });
 
+    test('round-trips captionTemplate through toDb / fromDb', () {
+      final MoodGrid grid = MoodGrid(
+        id: 1,
+        name: 'Captioned',
+        rows: 1,
+        cols: 1,
+        captionTemplate: '{{name}} ({{year}})',
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+      final MoodGrid restored = MoodGrid.fromDb(grid.toDb());
+      expect(restored.captionTemplate, '{{name}} ({{year}})');
+    });
+
+    test('round-trips captionTemplate through toExport / fromExport', () {
+      final MoodGrid grid = MoodGrid(
+        id: 1,
+        name: 'Captioned',
+        rows: 1,
+        cols: 1,
+        captionTemplate: '{{name}}',
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+      final MoodGrid restored = MoodGrid.fromExport(grid.toExport());
+      expect(restored.captionTemplate, '{{name}}');
+    });
+
+    test('copyWith updates captionTemplate', () {
+      final MoodGrid grid = MoodGrid(
+        id: 1,
+        name: 'a',
+        rows: 1,
+        cols: 1,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+      final MoodGrid withTemplate =
+          grid.copyWith(captionTemplate: '{{name}}');
+      expect(withTemplate.captionTemplate, '{{name}}');
+    });
+
+    test('copyWith clearCaptionTemplate resets to null', () {
+      final MoodGrid grid = MoodGrid(
+        id: 1,
+        name: 'a',
+        rows: 1,
+        cols: 1,
+        captionTemplate: '{{name}}',
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+      final MoodGrid cleared = grid.copyWith(clearCaptionTemplate: true);
+      expect(cleared.captionTemplate, isNull);
+    });
+
     test('equality is based on id', () {
       final MoodGrid a = MoodGrid(
         id: 1,
