@@ -7,6 +7,8 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-05-29
+
 ### Added
 
 - **Configurable row captions on mood grids**
