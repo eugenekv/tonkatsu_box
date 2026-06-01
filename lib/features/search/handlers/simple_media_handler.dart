@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/image_cache_service.dart';
 import '../../../shared/models/collected_item_info.dart';
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/media_type.dart';
 import '../services/search_collection_adder.dart';
 import 'media_action_handler.dart';
@@ -28,6 +29,7 @@ class SimpleMediaHandler<T extends Object> implements MediaActionHandler {
     required this.imageUrlOf,
     required this.upsert,
     required this.sheetBuilder,
+    this.sourceOf,
   })  : _ref = ref,
         _adder = adder,
         _targetCollectionId = targetCollectionId;
@@ -46,6 +48,10 @@ class SimpleMediaHandler<T extends Object> implements MediaActionHandler {
   final String? Function(T item) imageUrlOf;
   final Future<void> Function(T item) upsert;
   final Widget Function(T item, VoidCallback onAddToCollection) sheetBuilder;
+
+  /// Optional provider discriminator stamped onto the collection row. Only
+  /// manga needs it (AniList vs MangaBaka share a numeric id space).
+  final DataSource? Function(T item)? sourceOf;
 
   @override
   Future<void> onTap(
@@ -83,6 +89,7 @@ class SimpleMediaHandler<T extends Object> implements MediaActionHandler {
       collectionName: picked.name,
       mediaType: this.mediaType,
       externalId: externalIdOf(typed),
+      source: sourceOf?.call(typed),
       title: titleOf(typed),
       upsert: () => upsert(typed),
       imageType: imageType,
@@ -114,6 +121,7 @@ class SimpleMediaHandler<T extends Object> implements MediaActionHandler {
       collectionId: collectionId,
       mediaType: mediaType,
       externalId: externalIdOf(typed),
+      source: sourceOf?.call(typed),
       title: titleOf(typed),
       upsert: () => upsert(typed),
       imageType: imageType,

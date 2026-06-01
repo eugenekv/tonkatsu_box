@@ -1,12 +1,17 @@
 import 'dart:convert';
 
 import '../utils/anime_manga_title_language.dart';
+import 'data_source.dart';
 
-/// Manga metadata from the AniList GraphQL API.
+/// Manga metadata from AniList or MangaBaka.
+///
+/// [id] is the provider-side id and is NOT unique on its own across
+/// providers — the cache identity is the pair `(id, source)`.
 class Manga {
   const Manga({
     required this.id,
     required this.title,
+    this.source = DataSource.anilist,
     this.titleEnglish,
     this.titleNative,
     this.description,
@@ -121,6 +126,88 @@ class Manga {
     );
   }
 
+  /// Builds a [Manga] from a MangaBaka `/v1/series/{id}` (or search `data[]`)
+  /// record. MangaBaka has a flat REST shape distinct from AniList: titles are
+  /// top-level, chapters / volumes are strings, the rating is already 0–100,
+  /// and only the raw cover variant is populated.
+  factory Manga.fromMangaBaka(Map<String, dynamic> json) {
+    final int id = (json['id'] as num).toInt();
+
+    final List<Map<String, dynamic>> titles =
+        (json['titles'] as List<dynamic>?)
+                ?.whereType<Map<String, dynamic>>()
+                .toList() ??
+            const <Map<String, dynamic>>[];
+
+    // Map MangaBaka titles onto the AniList-style romaji / english / native
+    // slots so `titleByLanguage` and the title-language setting behave the
+    // same for both sources. `ja-Latn` is the real romaji — the flat
+    // `romanized_title` is sometimes a localized title. Fall back to the flat
+    // fields, then to whatever non-empty title exists.
+    final String? romaji =
+        _bakaTitle(titles, 'ja-Latn') ?? json['romanized_title'] as String?;
+    final String? native =
+        _bakaTitle(titles, 'ja') ?? json['native_title'] as String?;
+    final String? english = _bakaTitle(titles, 'en') ?? json['title'] as String?;
+    final String title =
+        _firstNonEmpty(<String?>[romaji, english, native]) ?? 'Unknown';
+
+    String? coverUrl;
+    final Object? cover = json['cover'];
+    if (cover is Map<String, dynamic>) {
+      final Object? raw = cover['raw'];
+      if (raw is Map<String, dynamic>) {
+        coverUrl = raw['url'] as String?;
+      } else if (raw is String) {
+        coverUrl = raw;
+      }
+    }
+
+    int? startYear;
+    final Object? published = json['published'];
+    if (published is Map<String, dynamic>) {
+      final String? start = published['start_date'] as String?;
+      if (start != null && start.length >= 4) {
+        startYear = int.tryParse(start.substring(0, 4));
+      }
+    }
+    startYear ??= (json['year'] as num?)?.toInt();
+
+    final List<String>? genres = _stringList(json['genres']);
+    final List<String>? tags = _stringList(json['tags']);
+
+    final List<String> authors = <String>[
+      ...?_stringList(json['authors']),
+      ...?_stringList(json['artists']),
+    ];
+
+    final num? rating = json['rating'] as num?;
+
+    String? description = json['description'] as String?;
+    if (description != null) description = _stripHtml(description);
+
+    return Manga(
+      id: id,
+      source: DataSource.mangabaka,
+      title: title,
+      titleEnglish: english,
+      titleNative: native,
+      description: description,
+      coverUrl: coverUrl,
+      averageScore: rating?.round(),
+      status: _mangaBakaStatus(json['status'] as String?),
+      startYear: startYear,
+      chapters: _parseIntOrNull(json['total_chapters']),
+      volumes: _parseIntOrNull(json['final_volume']),
+      format: _mangaBakaFormat(json['type'] as String?),
+      genres: genres,
+      tags: tags,
+      authors: authors.isEmpty ? null : authors,
+      externalUrl: 'https://mangabaka.org/$id',
+      updatedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+  }
+
   factory Manga.fromDb(Map<String, dynamic> row) {
     List<String>? genres;
     if (row['genres'] != null && (row['genres'] as String).isNotEmpty) {
@@ -157,6 +244,7 @@ class Manga {
 
     return Manga(
       id: row['id'] as int,
+      source: DataSource.fromName(row['source'] as String?),
       title: row['title'] as String,
       titleEnglish: row['title_english'] as String?,
       titleNative: row['title_native'] as String?,
@@ -183,8 +271,14 @@ class Manga {
     );
   }
 
-  /// Maps directly to external_id.
+  /// Provider-side id. Maps to `collection_items.external_id` and the `id`
+  /// column of `manga_cache`. NOT unique without [source].
   final int id;
+
+  /// Which provider this record came from. Part of the cache identity
+  /// `(id, source)` so AniList and MangaBaka entries that share a numeric id
+  /// never collide.
+  final DataSource source;
 
   /// Romaji title (always present per AniList contract).
   final String title;
@@ -298,6 +392,7 @@ class Manga {
   Map<String, dynamic> toDb() {
     return <String, dynamic>{
       'id': id,
+      'source': source.name,
       'title': title,
       'title_english': titleEnglish,
       'title_native': titleNative,
@@ -334,6 +429,7 @@ class Manga {
 
   Manga copyWith({
     int? id,
+    DataSource? source,
     String? title,
     String? titleEnglish,
     String? titleNative,
@@ -360,6 +456,7 @@ class Manga {
   }) {
     return Manga(
       id: id ?? this.id,
+      source: source ?? this.source,
       title: title ?? this.title,
       titleEnglish: titleEnglish ?? this.titleEnglish,
       titleNative: titleNative ?? this.titleNative,
@@ -385,6 +482,73 @@ class Manga {
       bannerUrl: bannerUrl ?? this.bannerUrl,
     );
   }
+
+  /// Picks the best MangaBaka title for a language code, preferring the
+  /// primary / official variant. Returns null when no title matches.
+  static String? _bakaTitle(List<Map<String, dynamic>> titles, String lang) {
+    final List<Map<String, dynamic>> matches = titles
+        .where((Map<String, dynamic> t) => t['language'] == lang)
+        .toList();
+    if (matches.isEmpty) return null;
+    int score(Map<String, dynamic> t) {
+      int s = 0;
+      if (t['is_primary'] == true) s += 2;
+      final Object? traits = t['traits'];
+      if (traits is List && traits.contains('official')) s += 1;
+      return s;
+    }
+
+    matches.sort((Map<String, dynamic> a, Map<String, dynamic> b) =>
+        score(b).compareTo(score(a)));
+    final Object? title = matches.first['title'];
+    return (title is String && title.isNotEmpty) ? title : null;
+  }
+
+  static String? _firstNonEmpty(List<String?> values) {
+    for (final String? v in values) {
+      if (v != null && v.isNotEmpty) return v;
+    }
+    return null;
+  }
+
+  /// MangaBaka returns chapter / volume counts as strings (e.g. `"147"`).
+  static int? _parseIntOrNull(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
+  }
+
+  static List<String>? _stringList(Object? value) {
+    if (value is! List<dynamic>) return null;
+    final List<String> out = value
+        .whereType<String>()
+        .where((String s) => s.isNotEmpty)
+        .toList();
+    return out.isEmpty ? null : out;
+  }
+
+  /// Maps MangaBaka `status` onto the AniList-style vocabulary used across the
+  /// app ([statusLabel], progress UI).
+  static String? _mangaBakaStatus(String? status) => switch (status) {
+        'releasing' => 'RELEASING',
+        'completed' => 'FINISHED',
+        'hiatus' => 'HIATUS',
+        'cancelled' => 'CANCELLED',
+        'upcoming' => 'NOT_YET_RELEASED',
+        _ => null,
+      };
+
+  /// Maps MangaBaka `type` onto the AniList-style format vocabulary.
+  static String? _mangaBakaFormat(String? type) => switch (type) {
+        'manga' => 'MANGA',
+        'manhwa' => 'MANHWA',
+        'manhua' => 'MANHUA',
+        'novel' => 'LIGHT_NOVEL',
+        'other' => 'ONE_SHOT',
+        _ => null,
+      };
 
   static final RegExp _htmlTagPattern = RegExp('<[^>]*>');
 

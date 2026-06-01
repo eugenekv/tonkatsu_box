@@ -281,7 +281,7 @@ class _BulkPosterExportDialogState
     try {
       ImageResult result = await cache.getImageUri(
         type: item.imageType,
-        imageId: item.externalId.toString(),
+        imageId: item.coverImageId,
         remoteUrl: url,
       );
       if (!mounted) return;
@@ -289,14 +289,14 @@ class _BulkPosterExportDialogState
       if (result.isMissing) {
         final bool ok = await cache.downloadImage(
           type: item.imageType,
-          imageId: item.externalId.toString(),
+          imageId: item.coverImageId,
           remoteUrl: url,
         );
         if (!mounted) return;
         if (ok) {
           result = await cache.getImageUri(
             type: item.imageType,
-            imageId: item.externalId.toString(),
+            imageId: item.coverImageId,
             remoteUrl: url,
           );
           if (!mounted) return;

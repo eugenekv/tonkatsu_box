@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/anilist_api.dart';
 import '../../../core/api/igdb_api.dart';
+import '../../../core/api/mangabaka_api.dart';
 import '../../../core/api/tmdb_api.dart';
 import '../../../core/api/vndb_api.dart';
 import '../../../core/database/database_service.dart';
@@ -19,6 +20,7 @@ import '../../../shared/extensions/snackbar_extension.dart';
 import '../../../shared/models/anime.dart';
 import '../../../shared/models/collection.dart';
 import '../../../shared/models/collection_item.dart';
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/game.dart';
 import '../../../shared/models/manga.dart';
 import '../../../shared/models/media_type.dart';
@@ -656,7 +658,7 @@ class CollectionActions {
     final ImageCacheService cache = ref.read(imageCacheServiceProvider);
 
     try {
-      await cache.deleteImage(item.imageType, item.externalId.toString());
+      await cache.deleteImage(item.imageType, item.coverImageId);
 
       switch (item.mediaType) {
         case MediaType.game:
@@ -682,9 +684,14 @@ class CollectionActions {
           if (anime == null) return _RefreshOutcome.notFound();
           await db.upsertAnime(anime);
         case MediaType.manga:
-          final Manga? manga = await ref
-              .read(aniListApiProvider)
-              .getMangaById(item.externalId);
+          final Manga? manga =
+              item.source == DataSource.mangabaka
+                  ? await ref
+                      .read(mangaBakaApiProvider)
+                      .getById(item.externalId)
+                  : await ref
+                      .read(aniListApiProvider)
+                      .getMangaById(item.externalId);
           if (manga == null) return _RefreshOutcome.notFound();
           await db.upsertManga(manga);
         case MediaType.visualNovel:

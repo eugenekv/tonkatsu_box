@@ -13,6 +13,7 @@ import '../services/profile_service.dart';
 import '../../shared/models/collection.dart';
 import '../../shared/models/collection_item.dart';
 import '../../shared/models/cover_info.dart';
+import '../../shared/models/data_source.dart';
 import '../../shared/models/game.dart';
 import '../../shared/models/item_status.dart';
 import '../../shared/models/media_type.dart';
@@ -36,6 +37,8 @@ import 'dao/movie_dao.dart';
 import 'dao/tag_dao.dart';
 import 'dao/tv_show_dao.dart';
 import 'dao/manga_dao.dart';
+import 'dao/mangabaka_genre_dao.dart';
+import 'dao/mangabaka_tag_dao.dart';
 import 'dao/visual_novel_dao.dart';
 import 'dao/mood_grid_dao.dart';
 import 'dao/tier_list_dao.dart';
@@ -44,6 +47,7 @@ import 'dao/wishlist_dao.dart';
 import 'migrations/migration.dart';
 import 'migrations/migration_registry.dart';
 import 'migrations/migration_v24.dart';
+import 'migrations/migration_v44.dart';
 import 'schema.dart';
 
 final Provider<DatabaseService> databaseServiceProvider =
@@ -119,6 +123,16 @@ final Provider<AniListTagDao> aniListTagDaoProvider =
   return ref.watch(databaseServiceProvider).aniListTagDao;
 });
 
+final Provider<MangaBakaGenreDao> mangaBakaGenreDaoProvider =
+    Provider<MangaBakaGenreDao>((Ref ref) {
+  return ref.watch(databaseServiceProvider).mangaBakaGenreDao;
+});
+
+final Provider<MangaBakaTagDao> mangaBakaTagDaoProvider =
+    Provider<MangaBakaTagDao>((Ref ref) {
+  return ref.watch(databaseServiceProvider).mangaBakaTagDao;
+});
+
 class DatabaseService {
   static final Logger _log = Logger('DatabaseService');
 
@@ -178,6 +192,11 @@ class DatabaseService {
 
   late final AniListTagDao aniListTagDao = AniListTagDao(() => database);
 
+  late final MangaBakaGenreDao mangaBakaGenreDao =
+      MangaBakaGenreDao(() => database);
+
+  late final MangaBakaTagDao mangaBakaTagDao = MangaBakaTagDao(() => database);
+
   late final WishlistDao wishlistDao = WishlistDao(() => database);
 
   Future<Database> _initDatabase() async {
@@ -219,7 +238,7 @@ class DatabaseService {
     return databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 43,
+        version: 44,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onConfigure: (Database db) async {
@@ -242,6 +261,7 @@ class DatabaseService {
     // Seed static reference tables (genres, tags, platforms): migrations don't
     // run on fresh install, so invoke the seed migration explicitly.
     await MigrationV24().migrate(db);
+    await MigrationV44.seedGenres(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -510,6 +530,7 @@ class DatabaseService {
     required MediaType mediaType,
     required int externalId,
     int? platformId,
+    DataSource? source,
     String? authorComment,
     ItemStatus status = ItemStatus.notStarted,
   }) =>
@@ -518,6 +539,7 @@ class DatabaseService {
         mediaType: mediaType,
         externalId: externalId,
         platformId: platformId,
+        source: source,
         authorComment: authorComment,
         status: status,
       );
@@ -894,7 +916,8 @@ class DatabaseService {
   Future<void> upsertMangas(List<Manga> mangas) =>
       mangaDao.upsertMangas(mangas);
 
-  Future<Manga?> getManga(int id) => mangaDao.getManga(id);
+  Future<Manga?> getManga(int id, {DataSource source = DataSource.anilist}) =>
+      mangaDao.getManga(id, source: source);
 
   Future<List<Manga>> getMangaByIds(List<int> ids) =>
       mangaDao.getMangaByIds(ids);

@@ -1,3 +1,4 @@
+import 'data_source.dart';
 import 'media_type.dart';
 
 /// Single cell inside a [MoodGrid].
@@ -16,6 +17,7 @@ class MoodGridCell {
     this.mediaType,
     this.externalId,
     this.platformId,
+    this.source,
   });
 
   /// Reconstructs from a `mood_grid_cells` row.
@@ -29,6 +31,9 @@ class MoodGridCell {
       mediaType: rawType == null ? null : MediaType.fromString(rawType),
       externalId: row['external_id'] as int?,
       platformId: row['platform_id'] as int?,
+      source: row['source'] != null
+          ? DataSource.fromName(row['source'] as String?)
+          : null,
     );
   }
 
@@ -43,6 +48,9 @@ class MoodGridCell {
       mediaType: rawType == null ? null : MediaType.fromString(rawType),
       externalId: (json['external_id'] as num?)?.toInt(),
       platformId: (json['platform_id'] as num?)?.toInt(),
+      source: json['source'] != null
+          ? DataSource.fromName(json['source'] as String?)
+          : null,
     );
   }
 
@@ -67,6 +75,10 @@ class MoodGridCell {
   /// Optional platform id for games. `null` for non-game cells.
   final int? platformId;
 
+  /// Provider for manga cells ([DataSource.anilist] / [DataSource.mangabaka]);
+  /// `null` for other media types. Disambiguates a shared manga `externalId`.
+  final DataSource? source;
+
   /// True when no media item is selected.
   bool get isEmpty => mediaType == null || externalId == null;
 
@@ -80,6 +92,7 @@ class MoodGridCell {
       'media_type': mediaType?.value,
       'external_id': externalId,
       'platform_id': platformId,
+      'source': source?.name,
     };
   }
 
@@ -91,6 +104,7 @@ class MoodGridCell {
       'media_type': mediaType?.value,
       'external_id': externalId,
       'platform_id': platformId,
+      if (source != null) 'source': source!.name,
     };
   }
 
@@ -104,6 +118,7 @@ class MoodGridCell {
     MediaType? mediaType,
     int? externalId,
     int? platformId,
+    DataSource? source,
     bool clearItem = false,
   }) {
     return MoodGridCell(
@@ -114,6 +129,7 @@ class MoodGridCell {
       mediaType: clearItem ? null : (mediaType ?? this.mediaType),
       externalId: clearItem ? null : (externalId ?? this.externalId),
       platformId: clearItem ? null : (platformId ?? this.platformId),
+      source: clearItem ? null : (source ?? this.source),
     );
   }
 

@@ -33,6 +33,8 @@ abstract final class DatabaseSchema {
     await createMoodGridsTable(db);
     await createMoodGridCellsTable(db);
     await createAniListTagsTable(db);
+    await createMangaBakaGenresTable(db);
+    await createMangaBakaTagsTable(db);
   }
 
   static Future<void> createPlatformsTable(Database db) async {
@@ -244,6 +246,7 @@ abstract final class DatabaseSchema {
         tag_id INTEGER,
         time_spent_minutes INTEGER NOT NULL DEFAULT 0,
         override_name TEXT,
+        source TEXT,
         FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
         FOREIGN KEY (tag_id) REFERENCES collection_tags(id) ON DELETE SET NULL
       )
@@ -256,10 +259,18 @@ abstract final class DatabaseSchema {
       ON collection_items(collection_id, media_type, external_id, platform_id)
       WHERE collection_id IS NOT NULL AND media_type = 'game'
     ''');
+    // Manga: identity includes `source` so the same external_id from AniList
+    // and MangaBaka coexist as separate rows. COALESCE keeps legacy NULL
+    // sources (pre-v44) collapsing to a single bucket.
+    await db.execute('''
+      CREATE UNIQUE INDEX idx_ci_coll_manga
+      ON collection_items(collection_id, media_type, external_id, COALESCE(source, 'anilist'))
+      WHERE collection_id IS NOT NULL AND media_type = 'manga'
+    ''');
     await db.execute('''
       CREATE UNIQUE INDEX idx_ci_coll_other
       ON collection_items(collection_id, media_type, external_id)
-      WHERE collection_id IS NOT NULL AND media_type != 'game'
+      WHERE collection_id IS NOT NULL AND media_type NOT IN ('game', 'manga')
     ''');
     await db.execute('''
       CREATE UNIQUE INDEX idx_ci_uncat_game
@@ -267,9 +278,14 @@ abstract final class DatabaseSchema {
       WHERE collection_id IS NULL AND media_type = 'game'
     ''');
     await db.execute('''
+      CREATE UNIQUE INDEX idx_ci_uncat_manga
+      ON collection_items(media_type, external_id, COALESCE(source, 'anilist'))
+      WHERE collection_id IS NULL AND media_type = 'manga'
+    ''');
+    await db.execute('''
       CREATE UNIQUE INDEX idx_ci_uncat_other
       ON collection_items(media_type, external_id)
-      WHERE collection_id IS NULL AND media_type != 'game'
+      WHERE collection_id IS NULL AND media_type NOT IN ('game', 'manga')
     ''');
 
     await db.execute('''
@@ -391,7 +407,8 @@ abstract final class DatabaseSchema {
   static Future<void> createMangaCacheTable(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS manga_cache (
-        id INTEGER PRIMARY KEY,
+        id INTEGER NOT NULL,
+        source TEXT NOT NULL DEFAULT 'anilist',
         title TEXT NOT NULL,
         title_english TEXT,
         title_native TEXT,
@@ -414,7 +431,8 @@ abstract final class DatabaseSchema {
         authors TEXT,
         external_url TEXT,
         banner_url TEXT,
-        updated_at INTEGER NOT NULL
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (id, source)
       )
     ''');
   }
@@ -469,6 +487,42 @@ abstract final class DatabaseSchema {
     await db.execute('''
       CREATE INDEX IF NOT EXISTS idx_anilist_tags_category
       ON anilist_tags(category)
+    ''');
+  }
+
+  /// MangaBaka genres — a fixed enum (no API endpoint), seeded as static
+  /// lookup data. `key` is the API filter value (e.g. `fantasy`).
+  static Future<void> createMangaBakaGenresTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mangabaka_genres (
+        key TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        is_adult INTEGER NOT NULL DEFAULT 0,
+        sort_order INTEGER NOT NULL
+      )
+    ''');
+  }
+
+  /// MangaBaka tag catalog (`/v1/tags`) — hierarchical, refreshed on demand.
+  static Future<void> createMangaBakaTagsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mangabaka_tags (
+        id INTEGER PRIMARY KEY,
+        parent_id INTEGER,
+        name TEXT NOT NULL,
+        name_path TEXT,
+        description TEXT,
+        is_spoiler INTEGER NOT NULL DEFAULT 0,
+        is_genre INTEGER NOT NULL DEFAULT 0,
+        content_rating TEXT,
+        series_count INTEGER NOT NULL DEFAULT 0,
+        level INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_mangabaka_tags_parent
+      ON mangabaka_tags(parent_id)
     ''');
   }
 
@@ -662,6 +716,7 @@ abstract final class DatabaseSchema {
         media_type TEXT,
         external_id INTEGER,
         platform_id INTEGER,
+        source TEXT,
         FOREIGN KEY (grid_id) REFERENCES mood_grids(id) ON DELETE CASCADE
       )
     ''');

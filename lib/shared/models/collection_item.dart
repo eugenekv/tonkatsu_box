@@ -14,6 +14,7 @@ import 'anime.dart';
 import 'manga.dart';
 import 'tv_show.dart';
 import 'visual_novel.dart';
+import '../utils/cover_image_id.dart' as cover_id;
 
 /// Universal collection entry — games, movies, TV, anime, manga, visual
 /// novels and custom items share one row type, switched on [mediaType].
@@ -29,6 +30,7 @@ class CollectionItem with Exportable {
     this.completedAt,
     this.lastActivityAt,
     this.platformId,
+    this.source,
     this.tagId,
     this.currentSeason = 0,
     this.currentEpisode = 0,
@@ -71,6 +73,9 @@ class CollectionItem with Exportable {
       mediaType: MediaType.fromString(row['media_type'] as String),
       externalId: row['external_id'] as int,
       platformId: row['platform_id'] as int?,
+      source: row['source'] != null
+          ? DataSource.fromName(row['source'] as String?)
+          : null,
       tagId: row['tag_id'] as int?,
       currentSeason: (row['current_season'] as int?) ?? 0,
       currentEpisode: (row['current_episode'] as int?) ?? 0,
@@ -122,6 +127,9 @@ class CollectionItem with Exportable {
       mediaType: MediaType.fromString(json['media_type'] as String),
       externalId: json['external_id'] as int,
       platformId: json['platform_id'] as int?,
+      source: json['source'] != null
+          ? DataSource.fromName(json['source'] as String?)
+          : null,
       currentSeason: (json['current_season'] as int?) ?? 0,
       currentEpisode: (json['current_episode'] as int?) ?? 0,
       timeSpentMinutes: (json['time_spent_minutes'] as int?) ?? 0,
@@ -173,6 +181,12 @@ class CollectionItem with Exportable {
   /// Platform id from the local `platforms` table — only meaningful for
   /// games and for [MediaType.animation] (Movie vs TV via [AnimationSource]).
   final int? platformId;
+
+  /// External provider this item came from. Only meaningful for manga
+  /// ([DataSource.anilist] / [DataSource.mangabaka]); `null` for other media
+  /// types. Part of the manga identity so the same `external_id` from two
+  /// providers stays distinct.
+  final DataSource? source;
 
   /// Optional grouping tag inside a collection.
   final int? tagId;
@@ -376,7 +390,7 @@ class CollectionItem with Exportable {
           genresString: manga?.genresString,
           genres: manga?.genres,
           mediaStatus: manga?.statusLabel,
-          source: DataSource.anilist,
+          source: manga?.source ?? DataSource.anilist,
           imageType: ImageType.mangaCover,
           placeholderIcon: Icons.auto_stories,
         );
@@ -514,6 +528,14 @@ class CollectionItem with Exportable {
   ImageType get imageType => _resolvedMedia.imageType;
   IconData get placeholderIcon => _resolvedMedia.placeholderIcon;
 
+  /// Source-aware image-cache id (manga is namespaced by provider). Use this
+  /// everywhere a cover is read from / written to the image cache.
+  String get coverImageId => cover_id.coverImageId(
+        mediaType: mediaType,
+        externalId: externalId,
+        source: source,
+      );
+
   @override
   Set<String> get internalDbFields =>
       const <String>{
@@ -536,6 +558,7 @@ class CollectionItem with Exportable {
       'media_type': mediaType.value,
       'external_id': externalId,
       'platform_id': platformId,
+      'source': source?.name,
       'tag_id': tagId,
       'current_season': currentSeason,
       'current_episode': currentEpisode,
@@ -568,6 +591,7 @@ class CollectionItem with Exportable {
       'media_type': mediaType.value,
       'external_id': externalId,
       'platform_id': platformId,
+      'source': source?.name,
       'comment': authorComment,
       'user_rating': userRating,
     };
@@ -602,6 +626,7 @@ class CollectionItem with Exportable {
     MediaType? mediaType,
     int? externalId,
     int? platformId,
+    DataSource? source,
     int? tagId,
     bool clearTagId = false,
     int? currentSeason,
@@ -639,6 +664,7 @@ class CollectionItem with Exportable {
       mediaType: mediaType ?? this.mediaType,
       externalId: externalId ?? this.externalId,
       platformId: platformId ?? this.platformId,
+      source: source ?? this.source,
       tagId: clearTagId ? null : (tagId ?? this.tagId),
       currentSeason: currentSeason ?? this.currentSeason,
       currentEpisode: currentEpisode ?? this.currentEpisode,

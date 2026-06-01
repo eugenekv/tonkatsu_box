@@ -130,7 +130,7 @@ class _PosterTile extends StatelessWidget {
               ? _placeholder()
               : CachedImage(
                   imageType: item.imageType,
-                  imageId: item.externalId.toString(),
+                  imageId: item.coverImageId,
                   remoteUrl: url,
                   fit: BoxFit.cover,
                   placeholder: _placeholder(),

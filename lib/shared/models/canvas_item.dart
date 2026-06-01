@@ -7,6 +7,7 @@ import 'anime.dart';
 import 'custom_media.dart';
 import 'exportable.dart';
 import 'game.dart';
+import '../utils/cover_image_id.dart' as cover_id;
 import 'manga.dart';
 import 'media_type.dart';
 import 'movie.dart';
@@ -262,7 +263,11 @@ class CanvasItem with Exportable {
           : (movie?.tmdbId ?? 0).toString(),
       CanvasItemType.visualNovel =>
         (itemRefId ?? 0).toString(),
-      CanvasItemType.manga => (manga?.id ?? 0).toString(),
+      CanvasItemType.manga => cover_id.coverImageId(
+          mediaType: MediaType.manga,
+          externalId: manga?.id ?? 0,
+          source: manga?.source,
+        ),
       CanvasItemType.anime => (anime?.id ?? 0).toString(),
       CanvasItemType.custom => (customMedia?.id ?? 0).toString(),
       _ => '0',

@@ -469,7 +469,7 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
                       imageUrl: item.thumbnailUrl ?? '',
                       cacheImageType:
                           _imageTypeFor(item.mediaType, item.platformId),
-                      cacheImageId: item.externalId.toString(),
+                      cacheImageId: item.coverImageId,
                       userRating: item.userRating,
                       apiRating: item.apiRating,
                       splitRatings: true,

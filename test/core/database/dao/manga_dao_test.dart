@@ -84,8 +84,8 @@ void main() {
         when(
           () => mockDb.query(
             'manga_cache',
-            where: 'id = ?',
-            whereArgs: <Object?>[999],
+            where: 'id = ? AND source = ?',
+            whereArgs: <Object?>[999, 'anilist'],
             limit: 1,
           ),
         ).thenAnswer((_) async => <Map<String, dynamic>>[]);
@@ -117,13 +117,14 @@ void main() {
           'genres': null,
           'authors': null,
           'external_url': 'https://anilist.co/manga/1',
+          'source': 'anilist',
           'updated_at': 1000,
         };
         when(
           () => mockDb.query(
             'manga_cache',
-            where: 'id = ?',
-            whereArgs: <Object?>[1],
+            where: 'id = ? AND source = ?',
+            whereArgs: <Object?>[1, 'anilist'],
             limit: 1,
           ),
         ).thenAnswer((_) async => <Map<String, dynamic>>[row]);

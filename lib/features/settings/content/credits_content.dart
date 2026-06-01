@@ -23,6 +23,7 @@ class CreditsContent extends StatelessWidget {
   static const String _steamGridDbUrl = 'https://www.steamgriddb.com/';
   static const String _vndbUrl = 'https://vndb.org/';
   static const String _aniListUrl = 'https://anilist.co/';
+  static const String _mangaBakaUrl = 'https://mangabaka.org/';
   static const String _githubUrl =
       'https://github.com/hacan359/tonkatsu_box';
   static const String _discordUrl = 'https://discord.gg/JZVNPF7cS2';
@@ -66,6 +67,12 @@ class CreditsContent extends StatelessWidget {
               description: l10n.creditsAniListAttribution,
               linkLabel: 'anilist.co',
               url: _aniListUrl,
+            ),
+            _buildProvider(
+              name: 'MangaBaka',
+              description: l10n.creditsMangaBakaAttribution,
+              linkLabel: 'mangabaka.org',
+              url: _mangaBakaUrl,
             ),
           ],
         ),

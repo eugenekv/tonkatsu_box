@@ -10,6 +10,7 @@ import '../../../shared/models/anime.dart';
 import '../../../shared/models/game.dart';
 import '../../../shared/models/manga.dart';
 import '../../../shared/models/media_type.dart';
+import '../../../shared/utils/cover_image_id.dart';
 import '../../../shared/models/movie.dart';
 import '../../../shared/models/platform.dart';
 import '../../../shared/models/tv_show.dart';
@@ -371,7 +372,11 @@ class _BrowseGridState extends ConsumerState<BrowseGrid> {
         title: item.titleByLanguage(animeMangaTitleLanguage),
         imageUrl: item.coverUrl ?? '',
         cacheImageType: ImageType.mangaCover,
-        cacheImageId: item.id.toString(),
+        cacheImageId: coverImageId(
+          mediaType: MediaType.manga,
+          externalId: item.id,
+          source: item.source,
+        ),
         apiRating: item.rating10,
         year: item.releaseYear,
         mediaType: mediaType,

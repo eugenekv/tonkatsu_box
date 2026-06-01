@@ -11,6 +11,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/game.dart';
 import '../../../shared/models/anime.dart';
 import '../../../shared/models/manga.dart';
+import '../../../shared/models/media_type.dart';
+import '../../../shared/utils/cover_image_id.dart';
 import '../../../shared/models/movie.dart';
 import '../../../shared/models/tv_show.dart';
 import '../../../shared/models/visual_novel.dart';
@@ -162,9 +164,13 @@ class ItemDetailsSheet extends StatelessWidget {
       extraInfo: manga.formatLabel,
       posterUrl: manga.coverUrl,
       cacheImageType: ImageType.mangaCover,
-      cacheImageId: manga.id.toString(),
+      cacheImageId: coverImageId(
+        mediaType: MediaType.manga,
+        externalId: manga.id,
+        source: manga.source,
+      ),
       externalUrl: manga.externalUrl,
-      dataSource: DataSource.anilist,
+      dataSource: manga.source,
       backdropUrl: manga.bannerUrl,
       coverHeight: 142,
       onAddToCollection: onAddToCollection,

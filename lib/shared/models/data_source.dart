@@ -24,6 +24,9 @@ enum DataSource {
   /// AniList — база данных манги и аниме.
   anilist('AniList', Color(0xFF3DB4F2), AppAssets.iconAnilistColor),
 
+  /// MangaBaka — open catalog of manga / manhwa / manhua / light novels.
+  mangabaka('MangaBaka', Color(0xFFE5484D), AppAssets.iconMangaBakaColor),
+
   /// Локальный источник (кастомные элементы).
   local('Custom', Color(0xFF26A69A), null);
 
@@ -37,4 +40,15 @@ enum DataSource {
 
   /// Путь к цветному PNG-логотипу (null если нет брендового ассета).
   final String? iconAsset;
+
+  /// Parses a [DataSource] from its stored name (the `source` column in DB /
+  /// export). Returns [DataSource.anilist] for null and unknown values — the
+  /// safe manga default, since the manga cache was AniList-only before v44.
+  static DataSource fromName(String? name) {
+    if (name == null) return DataSource.anilist;
+    for (final DataSource s in DataSource.values) {
+      if (s.name == name) return s;
+    }
+    return DataSource.anilist;
+  }
 }

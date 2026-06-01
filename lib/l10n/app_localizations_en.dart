@@ -939,6 +939,9 @@ class SEn extends S {
   String get creditsAniListAttribution => 'Manga data provided by AniList.';
 
   @override
+  String get creditsMangaBakaAttribution => 'Manga data provided by MangaBaka.';
+
+  @override
   String get creditsOpenSource => 'Open Source';
 
   @override
@@ -2981,6 +2984,21 @@ class SEn extends S {
 
   @override
   String get browseFilterType => 'Type';
+
+  @override
+  String get browseFilterContentRating => 'Content rating';
+
+  @override
+  String get contentRatingSafe => 'Safe';
+
+  @override
+  String get contentRatingSuggestive => 'Suggestive';
+
+  @override
+  String get contentRatingErotica => 'Erotica';
+
+  @override
+  String get contentRatingPornographic => 'Pornographic';
 
   @override
   String get browseFilterAll => 'All';

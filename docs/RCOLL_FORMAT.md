@@ -120,7 +120,7 @@ Includes everything from light export plus `canvas`, `images`, and `media`:
       { "id": "v17", "numeric_id": 17, "title": "Ever17", "alt_title": "Ever17 -the out of infinity-", "rating": 85.5, "vote_count": 1200, "released": "2002-08-29", "tags": "[\"Sci-fi\",\"Mystery\"]", ... }
     ],
     "mangas": [
-      { "id": 30002, "title": "Berserk", "title_english": "Berserk", "title_native": "ベルセルク", "cover_url": "https://...", "genres": "[\"Action\",\"Drama\"]", "average_score": 93, "format": "MANGA", "country_of_origin": "JP", ... }
+      { "id": 30002, "source": "anilist", "title": "Berserk", "title_english": "Berserk", "title_native": "ベルセルク", "cover_url": "https://...", "genres": "[\"Action\",\"Drama\"]", "average_score": 93, "format": "MANGA", "country_of_origin": "JP", ... }
     ],
     "tv_seasons": [
       { "tmdb_show_id": 1399, "season_number": 1, "name": "Season 1", "episode_count": 10, "poster_url": "https://image.tmdb.org/t/p/w500/...", "air_date": "2011-04-17" }
@@ -157,7 +157,8 @@ Includes everything from light export plus `canvas`, `images`, and `media`:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | media_type | string | yes | `"game"`, `"movie"`, `"tv_show"`, `"animation"`, `"visual_novel"`, or `"manga"` |
-| external_id | number | yes | IGDB ID (games), TMDB ID (movies/TV), VNDB numeric ID (visual novels), or AniList ID (manga) |
+| external_id | number | yes | IGDB ID (games), TMDB ID (movies/TV), VNDB numeric ID (visual novels), or provider ID (manga: AniList or MangaBaka) |
+| source | string | no | Manga provider: `"anilist"` or `"mangabaka"`. Manga identity is `(external_id, source)`. Absent/`null` for non-manga and pre-v44 files (treated as `"anilist"`) |
 | platform_id | number | no | IGDB platform ID (games) or AnimationSource (animation: 0=movie, 1=tvShow) |
 | comment | string | no | Author's comment |
 | user_rating | number | no | User rating (1.0–10.0, one decimal). Integers from v2 files load as doubles |
@@ -195,7 +196,7 @@ Key format: `{ImageType.folder}/{imageId}`
 - `movie_posters/550` — movie poster for TMDB ID 550
 - `tv_show_posters/1399` — TV show poster for TMDB ID 1399
 - `vn_covers/17` — visual novel cover for VNDB numeric ID 17
-- `manga_covers/123` — manga cover for AniList ID 123
+- `manga_covers/anilist_123` — manga cover, namespaced by provider (`anilist_` / `mangabaka_`). Pre-v44 files use a bare `manga_covers/123` and are remapped to `anilist_` on import
 
 **Canvas images** — `imageId` is FNV-1a 32-bit hash of the image URL:
 - `canvas_images/a1b2c3d4` — image added to the canvas board

@@ -343,6 +343,7 @@ class ImportService {
           mediaType: parsed.mediaType,
           externalId: parsed.externalId,
           platformId: parsed.platformId,
+          source: parsed.source,
           authorComment: parsed.authorComment,
           status: xcoll.includesUserData ? parsed.status : ItemStatus.notStarted,
         );
@@ -1079,10 +1080,18 @@ class ImportService {
       if (parts.length != 2) continue;
 
       final String folder = parts[0];
-      final String imageId = parts[1];
+      String imageId = parts[1];
 
       final ImageType? imageType = _imageTypeFromFolder(folder);
       if (imageType == null) continue;
+
+      // Backward-compat: pre-v44 backups stored manga covers under the bare
+      // numeric id. Manga covers are now namespaced by source — legacy manga
+      // was always AniList, so remap to keep the cover instead of forcing a
+      // network re-download. New backups already carry `anilist_`/`mangabaka_`.
+      if (imageType == ImageType.mangaCover && int.tryParse(imageId) != null) {
+        imageId = 'anilist_$imageId';
+      }
 
       try {
         final Uint8List bytes = base64Decode(entry.value);

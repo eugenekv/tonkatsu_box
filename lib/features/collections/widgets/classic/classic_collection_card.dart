@@ -230,7 +230,7 @@ class _CoverImage extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: CachedImage(
         imageType: cover.imageType,
-        imageId: cover.externalId.toString(),
+        imageId: cover.coverImageId,
         remoteUrl: cover.thumbnailUrl!,
         fit: BoxFit.cover,
         memCacheWidth: 200,

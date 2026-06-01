@@ -300,6 +300,7 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
           mediaType: item.mediaType,
           externalId: item.externalId,
           platformId: item.platformId,
+          source: item.source,
         );
   }
 

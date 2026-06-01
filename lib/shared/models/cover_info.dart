@@ -1,6 +1,8 @@
 // Легковесная модель обложки для карточек коллекций.
 
 import '../../core/services/image_cache_service.dart';
+import '../utils/cover_image_id.dart' as cover_id;
+import 'data_source.dart';
 import 'media_type.dart';
 
 /// Информация об обложке элемента коллекции.
@@ -13,6 +15,7 @@ class CoverInfo {
     required this.externalId,
     required this.mediaType,
     this.platformId,
+    this.source,
     this.thumbnailUrl,
   });
 
@@ -26,6 +29,9 @@ class CoverInfo {
       externalId: row['external_id'] as int,
       mediaType: mediaType,
       platformId: row['platform_id'] as int?,
+      source: row['source'] != null
+          ? DataSource.fromName(row['source'] as String?)
+          : null,
       thumbnailUrl: _toThumbUrl(rawUrl, mediaType),
     );
   }
@@ -39,8 +45,19 @@ class CoverInfo {
   /// ID платформы (для игр) или источник анимации (0=movie, 1=tvShow).
   final int? platformId;
 
+  /// Provider, manga-only. Disambiguates a shared `externalId`.
+  final DataSource? source;
+
   /// URL thumbnail-обложки.
   final String? thumbnailUrl;
+
+  /// Source-aware cover cache id (manga is namespaced by provider). Matches
+  /// `CollectionItem.coverImageId`.
+  String get coverImageId => cover_id.coverImageId(
+        mediaType: mediaType,
+        externalId: externalId,
+        source: source,
+      );
 
   /// Тип изображения для локального кэша (`ImageCacheService`).
   ///
@@ -99,10 +116,12 @@ class CoverInfo {
           externalId == other.externalId &&
           mediaType == other.mediaType &&
           platformId == other.platformId &&
+          source == other.source &&
           thumbnailUrl == other.thumbnailUrl;
 
   @override
-  int get hashCode => Object.hash(externalId, mediaType, platformId, thumbnailUrl);
+  int get hashCode =>
+      Object.hash(externalId, mediaType, platformId, source, thumbnailUrl);
 
   @override
   String toString() =>

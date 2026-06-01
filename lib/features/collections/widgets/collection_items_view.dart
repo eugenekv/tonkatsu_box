@@ -384,7 +384,7 @@ class CollectionItemsView extends ConsumerWidget {
       title: ref.displayNameOf(item),
       imageUrl: item.thumbnailUrl ?? '',
       cacheImageType: item.imageType,
-      cacheImageId: item.externalId.toString(),
+      cacheImageId: item.coverImageId,
       userRating: item.userRating,
       apiRating: item.apiRating,
       splitRatings: true,
