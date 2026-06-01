@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../shared/models/data_source.dart';
 import '../../../shared/models/manga.dart';
+import '../query_chunk.dart';
 
 /// DAO for `manga_cache`. Row identity is the pair `(id, source)`, so the same
 /// numeric `id` from AniList and MangaBaka can coexist.
@@ -53,14 +54,15 @@ class MangaDao {
   /// Returns matches across all sources for the given ids; callers
   /// disambiguate by [Manga.source] (two rows can share a numeric `id`).
   Future<List<Manga>> getMangaByIds(List<int> ids) async {
-    if (ids.isEmpty) return <Manga>[];
     final Database db = await _getDatabase();
-    final String placeholders =
-        List<String>.filled(ids.length, '?').join(',');
-    final List<Map<String, dynamic>> rows = await db.rawQuery(
-      'SELECT * FROM manga_cache WHERE id IN ($placeholders)',
-      ids,
-    );
-    return rows.map(Manga.fromDb).toList();
+    return queryByIdsInChunks(ids, (List<int> chunk) async {
+      final String placeholders =
+          List<String>.filled(chunk.length, '?').join(',');
+      final List<Map<String, dynamic>> rows = await db.rawQuery(
+        'SELECT * FROM manga_cache WHERE id IN ($placeholders)',
+        chunk,
+      );
+      return rows.map(Manga.fromDb).toList();
+    });
   }
 }

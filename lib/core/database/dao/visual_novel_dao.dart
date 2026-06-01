@@ -3,6 +3,7 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../shared/models/visual_novel.dart';
+import '../query_chunk.dart';
 
 /// DAO для таблиц `visual_novels_cache` и `vndb_tags`.
 class VisualNovelDao {
@@ -53,15 +54,16 @@ class VisualNovelDao {
   Future<List<VisualNovel>> getVisualNovelsByNumericIds(
     List<int> numericIds,
   ) async {
-    if (numericIds.isEmpty) return <VisualNovel>[];
     final Database db = await _getDatabase();
-    final String placeholders =
-        List<String>.filled(numericIds.length, '?').join(',');
-    final List<Map<String, dynamic>> rows = await db.rawQuery(
-      'SELECT * FROM visual_novels_cache WHERE numeric_id IN ($placeholders)',
-      numericIds,
-    );
-    return rows.map(VisualNovel.fromDb).toList();
+    return queryByIdsInChunks(numericIds, (List<int> chunk) async {
+      final String placeholders =
+          List<String>.filled(chunk.length, '?').join(',');
+      final List<Map<String, dynamic>> rows = await db.rawQuery(
+        'SELECT * FROM visual_novels_cache WHERE numeric_id IN ($placeholders)',
+        chunk,
+      );
+      return rows.map(VisualNovel.fromDb).toList();
+    });
   }
 
   /// Получает кэшированные теги VNDB.

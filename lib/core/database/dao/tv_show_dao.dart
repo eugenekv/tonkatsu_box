@@ -5,6 +5,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../../shared/models/tv_episode.dart';
 import '../../../shared/models/tv_season.dart';
 import '../../../shared/models/tv_show.dart';
+import '../query_chunk.dart';
 
 /// DAO для таблиц `tv_shows_cache`, `tv_seasons_cache`,
 /// `tv_episodes_cache` и `watched_episodes`.
@@ -59,17 +60,17 @@ class TvShowDao {
 
   /// Возвращает несколько сериалов по списку TMDB ID.
   Future<List<TvShow>> getTvShowsByTmdbIds(List<int> tmdbIds) async {
-    if (tmdbIds.isEmpty) return <TvShow>[];
-
     final Database db = await _getDatabase();
-    final String placeholders =
-        List<String>.filled(tmdbIds.length, '?').join(',');
-    final List<Map<String, dynamic>> rows = await db.query(
-      'tv_shows_cache',
-      where: 'tmdb_id IN ($placeholders)',
-      whereArgs: tmdbIds.cast<Object?>(),
-    );
-    return rows.map(TvShow.fromDb).toList();
+    return queryByIdsInChunks(tmdbIds, (List<int> chunk) async {
+      final String placeholders =
+          List<String>.filled(chunk.length, '?').join(',');
+      final List<Map<String, dynamic>> rows = await db.query(
+        'tv_shows_cache',
+        where: 'tmdb_id IN ($placeholders)',
+        whereArgs: chunk.cast<Object?>(),
+      );
+      return rows.map(TvShow.fromDb).toList();
+    });
   }
 
   /// Удаляет все сериалы из кеша.

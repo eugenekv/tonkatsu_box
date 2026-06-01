@@ -4,6 +4,7 @@ import '../../../shared/models/manga.dart';
 import 'anilist_graphql_client.dart';
 import 'anilist_media_parser.dart';
 import 'anilist_queries.dart';
+import 'anilist_types.dart';
 
 class AniListMediaApi {
   AniListMediaApi(this._client);
@@ -118,20 +119,45 @@ class AniListMediaApi {
     return Anime.fromJson(media);
   }
 
-  Future<List<Manga>> getMangaByIds(List<int> ids) async {
-    if (ids.isEmpty) return <Manga>[];
-    final List<Manga> result = <Manga>[];
-    for (final List<int> batch in aniListBatches(ids)) {
-      result.addAll(await _fetchMangaBatch(batch));
-    }
-    return result;
-  }
+  /// Maximum retries per batch on a 429 before that batch is skipped.
+  static const int _maxRateLimitRetries = 3;
 
-  Future<List<Anime>> getAnimeByIds(List<int> ids) async {
-    if (ids.isEmpty) return <Anime>[];
-    final List<Anime> result = <Anime>[];
+  Future<List<Manga>> getMangaByIds(
+    List<int> ids, {
+    void Function(Duration wait, int attempt)? onRateLimit,
+  }) =>
+      _fetchByIdsResilient<Manga>(ids, _fetchMangaBatch, onRateLimit);
+
+  Future<List<Anime>> getAnimeByIds(
+    List<int> ids, {
+    void Function(Duration wait, int attempt)? onRateLimit,
+  }) =>
+      _fetchByIdsResilient<Anime>(ids, _fetchAnimeBatch, onRateLimit);
+
+  /// Fetches in batches, retrying each batch on a 429 and tolerating failures:
+  /// a batch that keeps rate-limiting or hard-errors is skipped, keeping the
+  /// partial result instead of discarding everything. This is what lets a
+  /// large import cache as much as it can (mirrors the tolerant MAL lookup).
+  Future<List<T>> _fetchByIdsResilient<T>(
+    List<int> ids,
+    Future<List<T>> Function(List<int>) fetchBatch,
+    void Function(Duration wait, int attempt)? onRateLimit,
+  ) async {
+    if (ids.isEmpty) return <T>[];
+    final List<T> result = <T>[];
     for (final List<int> batch in aniListBatches(ids)) {
-      result.addAll(await _fetchAnimeBatch(batch));
+      for (int attempt = 1; attempt <= _maxRateLimitRetries; attempt++) {
+        try {
+          result.addAll(await fetchBatch(batch));
+          break;
+        } on AniListRateLimitException catch (e) {
+          if (attempt >= _maxRateLimitRetries) break;
+          onRateLimit?.call(e.retryAfter, attempt);
+          await Future<void>.delayed(e.retryAfter);
+        } on AniListApiException {
+          break;
+        }
+      }
     }
     return result;
   }

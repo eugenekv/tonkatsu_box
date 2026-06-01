@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../shared/models/game.dart';
 import '../../../shared/models/platform.dart';
+import '../query_chunk.dart';
 
 /// DAO для таблиц `games`, `platforms` и `igdb_genres`.
 class GameDao {
@@ -78,16 +79,17 @@ class GameDao {
   ///
   /// Возвращает только те платформы, которые есть в базе данных.
   Future<List<Platform>> getPlatformsByIds(List<int> ids) async {
-    if (ids.isEmpty) return <Platform>[];
     final Database db = await _getDatabase();
-    final String placeholders =
-        List<String>.filled(ids.length, '?').join(',');
-    final List<Map<String, dynamic>> rows = await db.query(
-      'platforms',
-      where: 'id IN ($placeholders)',
-      whereArgs: ids.cast<Object?>(),
-    );
-    return rows.map(Platform.fromDb).toList();
+    return queryByIdsInChunks(ids, (List<int> chunk) async {
+      final String placeholders =
+          List<String>.filled(chunk.length, '?').join(',');
+      final List<Map<String, dynamic>> rows = await db.query(
+        'platforms',
+        where: 'id IN ($placeholders)',
+        whereArgs: chunk.cast<Object?>(),
+      );
+      return rows.map(Platform.fromDb).toList();
+    });
   }
 
   // ==================== Games ====================
@@ -107,16 +109,17 @@ class GameDao {
 
   /// Возвращает несколько игр по списку ID.
   Future<List<Game>> getGamesByIds(List<int> ids) async {
-    if (ids.isEmpty) return <Game>[];
-
     final Database db = await _getDatabase();
-    final String placeholders = List<String>.filled(ids.length, '?').join(',');
-    final List<Map<String, dynamic>> rows = await db.query(
-      'games',
-      where: 'id IN ($placeholders)',
-      whereArgs: ids.cast<Object?>(),
-    );
-    return rows.map(Game.fromDb).toList();
+    return queryByIdsInChunks(ids, (List<int> chunk) async {
+      final String placeholders =
+          List<String>.filled(chunk.length, '?').join(',');
+      final List<Map<String, dynamic>> rows = await db.query(
+        'games',
+        where: 'id IN ($placeholders)',
+        whereArgs: chunk.cast<Object?>(),
+      );
+      return rows.map(Game.fromDb).toList();
+    });
   }
 
   /// Ищет игры по названию в кеше.

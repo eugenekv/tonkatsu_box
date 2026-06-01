@@ -946,7 +946,18 @@ class ImportService {
       ));
 
       try {
-        mangas = await aniListApi.getMangaByIds(mangaIds);
+        mangas = await aniListApi.getMangaByIds(
+          mangaIds,
+          onRateLimit: (Duration wait, int attempt) => onProgress?.call(
+            ImportProgress(
+              stage: ImportStage.fetchingManga,
+              current: 0,
+              total: mangaIds.length,
+              message: 'Rate limited, waiting ${wait.inSeconds}s '
+                  '(attempt $attempt)...',
+            ),
+          ),
+        );
       } on AniListApiException catch (e) {
         _log.warning('Failed to fetch manga: ${e.message}');
       }
@@ -973,7 +984,18 @@ class ImportService {
       ));
 
       try {
-        animes = await aniListApi.getAnimeByIds(animeIds);
+        animes = await aniListApi.getAnimeByIds(
+          animeIds,
+          onRateLimit: (Duration wait, int attempt) => onProgress?.call(
+            ImportProgress(
+              stage: ImportStage.fetchingAnime,
+              current: 0,
+              total: animeIds.length,
+              message: 'Rate limited, waiting ${wait.inSeconds}s '
+                  '(attempt $attempt)...',
+            ),
+          ),
+        );
       } on AniListApiException catch (e) {
         _log.warning('Failed to fetch anime: ${e.message}');
       }

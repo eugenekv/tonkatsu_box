@@ -396,7 +396,7 @@ void main() {
         expect(results, hasLength(2));
       });
 
-      test('should handle DioException', () async {
+      test('tolerates a DioException, returning a partial result', () async {
         when(() => mockDio.post<dynamic>(
               any(),
               data: any(named: 'data'),
@@ -405,15 +405,11 @@ void main() {
           requestOptions: RequestOptions(path: ''),
         ));
 
-        try {
-          await api.getMangaByIds(<int>[1]);
-          fail('Should throw');
-        } on AniListApiException catch (e) {
-          expect(e.message, contains('internet'));
-        }
+        // Resilient batching skips the failed batch instead of throwing.
+        expect(await api.getMangaByIds(<int>[1]), isEmpty);
       });
 
-      test('should handle ошибку ответа', () async {
+      test('tolerates an error response, returning a partial result', () async {
         when(() => mockDio.post<dynamic>(
               any(),
               data: any(named: 'data'),
@@ -424,10 +420,7 @@ void main() {
           ),
         );
 
-        expect(
-          () => api.getMangaByIds(<int>[1]),
-          throwsA(isA<AniListApiException>()),
-        );
+        expect(await api.getMangaByIds(<int>[1]), isEmpty);
       });
 
       test('should handle null Page в ответе', () async {
@@ -684,7 +677,7 @@ void main() {
         expect(results, hasLength(2));
       });
 
-      test('should handle DioException', () async {
+      test('tolerates a DioException, returning a partial result', () async {
         when(() => mockDio.post<dynamic>(
               any(),
               data: any(named: 'data'),
@@ -693,12 +686,8 @@ void main() {
           requestOptions: RequestOptions(path: ''),
         ));
 
-        try {
-          await api.getAnimeByIds(<int>[1]);
-          fail('Should throw');
-        } on AniListApiException catch (e) {
-          expect(e.message, contains('internet'));
-        }
+        // Resilient batching skips the failed batch instead of throwing.
+        expect(await api.getAnimeByIds(<int>[1]), isEmpty);
       });
 
       test('should handle null Page в ответе', () async {
