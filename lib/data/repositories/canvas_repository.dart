@@ -9,6 +9,7 @@ import '../../shared/models/canvas_item.dart';
 import '../../shared/models/canvas_viewport.dart';
 import '../../shared/models/collection_item.dart';
 import '../../shared/models/custom_media.dart';
+import '../../shared/models/data_source.dart';
 import '../../shared/models/game.dart';
 import '../../shared/models/manga.dart';
 import '../../shared/models/movie.dart';
@@ -265,9 +266,17 @@ class CanvasRepository {
       for (final VisualNovel vn in results[3] as List<VisualNovel>)
         vn.numericId: vn,
     };
-    final Map<int, Manga> mangaMap = <int, Manga>{
-      for (final Manga m in results[4] as List<Manga>) m.id: m,
-    };
+    // Canvas items don't carry a manga source, so a numeric id can match both
+    // an AniList and a MangaBaka row. AniList wins to preserve legacy
+    // behaviour (known limitation: a MangaBaka-only canvas manga sharing an
+    // id with an AniList title resolves to the AniList one).
+    final Map<int, Manga> mangaMap = <int, Manga>{};
+    for (final Manga m in results[4] as List<Manga>) {
+      final Manga? existing = mangaMap[m.id];
+      if (existing == null || m.source == DataSource.anilist) {
+        mangaMap[m.id] = m;
+      }
+    }
     final Map<int, Anime> animeMap = <int, Anime>{
       for (final Anime a in results[5] as List<Anime>) a.id: a,
     };

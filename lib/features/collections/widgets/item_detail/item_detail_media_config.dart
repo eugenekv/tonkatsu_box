@@ -56,7 +56,7 @@ class ItemDetailMediaConfig {
           : item.placeholderIcon,
       typeLabel: _typeLabel(item, context),
       cacheImageType: item.imageType,
-      cacheImageId: item.externalId.toString(),
+      cacheImageId: item.coverImageId,
       accentColor: MediaTypeTheme.colorFor(item.displayMediaType),
       infoChips: _buildChips(item, context),
       description: item.itemDescription,

@@ -7,7 +7,7 @@
   <!-- SEO Meta Tags -->
   <title>Tonkatsu Box — Organize Games, Movies, TV Shows, Anime & Visual Novels</title>
   <meta name="description" content="Free open-source app to build and manage collections of retro games, movies, TV shows, anime, and visual novels. Track progress, rate favorites, create tier lists, visual boards, and share with friends. Windows, Linux & Android.">
-  <meta name="keywords" content="game collection manager, retro game organizer, movie tracker, TV show tracker, anime tracker, manga tracker, visual novel tracker, tier list maker, tier list generator, mood grid, IGDB, TMDB, VNDB, AniList, Trakt import, Steam import, RetroAchievements import, MyAnimeList import, AniList import, ScreenScraper, collection app, backlog tracker, game library, Flutter app, open source">
+  <meta name="keywords" content="game collection manager, retro game organizer, movie tracker, TV show tracker, anime tracker, manga tracker, visual novel tracker, tier list maker, tier list generator, mood grid, IGDB, TMDB, VNDB, AniList, MangaBaka, Trakt import, Steam import, RetroAchievements import, MyAnimeList import, AniList import, ScreenScraper, collection app, backlog tracker, game library, Flutter app, open source">
   <meta name="author" content="hacan359">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://hacan359.github.io/tonkatsu_box/">
@@ -1104,7 +1104,7 @@
           <div class="feature-card__icon">🔍</div>
           <h3 class="feature-card__title" data-i18n="feat_search_title">Search & Discover</h3>
           <p class="feature-card__desc" data-i18n="feat_search_desc">
-            Find titles from IGDB, TMDB, AniList, and VNDB databases. Filter by year, genre, or platform. Add anything to your collections with one tap.
+            Find titles from IGDB, TMDB, AniList, MangaBaka, and VNDB databases. Filter by year, genre, or platform. Add anything to your collections with one tap.
           </p>
         </div>
 
@@ -1163,7 +1163,7 @@
   <div class="slider-section reveal">
     <div class="section-label" data-i18n="slider_search_label">Search</div>
     <h2 class="section-title" data-i18n="slider_search_title">Search &amp; Discover</h2>
-    <p class="section-subtitle" data-i18n="slider_search_subtitle">Search IGDB, TMDB, VNDB, and AniList databases with hundreds of thousands of titles</p>
+    <p class="section-subtitle" data-i18n="slider_search_subtitle">Search IGDB, TMDB, VNDB, AniList, and MangaBaka databases with hundreds of thousands of titles</p>
     <div class="screenshot-slider" data-autoplay="5000">
       <div class="slider-track">
         <img src="screenshots/mockup_game_search.jpg" alt="Search games" data-caption="slider_search_2" loading="lazy">
@@ -1324,6 +1324,7 @@
         <span class="tech-pill">TMDB API</span>
         <span class="tech-pill">VNDB API</span>
         <span class="tech-pill">AniList API</span>
+        <span class="tech-pill">MangaBaka API</span>
         <span class="tech-pill">SteamGridDB</span>
         <span class="tech-pill">ScreenScraper</span>
         <span class="tech-pill">MyAnimeList</span>
@@ -1372,6 +1373,7 @@
       <a href="https://www.themoviedb.org/" target="_blank" rel="noopener"><img src="assets/tmdb_logo.svg" alt="TMDB"></a>
       <a href="https://www.igdb.com/" target="_blank" rel="noopener"><img src="assets/igdb_logo.svg" alt="IGDB"></a>
       <a href="https://vndb.org/" target="_blank" rel="noopener" style="color:var(--vn-accent);font-weight:700;font-size:14px;text-decoration:none;">VNDB</a>
+      <a href="https://mangabaka.org/" target="_blank" rel="noopener"><img src="assets/mangabaka_logo.png" alt="MangaBaka"></a>
       <a href="https://www.steamgriddb.com/" target="_blank" rel="noopener"><img src="assets/steamgriddb_logo.svg" alt="SteamGridDB"></a>
     </div>
   </footer>
@@ -1495,7 +1497,7 @@
         feat_collections_title: 'Build Collections',
         feat_collections_desc: 'Create unlimited collections by platform, genre, or custom lists. Mix games, movies, anime, and visual novels in a single collection. Switch between grid and list views.',
         feat_search_title: 'Search & Discover',
-        feat_search_desc: 'Find titles from IGDB, TMDB, AniList, and VNDB databases. Filter by year, genre, or platform. Add anything to your collections with one tap.',
+        feat_search_desc: 'Find titles from IGDB, TMDB, AniList, MangaBaka, and VNDB databases. Filter by year, genre, or platform. Add anything to your collections with one tap.',
         feat_progress_title: 'Track Progress',
         feat_progress_desc: 'Mark items as In Progress, Completed, Planned, or Dropped. Track individual episodes for TV shows and anime. Rate everything from 1 to 10 stars.',
         feat_boards_title: 'Visual Boards',
@@ -1549,11 +1551,11 @@
         slider_organize_4: 'Collection grid view with poster cards, ratings, and search',
         slider_search_label: 'Search',
         slider_search_title: 'Search &amp; Discover',
-        slider_search_subtitle: 'Search IGDB, TMDB, VNDB, and AniList databases with hundreds of thousands of titles',
+        slider_search_subtitle: 'Search IGDB, TMDB, VNDB, AniList, and MangaBaka databases with hundreds of thousands of titles',
         slider_search_1: 'Add anything to your collections — set status, pick platform, leave a note, attach an author comment',
         slider_search_2: 'Search games across hundreds of platforms via IGDB',
         slider_search_3: 'Search manga and light novels via AniList — no API key required',
-        slider_search_4: 'Multiple sources — IGDB, TMDB, AniList, and VNDB all in one place',
+        slider_search_4: 'Multiple sources — IGDB, TMDB, AniList, MangaBaka, and VNDB all in one place',
         slider_track_label: 'Track',
         slider_track_title: 'Track &amp; Visualize',
         slider_track_subtitle: 'Rank your favorites in tier lists, lay out picks on a mood grid, export both as PNG',
@@ -1589,7 +1591,7 @@
         feat_collections_title: 'Коллекции',
         feat_collections_desc: 'Создавайте неограниченное количество коллекций по платформе, жанру или своим спискам. Смешивайте игры, фильмы, аниме и новеллы в одной коллекции. Переключайтесь между сеткой и списком.',
         feat_search_title: 'Поиск',
-        feat_search_desc: 'Находите названия в базах IGDB, TMDB, AniList и VNDB. Фильтруйте по году, жанру или платформе. Добавляйте в коллекцию одним нажатием.',
+        feat_search_desc: 'Находите названия в базах IGDB, TMDB, AniList, MangaBaka и VNDB. Фильтруйте по году, жанру или платформе. Добавляйте в коллекцию одним нажатием.',
         feat_progress_title: 'Прогресс',
         feat_progress_desc: 'Отмечайте статусы: В процессе, Пройдено, Отложено, Брошено. Отслеживайте эпизоды сериалов и аниме. Оценивайте от 1 до 10 звёзд.',
         feat_boards_title: 'Визуальные доски',
@@ -1643,11 +1645,11 @@
         slider_organize_4: 'Сетка коллекции с постерами, рейтингами и поиском',
         slider_search_label: 'Поиск',
         slider_search_title: 'Поиск и открытия',
-        slider_search_subtitle: 'Ищите в базах IGDB, TMDB, VNDB и AniList среди сотен тысяч названий',
+        slider_search_subtitle: 'Ищите в базах IGDB, TMDB, VNDB, AniList и MangaBaka среди сотен тысяч названий',
         slider_search_1: 'Добавляйте что угодно в коллекции — статус, платформа, заметка, авторский комментарий',
         slider_search_2: 'Поиск игр по сотням платформ через IGDB',
         slider_search_3: 'Поиск манги и ранобэ через AniList — без API-ключа',
-        slider_search_4: 'Множество источников — IGDB, TMDB, AniList и VNDB в одном окне',
+        slider_search_4: 'Множество источников — IGDB, TMDB, AniList, MangaBaka и VNDB в одном окне',
         slider_track_label: 'Прогресс',
         slider_track_title: 'Отслеживание и визуализация',
         slider_track_subtitle: 'Ранжируйте фавориты в тир-листах, раскладывайте на mood-доске, экспорт в PNG',

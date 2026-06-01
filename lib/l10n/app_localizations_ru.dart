@@ -958,6 +958,10 @@ class SRu extends S {
       'Данные о манге предоставлены AniList.';
 
   @override
+  String get creditsMangaBakaAttribution =>
+      'Данные о манге предоставлены MangaBaka.';
+
+  @override
   String get creditsOpenSource => 'Открытый исходный код';
 
   @override
@@ -3024,6 +3028,21 @@ class SRu extends S {
 
   @override
   String get browseFilterType => 'Тип';
+
+  @override
+  String get browseFilterContentRating => 'Рейтинг контента';
+
+  @override
+  String get contentRatingSafe => 'Безопасный';
+
+  @override
+  String get contentRatingSuggestive => 'Намёки';
+
+  @override
+  String get contentRatingErotica => 'Эротика';
+
+  @override
+  String get contentRatingPornographic => 'Порнография';
 
   @override
   String get browseFilterAll => 'Все';

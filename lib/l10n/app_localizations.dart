@@ -1723,6 +1723,12 @@ abstract class S {
   /// **'Manga data provided by AniList.'**
   String get creditsAniListAttribution;
 
+  /// No description provided for @creditsMangaBakaAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Manga data provided by MangaBaka.'**
+  String get creditsMangaBakaAttribution;
+
   /// No description provided for @creditsOpenSource.
   ///
   /// In en, this message translates to:
@@ -5388,6 +5394,36 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Type'**
   String get browseFilterType;
+
+  /// No description provided for @browseFilterContentRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Content rating'**
+  String get browseFilterContentRating;
+
+  /// No description provided for @contentRatingSafe.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe'**
+  String get contentRatingSafe;
+
+  /// No description provided for @contentRatingSuggestive.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestive'**
+  String get contentRatingSuggestive;
+
+  /// No description provided for @contentRatingErotica.
+  ///
+  /// In en, this message translates to:
+  /// **'Erotica'**
+  String get contentRatingErotica;
+
+  /// No description provided for @contentRatingPornographic.
+  ///
+  /// In en, this message translates to:
+  /// **'Pornographic'**
+  String get contentRatingPornographic;
 
   /// No description provided for @browseFilterAll.
   ///

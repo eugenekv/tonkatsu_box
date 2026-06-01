@@ -20,6 +20,8 @@ abstract final class AppAssets {
   static const String iconScreenScraperColor =
       'assets/images/icon_scrapper_color.png';
   static const String iconAnilistColor = 'assets/images/icon_anilist_color.png';
+  static const String iconMangaBakaColor =
+      'assets/images/icon_mangabaka_color.png';
   static const String iconVndbColor = 'assets/images/icon_vndb_color.png';
   static const String iconMalColor = 'assets/images/icon_myanimelist_color.png';
 }

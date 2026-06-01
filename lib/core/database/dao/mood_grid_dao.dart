@@ -1,5 +1,6 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/media_type.dart';
 import '../../../shared/models/mood_grid.dart';
 import '../../../shared/models/mood_grid_cell.dart';
@@ -280,6 +281,7 @@ class MoodGridDao {
     required MediaType mediaType,
     required int externalId,
     int? platformId,
+    DataSource? source,
   }) async {
     final Database db = await _getDatabase();
     await db.update(
@@ -288,6 +290,7 @@ class MoodGridDao {
         'media_type': mediaType.value,
         'external_id': externalId,
         'platform_id': platformId,
+        'source': source?.name,
       },
       where: 'id = ?',
       whereArgs: <Object?>[cellId],
@@ -304,6 +307,7 @@ class MoodGridDao {
         'media_type': null,
         'external_id': null,
         'platform_id': null,
+        'source': null,
       },
       where: 'id = ?',
       whereArgs: <Object?>[cellId],

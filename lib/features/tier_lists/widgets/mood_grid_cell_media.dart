@@ -6,6 +6,7 @@ import '../../../shared/models/anime.dart';
 import '../../../shared/models/custom_media.dart';
 import '../../../shared/models/game.dart';
 import '../../../shared/models/manga.dart';
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/media_type.dart';
 import '../../../shared/models/movie.dart';
 import '../../../shared/models/tv_show.dart';
@@ -59,8 +60,9 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
   DatabaseService db,
   MediaType mediaType,
   int externalId,
-  int? platformId,
-) async {
+  int? platformId, {
+  DataSource? source,
+}) async {
   switch (mediaType) {
     case MediaType.game:
       final Game? game = await db.getGameById(externalId);
@@ -145,7 +147,10 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
             anime?.averageScore != null ? anime!.averageScore! / 10.0 : null,
       );
     case MediaType.manga:
-      final Manga? manga = await db.getManga(externalId);
+      final Manga? manga = await db.getManga(
+        externalId,
+        source: source ?? DataSource.anilist,
+      );
       return MoodGridCellMedia(
         title: manga?.title,
         coverUrl: manga?.coverUrl,

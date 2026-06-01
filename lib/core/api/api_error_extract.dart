@@ -1,5 +1,6 @@
 import 'anilist_api.dart';
 import 'igdb_api.dart';
+import 'mangabaka_api.dart';
 import 'ra_api.dart';
 import 'steam_api.dart';
 import 'steamgriddb_api.dart';
@@ -18,6 +19,8 @@ ApiError extractApiError(Exception e) {
     IgdbApiException(:final String message, :final String? detail) =>
       (message: message, detail: detail),
     AniListApiException(:final String message, :final String? detail) =>
+      (message: message, detail: detail),
+    MangaBakaApiException(:final String message, :final String? detail) =>
       (message: message, detail: detail),
     VndbApiException(:final String message, :final String? detail) =>
       (message: message, detail: detail),

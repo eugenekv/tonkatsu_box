@@ -7,6 +7,7 @@ import '../../../shared/models/anime.dart';
 import '../../../shared/models/game.dart';
 import '../../../shared/models/manga.dart';
 import '../../../shared/models/media_type.dart';
+import '../../../shared/utils/cover_image_id.dart';
 import '../../../shared/models/movie.dart';
 import '../../../shared/models/platform.dart';
 import '../../../shared/models/tv_show.dart';
@@ -78,12 +79,17 @@ class MediaHandlers {
       imageType: ImageType.mangaCover,
       collectedProvider: collectedMangaIdsProvider,
       externalIdOf: (Manga m) => m.id,
-      imageIdOf: (Manga m) => m.id.toString(),
+      imageIdOf: (Manga m) => coverImageId(
+        mediaType: MediaType.manga,
+        externalId: m.id,
+        source: m.source,
+      ),
       titleOf: (Manga m) => m.titleByLanguage(
         ref.read(settingsNotifierProvider).animeMangaTitleLanguage,
       ),
       imageUrlOf: (Manga m) => m.coverUrl,
       upsert: (Manga m) => ref.read(databaseServiceProvider).upsertManga(m),
+      sourceOf: (Manga m) => m.source,
       sheetBuilder: (Manga m, VoidCallback onAdd) => ItemDetailsSheet.manga(
         m,
         onAddToCollection: onAdd,

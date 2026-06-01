@@ -4,6 +4,7 @@ import '../../core/database/database_service.dart';
 import '../../shared/models/collection.dart';
 import '../../shared/models/collection_item.dart';
 import '../../shared/models/item_status.dart';
+import '../../shared/models/data_source.dart';
 import '../../shared/models/media_type.dart';
 
 final Provider<CollectionRepository> collectionRepositoryProvider =
@@ -165,6 +166,7 @@ class CollectionRepository {
     required MediaType mediaType,
     required int externalId,
     int? platformId,
+    DataSource? source,
     String? authorComment,
     ItemStatus status = ItemStatus.notStarted,
   }) async {
@@ -173,6 +175,7 @@ class CollectionRepository {
       mediaType: mediaType,
       externalId: externalId,
       platformId: platformId,
+      source: source,
       authorComment: authorComment,
       status: status,
     );

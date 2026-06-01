@@ -785,6 +785,7 @@ class BackupService {
             mediaType: cellData.mediaType!,
             externalId: cellData.externalId!,
             platformId: cellData.platformId,
+            source: cellData.source,
           );
         }
       }

@@ -7,7 +7,47 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Added
+
+- **Add MangaBaka as a second manga search source**
+
+  A new MangaBaka tab in search, alongside AniList manga. MangaBaka is an open
+  catalog of manga / manhwa / manhua / light novels (no anime). Filters are
+  dropdowns: type, genre, tag, release status and content rating. Genres are a
+  fixed seeded list; the ~2700-entry tag catalog loads on demand and has a
+  manual Refresh button right in the tag picker. Genres and tags are cached in
+  SQLite.
+
+  * lib/core/api/mangabaka_api.dart (MangaBakaApi.browseManga, MangaBakaApi.getById, MangaBakaApi.fetchTagCatalog, mangaBakaApiProvider): New REST client.
+  * lib/shared/models/manga.dart (Manga.fromMangaBaka): Map MangaBaka's flat record (string chapter/volume counts, 0–100 rating, raw cover, status/type vocabulary) to the shared `Manga`.
+  * lib/shared/models/mangabaka_tag.dart (MangaBakaTag), lib/shared/models/mangabaka_genre.dart (MangaBakaGenre): New catalog models.
+  * lib/core/database/schema.dart (DatabaseSchema.createMangaBakaGenresTable, DatabaseSchema.createMangaBakaTagsTable), lib/core/database/dao/mangabaka_genre_dao.dart (MangaBakaGenreDao), lib/core/database/dao/mangabaka_tag_dao.dart (MangaBakaTagDao): New tables and DAOs.
+  * lib/data/repositories/mangabaka_tags_repository.dart (MangaBakaTagsRepository, mangaBakaTagsProvider), lib/data/repositories/mangabaka_genres_repository.dart (mangaBakaGenresProvider): Sticky-cached tag catalog with `forceRefresh`; static genre catalog.
+  * lib/features/search/sources/mangabaka_source.dart (MangaBakaSource), lib/features/search/sources/search_sources.dart (searchSources): New source registered as its own group.
+  * lib/features/search/filters/mangabaka_type_filter.dart (MangaBakaTypeFilter), mangabaka_genre_filter.dart (MangaBakaGenreFilter), mangabaka_tag_filter.dart (MangaBakaTagFilter), mangabaka_status_filter.dart (MangaBakaStatusFilter), mangabaka_content_rating_filter.dart (MangaBakaContentRatingFilter): New filters.
+  * lib/features/search/widgets/mangabaka_tag_picker.dart (showMangaBakaTagPicker): Grouped, searchable tag picker with manual catalog refresh.
+  * lib/core/database/migrations/migration_v44.dart (MigrationV44): Creates the catalog tables and seeds 46 genres (DB version 43 → 44).
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (browseFilterContentRating, contentRatingSafe, contentRatingSuggestive, contentRatingExplicit): New filter strings.
+
 ### Changed
+
+- **Disambiguate manga by provider across cache, collection, covers and mood grids**
+
+  Manga from AniList and MangaBaka can share a numeric id, so manga identity is
+  now the pair `(external_id, source)` instead of `external_id` alone. Existing
+  manga stays AniList and is unaffected; refresh, export, import and full
+  backups all carry the source. Manga cover images are namespaced per provider
+  so two titles sharing an id can't overwrite each other's cover; old backups
+  remap their manga covers on import so nothing re-downloads.
+
+  * lib/core/database/schema.dart (DatabaseSchema.createMangaCacheTable, DatabaseSchema.createCollectionItemsTable, DatabaseSchema.createMoodGridCellsTable): `manga_cache` PK becomes composite `(id, source)`; `collection_items` and `mood_grid_cells` gain a `source` column; manga-only unique indexes include `COALESCE(source, 'anilist')`.
+  * lib/core/database/migrations/migration_v44.dart (MigrationV44): Rebuilds `manga_cache` with the composite PK, backfills `source = 'anilist'`, re-scopes the non-game unique indexes.
+  * lib/shared/models/manga.dart (Manga.source), lib/shared/models/collection_item.dart (CollectionItem.source, CollectionItem.coverImageId), lib/shared/models/mood_grid_cell.dart (MoodGridCell.source), lib/shared/models/cover_info.dart (CoverInfo.source, CoverInfo.coverImageId), lib/shared/models/canvas_item.dart (CanvasItem.mediaCacheId): Thread `source` through models and cover-cache ids.
+  * lib/shared/utils/cover_image_id.dart (coverImageId): New canonical source-aware cover cache id (manga → `anilist_1995` / `mangabaka_1995`).
+  * lib/core/database/dao/manga_dao.dart (MangaDao.getManga, MangaDao.getMangaByIds), lib/core/database/dao/collection_dao.dart (CollectionDao.addItemToCollection): Match manga on `(id, source)` in lookups, hydration and the cover join.
+  * lib/core/services/export_service.dart (ExportService), lib/core/services/import_service.dart (ImportService): Carry `source` in exported records; remap legacy bare-id manga covers on import.
+  * lib/features/collections/helpers/collection_actions.dart: Refresh routes manga to AniList or MangaBaka by `source`.
+  * lib/shared/models/data_source.dart (DataSource.mangabaka, DataSource.fromName): New provider value and parser.
 
 - **Rate by tapping a whole star, fine-tune with −/+ buttons**
 

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/dao/mood_grid_dao.dart';
 import '../../../core/database/database_service.dart';
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/media_type.dart';
 import '../../../shared/models/mood_grid.dart';
 import '../../../shared/models/mood_grid_cell.dart';
@@ -84,6 +85,7 @@ class MoodGridDetailNotifier
       cell.mediaType!,
       cell.externalId!,
       cell.platformId,
+      source: cell.source,
     );
   }
 
@@ -129,12 +131,14 @@ class MoodGridDetailNotifier
     required MediaType mediaType,
     required int externalId,
     int? platformId,
+    DataSource? source,
   }) async {
     await _dao.setCellItem(
       cellId: cellId,
       mediaType: mediaType,
       externalId: externalId,
       platformId: platformId,
+      source: source,
     );
     await _replaceCellAndMedia(
       cellId,
@@ -142,6 +146,7 @@ class MoodGridDetailNotifier
         mediaType: mediaType,
         externalId: externalId,
         platformId: platformId,
+        source: source,
       ),
     );
     ref.invalidate(moodGridsProvider);

@@ -1,17 +1,17 @@
-// DAO для работы с мангой из AniList.
+// DAO for manga from AniList / MangaBaka.
 
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/manga.dart';
 
-/// DAO для таблицы `manga_cache`.
+/// DAO for `manga_cache`. Row identity is the pair `(id, source)`, so the same
+/// numeric `id` from AniList and MangaBaka can coexist.
 class MangaDao {
-  /// Создаёт DAO с функцией получения базы данных.
   const MangaDao(this._getDatabase);
 
   final Future<Database> Function() _getDatabase;
 
-  /// Сохраняет или обновляет мангу в кэше.
   Future<void> upsertManga(Manga manga) async {
     final Database db = await _getDatabase();
     await db.insert(
@@ -21,7 +21,6 @@ class MangaDao {
     );
   }
 
-  /// Сохраняет или обновляет список манг.
   Future<void> upsertMangas(List<Manga> mangas) async {
     if (mangas.isEmpty) return;
     final Database db = await _getDatabase();
@@ -36,20 +35,23 @@ class MangaDao {
     await batch.commit(noResult: true);
   }
 
-  /// Получает мангу по AniList ID.
-  Future<Manga?> getManga(int id) async {
+  Future<Manga?> getManga(
+    int id, {
+    DataSource source = DataSource.anilist,
+  }) async {
     final Database db = await _getDatabase();
     final List<Map<String, dynamic>> rows = await db.query(
       'manga_cache',
-      where: 'id = ?',
-      whereArgs: <Object?>[id],
+      where: 'id = ? AND source = ?',
+      whereArgs: <Object?>[id, source.name],
       limit: 1,
     );
     if (rows.isEmpty) return null;
     return Manga.fromDb(rows.first);
   }
 
-  /// Получает манги по списку ID.
+  /// Returns matches across all sources for the given ids; callers
+  /// disambiguate by [Manga.source] (two rows can share a numeric `id`).
   Future<List<Manga>> getMangaByIds(List<int> ids) async {
     if (ids.isEmpty) return <Manga>[];
     final Database db = await _getDatabase();

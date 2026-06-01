@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/models/mood_grid_cell.dart';
+import '../../../shared/utils/cover_image_id.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
@@ -102,7 +103,11 @@ class MoodGridCellWidget extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
       child: CachedImage(
         imageType: media.imageType,
-        imageId: cell.externalId!.toString(),
+        imageId: coverImageId(
+          mediaType: cell.mediaType!,
+          externalId: cell.externalId!,
+          source: cell.source,
+        ),
         remoteUrl: url,
         fit: BoxFit.cover,
         memCacheWidth: (width * 2).toInt(),

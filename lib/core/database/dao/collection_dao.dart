@@ -5,6 +5,7 @@ import '../../../shared/models/collected_item_info.dart';
 import '../../../shared/models/collection.dart';
 import '../../../shared/models/collection_item.dart';
 import '../../../shared/models/cover_info.dart';
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/game.dart';
 import '../../../shared/models/item_status.dart';
 import '../../../shared/models/media_type.dart';
@@ -312,6 +313,7 @@ class CollectionDao {
     required MediaType mediaType,
     required int externalId,
     int? platformId,
+    DataSource? source,
     String? authorComment,
     ItemStatus status = ItemStatus.notStarted,
   }) async {
@@ -327,6 +329,7 @@ class CollectionDao {
           'media_type': mediaType.value,
           'external_id': externalId,
           'platform_id': platformId,
+          'source': source?.name,
           'status': status.value,
           'author_comment': authorComment,
           'added_at': now,
@@ -803,10 +806,10 @@ class CollectionDao {
     ];
 
     final List<Map<String, Object?>> rows = await db.rawQuery('''
-      SELECT external_id, media_type, platform_id, thumbnail_url
+      SELECT external_id, media_type, platform_id, source, thumbnail_url
       FROM (
-        SELECT ci.external_id, ci.media_type, ci.platform_id, ci.status,
-          ci.sort_order,
+        SELECT ci.external_id, ci.media_type, ci.platform_id, ci.source,
+          ci.status, ci.sort_order,
           CASE ci.media_type
             WHEN 'game' THEN g.cover_url
             WHEN 'movie' THEN m.poster_url
@@ -836,6 +839,7 @@ class CollectionDao {
           ON ci.media_type = 'visual_novel' AND ci.external_id = vn.numeric_id
         LEFT JOIN manga_cache mc
           ON ci.media_type = 'manga' AND ci.external_id = mc.id
+          AND mc.source = COALESCE(ci.source, 'anilist')
         LEFT JOIN anime_cache ac
           ON ci.media_type = 'anime' AND ci.external_id = ac.id
         LEFT JOIN custom_items cm
@@ -963,8 +967,10 @@ class CollectionDao {
     final Map<int, VisualNovel> vnMap = <int, VisualNovel>{
       for (final VisualNovel vn in visualNovels) vn.numericId: vn,
     };
-    final Map<int, Manga> mangaMap = <int, Manga>{
-      for (final Manga m in mangas) m.id: m,
+    // Manga is keyed by `(source, id)` — AniList and MangaBaka can share a
+    // numeric id, so a plain id-keyed map would collapse them.
+    final Map<String, Manga> mangaMap = <String, Manga>{
+      for (final Manga m in mangas) '${m.source.name}:${m.id}': m,
     };
     final Map<int, Anime> animeMap = <int, Anime>{
       for (final Anime a in animes) a.id: a,
@@ -996,7 +1002,10 @@ class CollectionDao {
         case MediaType.anime:
           return item.copyWith(anime: animeMap[item.externalId]);
         case MediaType.manga:
-          return item.copyWith(manga: mangaMap[item.externalId]);
+          return item.copyWith(
+            manga: mangaMap[
+                '${(item.source ?? DataSource.anilist).name}:${item.externalId}'],
+          );
         case MediaType.custom:
           return item.copyWith(customMedia: customMap[item.externalId]);
       }

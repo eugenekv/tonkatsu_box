@@ -325,7 +325,7 @@ class ExportService {
 
     for (final CollectionItem item in items) {
       final ImageType imageType = item.imageType;
-      final String imageId = item.externalId.toString();
+      final String imageId = item.coverImageId;
       final String key = '${imageType.folder}/$imageId';
 
       // Пропускаем дубли (один externalId может встретиться несколько раз)
@@ -417,8 +417,10 @@ class ExportService {
     final Map<int, Map<String, dynamic>> tvShows =
         <int, Map<String, dynamic>>{};
     final Map<int, Map<String, dynamic>> vns = <int, Map<String, dynamic>>{};
-    final Map<int, Map<String, dynamic>> mangas =
-        <int, Map<String, dynamic>>{};
+    // Keyed by `source:externalId` — AniList and MangaBaka can share a numeric
+    // id, so an int key would drop one of them from the export.
+    final Map<String, Map<String, dynamic>> mangas =
+        <String, Map<String, dynamic>>{};
     final Map<int, Map<String, dynamic>> animes =
         <int, Map<String, dynamic>>{};
     final Map<int, Map<String, dynamic>> customItems =
@@ -472,8 +474,10 @@ class ExportService {
             vns[item.externalId] = item.visualNovel!.toExport();
           }
         case MediaType.manga:
-          if (item.manga != null && !mangas.containsKey(item.externalId)) {
-            mangas[item.externalId] = item.manga!.toExport();
+          final String mangaKey =
+              '${item.manga?.source.name ?? 'anilist'}:${item.externalId}';
+          if (item.manga != null && !mangas.containsKey(mangaKey)) {
+            mangas[mangaKey] = item.manga!.toExport();
           }
         case MediaType.anime:
           if (item.anime != null && !animes.containsKey(item.externalId)) {

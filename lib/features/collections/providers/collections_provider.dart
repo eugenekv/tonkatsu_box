@@ -18,6 +18,7 @@ import '../../../shared/models/collection_sort_mode.dart';
 import '../../../shared/models/game.dart';
 import '../../../shared/models/item_status.dart';
 import '../../../shared/models/item_status_logic.dart';
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/media_type.dart';
 import '../../../data/repositories/game_repository.dart';
 import '../../home/providers/all_items_provider.dart';
@@ -520,6 +521,7 @@ class CollectionItemsNotifier
     required MediaType mediaType,
     required int externalId,
     int? platformId,
+    DataSource? source,
     String? authorComment,
   }) async {
     final int? id = await _repository.addItem(
@@ -527,6 +529,7 @@ class CollectionItemsNotifier
       mediaType: mediaType,
       externalId: externalId,
       platformId: platformId,
+      source: source,
       authorComment: authorComment,
     );
 

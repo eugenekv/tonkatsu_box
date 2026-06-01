@@ -202,7 +202,7 @@ class _PickerItemCard extends ConsumerWidget {
                   ? Container(color: AppColors.surfaceLight)
                   : CachedImage(
                       imageType: item.imageType,
-                      imageId: item.externalId.toString(),
+                      imageId: item.coverImageId,
                       remoteUrl: url,
                       fit: BoxFit.cover,
                       memCacheWidth: 240,

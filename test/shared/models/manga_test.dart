@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tonkatsu_box/shared/models/data_source.dart';
 import 'package:tonkatsu_box/shared/models/manga.dart';
 
 void main() {
@@ -718,6 +719,119 @@ void main() {
         const Manga manga =
             Manga(id: 1, title: 'X', tags: <String>['A', 'B']);
         expect(manga.tagsString, 'A, B');
+      });
+    });
+
+    group('fromMangaBaka', () {
+      Map<String, dynamic> baseJson() => <String, dynamic>{
+            'id': 1995,
+            'title': 'Frieren: Beyond Journey’s End',
+            'romanized_title': 'Sousou no Frieren',
+            'native_title': '葬送のフリーレン',
+            'cover': <String, dynamic>{
+              'raw': <String, dynamic>{'url': 'https://img/raw.jpg'},
+            },
+            'total_chapters': '147',
+            'final_volume': '15',
+            'status': 'releasing',
+            'type': 'manga',
+            'rating': 87.03,
+            'genres': <dynamic>['adventure', 'fantasy'],
+            'authors': <dynamic>['Kanehito Yamada'],
+            'artists': <dynamic>['Tsukasa Abe'],
+            'published': <String, dynamic>{'start_date': '2020-04-28'},
+          };
+
+      test('stamps source as mangabaka', () {
+        expect(Manga.fromMangaBaka(baseJson()).source, DataSource.mangabaka);
+      });
+
+      test('prefers romanized title, keeps english/native', () {
+        final Manga m = Manga.fromMangaBaka(baseJson());
+        expect(m.title, 'Sousou no Frieren');
+        expect(m.titleEnglish, 'Frieren: Beyond Journey’s End');
+        expect(m.titleNative, isNotNull);
+      });
+
+      test('parses string chapter/volume counts to int', () {
+        final Manga m = Manga.fromMangaBaka(baseJson());
+        expect(m.chapters, 147);
+        expect(m.volumes, 15);
+      });
+
+      test('maps status and type to AniList-style vocabulary', () {
+        expect(Manga.fromMangaBaka(baseJson()).status, 'RELEASING');
+        expect(Manga.fromMangaBaka(baseJson()).format, 'MANGA');
+        final Map<String, dynamic> manhwa = baseJson()
+          ..['type'] = 'manhwa'
+          ..['status'] = 'completed';
+        expect(Manga.fromMangaBaka(manhwa).format, 'MANHWA');
+        expect(Manga.fromMangaBaka(manhwa).status, 'FINISHED');
+      });
+
+      test('rounds 0-100 rating to averageScore', () {
+        expect(Manga.fromMangaBaka(baseJson()).averageScore, 87);
+      });
+
+      test('takes raw cover variant', () {
+        expect(Manga.fromMangaBaka(baseJson()).coverUrl, 'https://img/raw.jpg');
+      });
+
+      test('merges authors and artists', () {
+        expect(Manga.fromMangaBaka(baseJson()).authors,
+            <String>['Kanehito Yamada', 'Tsukasa Abe']);
+      });
+
+      test('derives start year from published start_date', () {
+        expect(Manga.fromMangaBaka(baseJson()).startYear, 2020);
+      });
+
+      test('tolerates missing optional fields', () {
+        final Manga m =
+            Manga.fromMangaBaka(<String, dynamic>{'id': 5, 'title': 'X'});
+        expect(m.id, 5);
+        expect(m.chapters, isNull);
+        expect(m.status, isNull);
+        expect(m.source, DataSource.mangabaka);
+      });
+
+      test('maps structured titles[] to romaji / english / native slots', () {
+        final Map<String, dynamic> json = baseJson()
+          ..['romanized_title'] = 'Wrong Romaji'
+          ..['title'] = 'Wrong English'
+          ..['native_title'] = 'Wrong Native'
+          ..['titles'] = <Map<String, dynamic>>[
+            <String, dynamic>{
+              'language': 'ja-Latn',
+              'title': 'Sousou no Frieren',
+              'is_primary': true,
+              'traits': <String>[],
+            },
+            <String, dynamic>{
+              'language': 'ja',
+              'title': '葬送のフリーレン',
+              'is_primary': true,
+            },
+            <String, dynamic>{
+              'language': 'en',
+              'title': 'Frieren: BJE',
+              'is_primary': true,
+              'traits': <String>['official'],
+            },
+          ];
+        final Manga m = Manga.fromMangaBaka(json);
+        expect(m.title, 'Sousou no Frieren');
+        expect(m.titleNative, '葬送のフリーレン');
+        expect(m.titleEnglish, 'Frieren: BJE');
+      });
+
+      test('falls back to flat fields when titles[] lacks the language', () {
+        final Map<String, dynamic> json = baseJson()
+          ..['titles'] = <Map<String, dynamic>>[
+            <String, dynamic>{'language': 'fr', 'title': 'French Title'},
+          ];
+        // No ja-Latn → romaji falls back to romanized_title.
+        expect(Manga.fromMangaBaka(json).title, 'Sousou no Frieren');
       });
     });
   });

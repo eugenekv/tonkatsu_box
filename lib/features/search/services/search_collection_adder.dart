@@ -6,6 +6,7 @@ import '../../../core/services/image_cache_service.dart';
 import '../../../shared/extensions/snackbar_extension.dart';
 import '../../../shared/models/collected_item_info.dart';
 import '../../../shared/models/collection.dart';
+import '../../../shared/models/data_source.dart';
 import '../../../shared/models/media_type.dart';
 import '../../../shared/widgets/collection_picker_dialog.dart';
 import '../../collections/providers/collections_provider.dart';
@@ -35,6 +36,7 @@ class SearchCollectionAdder {
     required MediaType mediaType,
     required int externalId,
     int? platformId,
+    DataSource? source,
     required String title,
     required Future<void> Function() upsert,
     required ImageType imageType,
@@ -51,6 +53,7 @@ class SearchCollectionAdder {
           mediaType: mediaType,
           externalId: externalId,
           platformId: platformId,
+          source: source,
         );
 
     if (!context.mounted) return success;

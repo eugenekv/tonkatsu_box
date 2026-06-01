@@ -28,7 +28,7 @@ class ThumbnailCell extends StatelessWidget {
         child: item.thumbnailUrl != null
             ? CachedImage(
                 imageType: item.imageType,
-                imageId: item.externalId.toString(),
+                imageId: item.coverImageId,
                 remoteUrl: item.thumbnailUrl!,
                 fit: BoxFit.cover,
                 memCacheWidth: (width * 2).toInt(),
