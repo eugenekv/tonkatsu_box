@@ -5,6 +5,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../../shared/models/tracker_achievement.dart';
 import '../../../shared/models/tracker_game_data.dart';
 import '../../../shared/models/tracker_profile.dart';
+import '../query_chunk.dart';
 
 /// DAO для `tracker_profiles`, `tracker_game_data`, `tracker_achievements`.
 class TrackerDao {
@@ -129,15 +130,16 @@ class TrackerDao {
   Future<List<TrackerGameData>> getGameDataForGameIds(
     List<int> gameIds,
   ) async {
-    if (gameIds.isEmpty) return <TrackerGameData>[];
     final Database db = await _getDatabase();
-    final String placeholders =
-        List<String>.filled(gameIds.length, '?').join(',');
-    final List<Map<String, dynamic>> rows = await db.rawQuery(
-      'SELECT * FROM tracker_game_data WHERE game_id IN ($placeholders)',
-      gameIds.map((int id) => id as Object).toList(),
-    );
-    return rows.map(TrackerGameData.fromDb).toList();
+    return queryByIdsInChunks(gameIds, (List<int> chunk) async {
+      final String placeholders =
+          List<String>.filled(chunk.length, '?').join(',');
+      final List<Map<String, dynamic>> rows = await db.rawQuery(
+        'SELECT * FROM tracker_game_data WHERE game_id IN ($placeholders)',
+        chunk,
+      );
+      return rows.map(TrackerGameData.fromDb).toList();
+    });
   }
 
   /// Возвращает все tracker data для игры (от всех трекеров).

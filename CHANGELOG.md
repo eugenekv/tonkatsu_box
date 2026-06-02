@@ -64,6 +64,31 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Fixed
 
+- **Stop imported titles showing as "Unknown" when AniList rate-limits a large import**
+
+  Importing a big `.xcoll` (or AniList list) re-fetches each title's metadata
+  from AniList in batches. A single rate-limit (429) part-way through made the
+  whole anime / manga fetch throw and discard every result, so most titles
+  ended up with no cached metadata and rendered as "Unknown anime" / "Unknown
+  manga" (statuses and notes were intact — only the title/cover was missing).
+  Batches now retry on 429 and keep partial results, so the cache fills in
+  reliably.
+
+  * lib/core/api/anilist/anilist_media_api.dart (AniListMediaApi.getAnimeByIds, AniListMediaApi.getMangaByIds): Per-batch retry on 429, tolerating a failed batch and keeping the partial result instead of throwing; added an `onRateLimit` callback.
+  * lib/core/api/anilist_api.dart (AniListApi.getAnimeByIds, AniListApi.getMangaByIds): Forward `onRateLimit`.
+  * lib/core/services/import_service.dart (ImportService): Surface rate-limit waits via import progress during the anime / manga re-fetch.
+
+- **Stop large collections from crashing on Android (SQLite variable limit)**
+
+  Opening a collection with more than ~999 items of one media type (e.g. a big
+  MyAnimeList import) crashed on Android with "too many SQL variables" — the
+  hydration `IN (...)` query exceeded the platform SQLite bound-parameter
+  limit. Desktop was unaffected (its bundled SQLite allows 32766). Id-list
+  queries are now chunked so any collection size works on every platform.
+
+  * lib/core/database/query_chunk.dart (queryByIdsInChunks, kInClauseChunkSize): New chunked-IN helper (chunk size 900, under the 999 floor).
+  * lib/core/database/dao/manga_dao.dart (MangaDao.getMangaByIds), anime_dao.dart (AnimeDao.getAnimeByIds), movie_dao.dart (MovieDao.getMoviesByTmdbIds), tv_show_dao.dart (TvShowDao.getTvShowsByTmdbIds), visual_novel_dao.dart (VisualNovelDao.getVisualNovelsByNumericIds), custom_media_dao.dart (CustomMediaDao.getByIds), game_dao.dart (GameDao.getGamesByIds, GameDao.getPlatformsByIds), tracker_dao.dart (TrackerDao.getGameDataForGameIds): Run the `IN (...)` lookup through `queryByIdsInChunks`.
+
 - **Stop the gamepad plugin from crashing the app on Windows**
 
   Some Windows users hit a hard crash (access violation `0xc0000005` in

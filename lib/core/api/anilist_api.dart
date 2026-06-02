@@ -98,11 +98,17 @@ class AniListApi {
 
   Future<Anime?> getAnimeById(int id) => _media.getAnimeById(id);
 
-  Future<List<Manga>> getMangaByIds(List<int> ids) =>
-      _media.getMangaByIds(ids);
+  Future<List<Manga>> getMangaByIds(
+    List<int> ids, {
+    void Function(Duration wait, int attempt)? onRateLimit,
+  }) =>
+      _media.getMangaByIds(ids, onRateLimit: onRateLimit);
 
-  Future<List<Anime>> getAnimeByIds(List<int> ids) =>
-      _media.getAnimeByIds(ids);
+  Future<List<Anime>> getAnimeByIds(
+    List<int> ids, {
+    void Function(Duration wait, int attempt)? onRateLimit,
+  }) =>
+      _media.getAnimeByIds(ids, onRateLimit: onRateLimit);
 
   Future<Map<int, Anime>> getAnimeByMalIds(List<int> malIds) =>
       _mal.getAnimeByMalIds(malIds);

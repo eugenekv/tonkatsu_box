@@ -3,6 +3,7 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../shared/models/custom_media.dart';
+import '../query_chunk.dart';
 
 /// DAO для таблицы `custom_items`.
 class CustomMediaDao {
@@ -45,15 +46,16 @@ class CustomMediaDao {
 
   /// Получает кастомные элементы по списку ID.
   Future<List<CustomMedia>> getByIds(List<int> ids) async {
-    if (ids.isEmpty) return <CustomMedia>[];
     final Database db = await _getDatabase();
-    final String placeholders =
-        List<String>.filled(ids.length, '?').join(',');
-    final List<Map<String, dynamic>> rows = await db.rawQuery(
-      'SELECT * FROM custom_items WHERE id IN ($placeholders)',
-      ids,
-    );
-    return rows.map(CustomMedia.fromDb).toList();
+    return queryByIdsInChunks(ids, (List<int> chunk) async {
+      final String placeholders =
+          List<String>.filled(chunk.length, '?').join(',');
+      final List<Map<String, dynamic>> rows = await db.rawQuery(
+        'SELECT * FROM custom_items WHERE id IN ($placeholders)',
+        chunk,
+      );
+      return rows.map(CustomMedia.fromDb).toList();
+    });
   }
 
   /// Сохраняет или обновляет кастомный элемент (для импорта).
