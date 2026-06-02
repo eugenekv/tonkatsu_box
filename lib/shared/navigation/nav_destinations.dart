@@ -37,6 +37,12 @@ List<NavDestination> buildNavDestinations({
       label: loc.navTierLists,
     ),
     NavDestination(
+      tab: NavTab.releases,
+      icon: Icons.notifications_none,
+      selectedIcon: Icons.notifications,
+      label: loc.navReleases,
+    ),
+    NavDestination(
       tab: NavTab.wishlist,
       icon: Icons.bookmark_border,
       selectedIcon: Icons.bookmark,

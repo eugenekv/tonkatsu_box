@@ -9,6 +9,29 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Add a Releases calendar for tracked TV shows and anime**
+
+  A new "Releases" tab (between tier lists and wishlist) shows a
+  Google-Calendar-style view of episodes for shows tracked with the bell in the
+  detail screen. Month grid plus week and day agendas (no hour grid — episodes
+  have no air time); episodes are colored by state (upcoming, aired-unwatched,
+  watched), with a long-press / right-click preview and tap-through to the item.
+  Dates use the Settings date format. Tracking is keyed by
+  `(external_id, source, media_type)` so one show counts once across
+  collections; release dates come from the existing episode cache, refreshed via
+  the detail card's refresh button.
+
+  * lib/core/database/migrations/migration_v45.dart (MigrationV45), lib/core/database/migrations/migration_registry.dart, lib/core/database/database_service.dart (trackedReleaseDao, trackedReleaseDaoProvider): New `tracked_releases` table; DB version 44 → 45.
+  * lib/core/database/schema.dart (DatabaseSchema.createTrackedReleasesTable): New table DDL.
+  * lib/core/database/dao/tracked_release_dao.dart (TrackedReleaseDao): subscribe, unsubscribe, isTracked, getAll, getTrackedKeys.
+  * lib/core/database/dao/tv_show_dao.dart (TvShowDao.getWatchedEpisodesForShow): Watched episodes aggregated across all collections.
+  * lib/shared/models/tracked_release.dart (TrackedRelease): New model.
+  * lib/features/releases/models/release_event.dart (ReleaseEvent, ReleasesCalendarData), lib/features/releases/providers/releases_provider.dart (ReleasesNotifier, releasesProvider, isReleaseTrackedProvider), lib/features/releases/screens/releases_screen.dart (ReleasesScreen), lib/features/releases/widgets/releases_empty_state.dart (ReleasesEmptyState): New calendar feature.
+  * lib/features/collections/widgets/item_detail/item_detail_app_bar.dart (ItemDetailAppBar), lib/features/collections/screens/item_detail_screen.dart (_ItemDetailScreenState): Bell to track / untrack releases for TMDB TV and anime.
+  * lib/shared/navigation/nav_tab.dart (NavTab.releases), lib/shared/navigation/nav_destinations.dart, lib/shared/navigation/app_shell.dart, lib/shared/navigation/search_providers.dart: New tab wired into navigation, before wishlist.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (navReleases, releasesEmpty, releasesEmptyHint, releasesTrackShow, releasesUntrackShow, releasesViewDay, releasesViewWeek, releasesViewMonth, releasesToday, releasesNoEpisodes, releasesEpisode): New strings.
+  * pubspec.yaml (calendar_view): New MIT dependency for the month / week / day calendar.
+
 - **Add MangaBaka as a second manga search source**
 
   A new MangaBaka tab in search, alongside AniList manga. MangaBaka is an open
