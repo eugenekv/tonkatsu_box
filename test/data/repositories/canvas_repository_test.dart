@@ -25,6 +25,7 @@ void main() {
   group('CanvasRepository', () {
     late MockDatabaseService mockDb;
     late MockGameDao mockGameDao;
+    late MockVisualNovelDao mockVisualNovelDao;
     late CanvasRepository repository;
 
     final DateTime testDate = DateTime(2024, 6, 15, 12, 0, 0);
@@ -34,6 +35,8 @@ void main() {
       mockDb = MockDatabaseService();
       mockGameDao = MockGameDao();
       when(() => mockDb.gameDao).thenReturn(mockGameDao);
+      mockVisualNovelDao = MockVisualNovelDao();
+      when(() => mockDb.visualNovelDao).thenReturn(mockVisualNovelDao);
       repository = CanvasRepository(db: mockDb);
     });
 
@@ -288,7 +291,7 @@ void main() {
         );
 
         when(() => mockDb.getCanvasItems(10)).thenAnswer((_) async => rows);
-        when(() => mockDb.getVisualNovelsByNumericIds(<int>[17]))
+        when(() => mockVisualNovelDao.getVisualNovelsByNumericIds(<int>[17]))
             .thenAnswer((_) async => <VisualNovel>[testVn]);
 
         final List<CanvasItem> result = await repository.getItemsWithData(10);
@@ -849,6 +852,7 @@ void main() {
     late MockGameDao mockGameDao;
     late MockMovieDao mockMovieDao;
     late MockTvShowDao mockTvShowDao;
+    late MockVisualNovelDao mockVisualNovelDao;
     late CanvasRepository repository;
 
     final DateTime testDate = DateTime(2024, 6, 15, 12, 0, 0);
@@ -862,6 +866,8 @@ void main() {
       when(() => mockDb.movieDao).thenReturn(mockMovieDao);
       mockTvShowDao = MockTvShowDao();
       when(() => mockDb.tvShowDao).thenReturn(mockTvShowDao);
+      mockVisualNovelDao = MockVisualNovelDao();
+      when(() => mockDb.visualNovelDao).thenReturn(mockVisualNovelDao);
       repository = CanvasRepository(db: mockDb);
     });
 
@@ -1098,7 +1104,7 @@ void main() {
 
         when(() => mockDb.getGameCanvasItems(42))
             .thenAnswer((_) async => rows);
-        when(() => mockDb.getVisualNovelsByNumericIds(<int>[888]))
+        when(() => mockVisualNovelDao.getVisualNovelsByNumericIds(<int>[888]))
             .thenAnswer((_) async => <VisualNovel>[testVn]);
 
         final List<CanvasItem> result =
@@ -1107,7 +1113,7 @@ void main() {
         expect(result.length, 1);
         expect(result[0].visualNovel, isNotNull);
         expect(result[0].visualNovel!.title, 'Steins;Gate');
-        verify(() => mockDb.getVisualNovelsByNumericIds(<int>[888])).called(1);
+        verify(() => mockVisualNovelDao.getVisualNovelsByNumericIds(<int>[888])).called(1);
       });
 
       test('should handle missing visualNovel in database', () async {
@@ -1130,7 +1136,7 @@ void main() {
 
         when(() => mockDb.getGameCanvasItems(42))
             .thenAnswer((_) async => rows);
-        when(() => mockDb.getVisualNovelsByNumericIds(<int>[999]))
+        when(() => mockVisualNovelDao.getVisualNovelsByNumericIds(<int>[999]))
             .thenAnswer((_) async => <VisualNovel>[]);
 
         final List<CanvasItem> result =

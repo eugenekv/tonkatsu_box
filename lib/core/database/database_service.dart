@@ -16,9 +16,6 @@ import '../../shared/models/cover_info.dart';
 import '../../shared/models/data_source.dart';
 import '../../shared/models/item_status.dart';
 import '../../shared/models/media_type.dart';
-import '../../shared/models/anime.dart';
-import '../../shared/models/manga.dart';
-import '../../shared/models/visual_novel.dart';
 import '../../shared/models/wishlist_item.dart';
 import '../../shared/models/wishlist_tag.dart';
 import 'dao/anilist_tag_dao.dart';
@@ -755,43 +752,6 @@ class DatabaseService {
       await txn.delete('wishlist');
     });
   }
-
-  Future<void> upsertVisualNovel(VisualNovel vn) =>
-      visualNovelDao.upsertVisualNovel(vn);
-
-  Future<void> upsertVisualNovels(List<VisualNovel> vns) =>
-      visualNovelDao.upsertVisualNovels(vns);
-
-  Future<VisualNovel?> getVisualNovel(int numericId) =>
-      visualNovelDao.getVisualNovel(numericId);
-
-  Future<List<VisualNovel>> getVisualNovelsByNumericIds(
-    List<int> numericIds,
-  ) =>
-      visualNovelDao.getVisualNovelsByNumericIds(numericIds);
-
-  Future<List<VndbTag>> getVndbTags() => visualNovelDao.getVndbTags();
-
-  Future<void> upsertManga(Manga manga) => mangaDao.upsertManga(manga);
-
-  Future<void> upsertMangas(List<Manga> mangas) =>
-      mangaDao.upsertMangas(mangas);
-
-  Future<Manga?> getManga(int id, {DataSource source = DataSource.anilist}) =>
-      mangaDao.getManga(id, source: source);
-
-  Future<List<Manga>> getMangaByIds(List<int> ids) =>
-      mangaDao.getMangaByIds(ids);
-
-  Future<void> upsertAnime(Anime anime) => animeDao.upsertAnime(anime);
-
-  Future<void> upsertAnimes(List<Anime> animes) =>
-      animeDao.upsertAnimes(animes);
-
-  Future<Anime?> getAnime(int id) => animeDao.getAnime(id);
-
-  Future<List<Anime>> getAnimeByIds(List<int> ids) =>
-      animeDao.getAnimeByIds(ids);
 
   Future<List<CoverInfo>> getCollectionCovers(
     int? collectionId, {

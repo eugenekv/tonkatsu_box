@@ -240,10 +240,10 @@ class CanvasRepository {
           ? _db.tvShowDao.getTvShowsByTmdbIds(tvShowTmdbIds)
           : Future<List<TvShow>>.value(<TvShow>[]),
       vnIds.isNotEmpty
-          ? _db.getVisualNovelsByNumericIds(vnIds)
+          ? _db.visualNovelDao.getVisualNovelsByNumericIds(vnIds)
           : Future<List<VisualNovel>>.value(<VisualNovel>[]),
       mangaIds.isNotEmpty
-          ? _db.getMangaByIds(mangaIds)
+          ? _db.mangaDao.getMangaByIds(mangaIds)
           : Future<List<Manga>>.value(<Manga>[]),
       animeIds.isNotEmpty
           ? _db.animeDao.getAnimeByIds(animeIds)

@@ -17,10 +17,16 @@ void main() {
   late MalImportService sut;
   late MockAniListApi mockAniList;
   late MockDatabaseService mockDb;
+  late MockAnimeDao mockAnimeDao;
+  late MockMangaDao mockMangaDao;
 
   setUp(() {
     mockAniList = MockAniListApi();
     mockDb = MockDatabaseService();
+    mockAnimeDao = MockAnimeDao();
+    mockMangaDao = MockMangaDao();
+    when(() => mockDb.animeDao).thenReturn(mockAnimeDao);
+    when(() => mockDb.mangaDao).thenReturn(mockMangaDao);
     sut = MalImportService(aniListApi: mockAniList, database: mockDb);
   });
 
@@ -282,8 +288,8 @@ void main() {
               platformId: any(named: 'platformId'),
               status: any(named: 'status'),
             )).thenAnswer((_) async => 100);
-        when(() => mockDb.upsertAnimes(any())).thenAnswer((_) async {});
-        when(() => mockDb.upsertMangas(any())).thenAnswer((_) async {});
+        when(() => mockAnimeDao.upsertAnimes(any())).thenAnswer((_) async {});
+        when(() => mockMangaDao.upsertMangas(any())).thenAnswer((_) async {});
         when(() => mockDb.updateItemProgress(
               any(),
               currentEpisode: any(named: 'currentEpisode'),
@@ -393,8 +399,8 @@ void main() {
             failedIds: <int>[],
           ),
         );
-        when(() => mockDb.upsertAnimes(any())).thenAnswer((_) async {});
-        when(() => mockDb.upsertMangas(any())).thenAnswer((_) async {});
+        when(() => mockAnimeDao.upsertAnimes(any())).thenAnswer((_) async {});
+        when(() => mockMangaDao.upsertMangas(any())).thenAnswer((_) async {});
 
         final CollectionItem existing = createTestCollectionItem(
           id: 555,
@@ -467,7 +473,7 @@ void main() {
             failedIds: <int>[],
           ),
         );
-        when(() => mockDb.upsertAnimes(any())).thenAnswer((_) async {});
+        when(() => mockAnimeDao.upsertAnimes(any())).thenAnswer((_) async {});
 
         final CollectionItem existing = createTestCollectionItem(
           id: 555,

@@ -572,10 +572,10 @@ class MalImportService {
     }
 
     if (animeByMal.isNotEmpty) {
-      await _db.upsertAnimes(animeByMal.values.toList());
+      await _db.animeDao.upsertAnimes(animeByMal.values.toList());
     }
     if (mangaByMal.isNotEmpty) {
-      await _db.upsertMangas(mangaByMal.values.toList());
+      await _db.mangaDao.upsertMangas(mangaByMal.values.toList());
     }
 
     int imported = 0;

@@ -682,7 +682,7 @@ class CollectionActions {
               .read(aniListApiProvider)
               .getAnimeById(item.externalId);
           if (anime == null) return _RefreshOutcome.notFound();
-          await db.upsertAnime(anime);
+          await db.animeDao.upsertAnime(anime);
         case MediaType.manga:
           final Manga? manga =
               item.source == DataSource.mangabaka
@@ -693,13 +693,13 @@ class CollectionActions {
                       .read(aniListApiProvider)
                       .getMangaById(item.externalId);
           if (manga == null) return _RefreshOutcome.notFound();
-          await db.upsertManga(manga);
+          await db.mangaDao.upsertManga(manga);
         case MediaType.visualNovel:
           final VisualNovel? vn = await ref
               .read(vndbApiProvider)
               .getVnById(item.externalId.toString());
           if (vn == null) return _RefreshOutcome.notFound();
-          await db.upsertVisualNovel(vn);
+          await db.visualNovelDao.upsertVisualNovel(vn);
         case MediaType.custom:
           return _RefreshOutcome.unsupported();
       }

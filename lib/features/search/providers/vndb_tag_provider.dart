@@ -11,5 +11,5 @@ import '../../../shared/models/visual_novel.dart';
 final FutureProvider<List<VndbTag>> vndbTagsProvider =
     FutureProvider<List<VndbTag>>((Ref ref) async {
   final DatabaseService db = ref.watch(databaseServiceProvider);
-  return db.getVndbTags();
+  return db.visualNovelDao.getVndbTags();
 });
