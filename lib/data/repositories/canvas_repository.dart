@@ -234,7 +234,7 @@ class CanvasRepository {
           ? _db.gameDao.getGamesByIds(gameIds)
           : Future<List<Game>>.value(<Game>[]),
       movieTmdbIds.isNotEmpty
-          ? _db.getMoviesByTmdbIds(movieTmdbIds)
+          ? _db.movieDao.getMoviesByTmdbIds(movieTmdbIds)
           : Future<List<Movie>>.value(<Movie>[]),
       tvShowTmdbIds.isNotEmpty
           ? _db.getTvShowsByTmdbIds(tvShowTmdbIds)

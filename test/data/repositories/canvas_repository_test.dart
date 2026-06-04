@@ -847,6 +847,7 @@ void main() {
   group('CanvasRepository Game Canvas', () {
     late MockDatabaseService mockDb;
     late MockGameDao mockGameDao;
+    late MockMovieDao mockMovieDao;
     late CanvasRepository repository;
 
     final DateTime testDate = DateTime(2024, 6, 15, 12, 0, 0);
@@ -856,6 +857,8 @@ void main() {
       mockDb = MockDatabaseService();
       mockGameDao = MockGameDao();
       when(() => mockDb.gameDao).thenReturn(mockGameDao);
+      mockMovieDao = MockMovieDao();
+      when(() => mockDb.movieDao).thenReturn(mockMovieDao);
       repository = CanvasRepository(db: mockDb);
     });
 
@@ -1017,7 +1020,7 @@ void main() {
 
         when(() => mockDb.getGameCanvasItems(42))
             .thenAnswer((_) async => rows);
-        when(() => mockDb.getMoviesByTmdbIds(<int>[555]))
+        when(() => mockMovieDao.getMoviesByTmdbIds(<int>[555]))
             .thenAnswer((_) async => <Movie>[testMovie]);
 
         final List<CanvasItem> result =
@@ -1026,7 +1029,7 @@ void main() {
         expect(result.length, 1);
         expect(result[0].movie, isNotNull);
         expect(result[0].movie!.title, 'Test Movie');
-        verify(() => mockDb.getMoviesByTmdbIds(<int>[555])).called(1);
+        verify(() => mockMovieDao.getMoviesByTmdbIds(<int>[555])).called(1);
       });
 
       test('should enrich game canvas items with tvShow data', () async {

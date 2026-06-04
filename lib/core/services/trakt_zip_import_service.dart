@@ -427,7 +427,7 @@ class TraktZipImportService {
           final Movie? movie = await _tmdbApi.getMovie(tmdbId);
           if (movie != null) {
             fetchedMovies[tmdbId] = movie;
-            await _database.upsertMovie(movie);
+            await _database.movieDao.upsertMovie(movie);
             movieIsAnimation[tmdbId] = _isAnimationByGenres(movie.genres);
           }
         } on Exception {

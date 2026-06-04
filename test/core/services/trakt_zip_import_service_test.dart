@@ -137,6 +137,7 @@ void main() {
   late MockTmdbApi mockTmdb;
   late MockCollectionRepository mockRepo;
   late MockDatabaseService mockDb;
+  late MockMovieDao mockMovieDao;
   late MockWishlistRepository mockWishlist;
   late TraktZipImportService sut;
 
@@ -151,6 +152,8 @@ void main() {
     mockTmdb = MockTmdbApi();
     mockRepo = MockCollectionRepository();
     mockDb = MockDatabaseService();
+    mockMovieDao = MockMovieDao();
+    when(() => mockDb.movieDao).thenReturn(mockMovieDao);
     mockWishlist = MockWishlistRepository();
     sut = TraktZipImportService(
       tmdbApi: mockTmdb,
@@ -560,7 +563,7 @@ void main() {
               mediaType: any(named: 'mediaType'),
             )).thenAnswer((_) async {});
 
-        when(() => mockDb.upsertMovie(any())).thenAnswer((_) async {});
+        when(() => mockMovieDao.upsertMovie(any())).thenAnswer((_) async {});
         when(() => mockDb.upsertTvShow(any())).thenAnswer((_) async {});
         when(() => mockDb.updateItemActivityDates(
               any(),
@@ -649,7 +652,7 @@ void main() {
 
         when(() => mockTmdb.getMovie(any()))
             .thenAnswer((_) async => const Movie(tmdbId: 100, title: 'M'));
-        when(() => mockDb.upsertMovie(any())).thenAnswer((_) async {});
+        when(() => mockMovieDao.upsertMovie(any())).thenAnswer((_) async {});
         writeZip(createTestZip(
           watchedMoviesJson: watchedMovieJson(),
         ));

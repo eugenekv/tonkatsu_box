@@ -50,7 +50,7 @@ Future<Map<String, String>> _loadTmdbGenreMap(Ref ref, String type) async {
       settingsNotifierProvider.select((SettingsState s) => s.tmdbLanguage));
   final String lang = tmdbLanguage.startsWith('ru') ? 'ru' : 'en';
   final DatabaseService db = ref.watch(databaseServiceProvider);
-  return db.getTmdbGenreMap(type, lang: lang);
+  return db.movieDao.getTmdbGenreMap(type, lang: lang);
 }
 
 /// Конвертирует маппинг ID→name в список [TmdbGenre].

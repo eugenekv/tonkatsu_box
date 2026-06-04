@@ -16,7 +16,6 @@ import '../../shared/models/cover_info.dart';
 import '../../shared/models/data_source.dart';
 import '../../shared/models/item_status.dart';
 import '../../shared/models/media_type.dart';
-import '../../shared/models/movie.dart';
 import '../../shared/models/tv_episode.dart';
 import '../../shared/models/tv_season.dart';
 import '../../shared/models/tv_show.dart';
@@ -289,20 +288,6 @@ class DatabaseService {
     _log.info('Database upgrade complete');
   }
 
-  Future<Movie?> getMovieByTmdbId(int tmdbId) =>
-      movieDao.getMovieByTmdbId(tmdbId);
-
-  Future<void> upsertMovie(Movie movie) => movieDao.upsertMovie(movie);
-
-  Future<void> upsertMovies(List<Movie> movies) =>
-      movieDao.upsertMovies(movies);
-
-  Future<List<Movie>> getMoviesByTmdbIds(List<int> tmdbIds) =>
-      movieDao.getMoviesByTmdbIds(tmdbIds);
-
-  Future<void> clearMovies() => movieDao.clearMovies();
-
-
   Future<TvShow?> getTvShowByTmdbId(int tmdbId) =>
       tvShowDao.getTvShowByTmdbId(tmdbId);
 
@@ -310,12 +295,6 @@ class DatabaseService {
 
   Future<void> upsertTvShows(List<TvShow> tvShows) =>
       tvShowDao.upsertTvShows(tvShows);
-
-  Future<Map<String, String>> getTmdbGenreMap(
-    String type, {
-    String lang = 'en',
-  }) =>
-      movieDao.getTmdbGenreMap(type, lang: lang);
 
   Future<List<TvShow>> getTvShowsByTmdbIds(List<int> tmdbIds) =>
       tvShowDao.getTvShowsByTmdbIds(tmdbIds);

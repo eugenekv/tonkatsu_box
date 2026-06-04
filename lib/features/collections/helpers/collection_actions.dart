@@ -670,7 +670,7 @@ class CollectionActions {
           final Movie? movie =
               await ref.read(tmdbApiProvider).getMovie(item.externalId);
           if (movie == null) return _RefreshOutcome.notFound();
-          await db.upsertMovie(movie);
+          await db.movieDao.upsertMovie(movie);
         case MediaType.tvShow:
         case MediaType.animation:
           final TvShow? show =

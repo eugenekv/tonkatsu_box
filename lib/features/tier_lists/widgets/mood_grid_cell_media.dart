@@ -77,7 +77,7 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
         rating: game?.rating != null ? game!.rating! / 10.0 : null,
       );
     case MediaType.movie:
-      final Movie? movie = await db.getMovieByTmdbId(externalId);
+      final Movie? movie = await db.movieDao.getMovieByTmdbId(externalId);
       return MoodGridCellMedia(
         title: movie?.title,
         coverUrl: movie?.posterUrl,
@@ -112,7 +112,7 @@ Future<MoodGridCellMedia> resolveMoodGridCellMedia(
           rating: tvShow?.rating,
         );
       }
-      final Movie? movie = await db.getMovieByTmdbId(externalId);
+      final Movie? movie = await db.movieDao.getMovieByTmdbId(externalId);
       return MoodGridCellMedia(
         title: movie?.title,
         coverUrl: movie?.posterUrl,

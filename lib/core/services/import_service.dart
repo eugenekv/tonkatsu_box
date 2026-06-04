@@ -647,7 +647,7 @@ class ImportService {
           total: total,
         ));
       }
-      await _database.upsertMovies(movies);
+      await _database.movieDao.upsertMovies(movies);
     }
 
     if (rawTvShows.isNotEmpty) {
@@ -1030,7 +1030,7 @@ class ImportService {
     }
 
     if (movies.isNotEmpty) {
-      await _database.upsertMovies(movies);
+      await _database.movieDao.upsertMovies(movies);
       cachedCount += movies.length;
       onProgress?.call(ImportProgress(
         stage: ImportStage.cachingMedia,
