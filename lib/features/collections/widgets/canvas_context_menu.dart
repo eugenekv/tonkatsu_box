@@ -2,20 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/canvas_item.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 
-// Контекстные меню для канваса.
-//
-// Статические методы для отображения контекстного меню пустого места
-// канваса и контекстного меню элемента.
-
-/// Утилитарный класс для контекстных меню канваса.
 class CanvasContextMenu {
   CanvasContextMenu._();
 
-  /// Отображает контекстное меню пустого места на канвасе.
-  ///
-  /// [position] — экранные координаты клика ПКМ.
-  /// Колбэки вызываются при выборе соответствующего пункта.
+  /// [position] is the screen coordinates of the right-click.
   static Future<void> showCanvasMenu(
     BuildContext context, {
     required Offset position,
@@ -108,10 +100,7 @@ class CanvasContextMenu {
     }
   }
 
-  /// Отображает контекстное меню элемента канваса.
-  ///
-  /// [itemType] определяет, показывать ли пункт Edit.
-  /// Edit доступен для text, image и link (но не для game).
+  /// Edit is shown only for text, image and link items, not for game items.
   static Future<void> showItemMenu(
     BuildContext context, {
     required Offset position,
@@ -206,7 +195,6 @@ class CanvasContextMenu {
     }
   }
 
-  /// Отображает контекстное меню связи.
   static Future<void> showConnectionMenu(
     BuildContext context, {
     required Offset position,
@@ -256,34 +244,19 @@ class CanvasContextMenu {
     }
   }
 
-  /// Показывает диалог подтверждения удаления.
   static Future<void> _showDeleteConfirmation(
     BuildContext context,
     VoidCallback onConfirm,
   ) async {
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        final S dl = S.of(context);
-        return AlertDialog(
-          scrollable: true,
-          title: Text(dl.canvasDeleteElement),
-          content: Text(dl.canvasDeleteElementMessage),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(dl.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(dl.delete),
-            ),
-          ],
-        );
-      },
+    final S dl = S.of(context);
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: dl.canvasDeleteElement,
+      message: dl.canvasDeleteElementMessage,
+      confirmLabel: dl.delete,
     );
 
-    if (confirmed == true) {
+    if (confirmed) {
       onConfirm();
     }
   }

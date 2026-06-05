@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/theme/app_spacing.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 
 /// Prompts and confirmations used by the wishlist screen. Pure dialogs —
 /// they return the user's choice and never call the wishlist notifier so
@@ -100,7 +101,7 @@ class WishlistDialogs {
   ) async {
     final S l = S.of(context);
     final String label = tag ?? l.wishlistTagUntagged;
-    return _confirm(
+    return ConfirmDialog.show(
       context,
       title: l.wishlistTagDelete,
       message: l.wishlistTagDeleteConfirm(label, itemCount),
@@ -114,7 +115,7 @@ class WishlistDialogs {
     int resolvedCount,
   ) async {
     final S l = S.of(context);
-    return _confirm(
+    return ConfirmDialog.show(
       context,
       title: l.wishlistClearResolvedTitle,
       message: l.wishlistClearResolvedMessage(resolvedCount),
@@ -128,7 +129,7 @@ class WishlistDialogs {
     String itemText,
   ) async {
     final S l = S.of(context);
-    return _confirm(
+    return ConfirmDialog.show(
       context,
       title: l.wishlistDeleteItem,
       message: l.wishlistDeletePrompt(itemText),
@@ -142,38 +143,11 @@ class WishlistDialogs {
     int count,
   ) async {
     final S l = S.of(context);
-    return _confirm(
+    return ConfirmDialog.show(
       context,
       title: l.wishlistBulkDelete,
       message: l.wishlistBulkDeleteConfirm(count),
       confirmLabel: l.delete,
     );
-  }
-
-  static Future<bool> _confirm(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required String confirmLabel,
-  }) async {
-    final S l = S.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(confirmLabel),
-          ),
-        ],
-      ),
-    );
-    return confirmed ?? false;
   }
 }

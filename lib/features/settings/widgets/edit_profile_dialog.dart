@@ -1,5 +1,3 @@
-// Диалог редактирования профиля.
-
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
@@ -8,47 +6,36 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/color_picker_dialog.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 
-/// Результат редактирования профиля.
 sealed class EditProfileResult {
-  /// Создаёт [EditProfileResult].
   const EditProfileResult();
 }
 
-/// Профиль обновлён.
 class ProfileUpdated extends EditProfileResult {
-  /// Создаёт [ProfileUpdated].
   const ProfileUpdated({required this.name, required this.color});
 
-  /// Новое имя.
   final String name;
 
-  /// Новый цвет.
   final String color;
 }
 
-/// Профиль удалён.
 class ProfileDeleteRequested extends EditProfileResult {
-  /// Создаёт [ProfileDeleteRequested].
   const ProfileDeleteRequested();
 }
 
-/// Диалог редактирования профиля.
 class EditProfileDialog extends StatefulWidget {
-  /// Создаёт [EditProfileDialog].
   const EditProfileDialog({
     required this.profile,
     required this.canDelete,
     super.key,
   });
 
-  /// Редактируемый профиль.
   final Profile profile;
 
-  /// Можно ли удалить (false для последнего профиля).
+  // false for the last remaining profile.
   final bool canDelete;
 
-  /// Показывает диалог и возвращает результат.
   static Future<EditProfileResult?> show(
     BuildContext context, {
     required Profile profile,
@@ -88,28 +75,14 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
   Future<void> _confirmDelete() async {
     final S l = S.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.deleteProfile),
-        content: Text(l.deleteProfileConfirm(widget.profile.name)),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l.delete),
-          ),
-        ],
-      ),
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.deleteProfile,
+      message: l.deleteProfileConfirm(widget.profile.name),
+      confirmLabel: l.delete,
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       Navigator.of(context).pop(const ProfileDeleteRequested());
     }
   }
@@ -127,7 +100,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // Name
             Text(l.profileName, style: AppTypography.body),
             const SizedBox(height: AppSpacing.sm),
             TextField(
@@ -142,7 +114,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
             const SizedBox(height: AppSpacing.md),
 
-            // Color
             Text(l.colorPickerTitle, style: AppTypography.body),
             const SizedBox(height: AppSpacing.sm),
             InkWell(
@@ -179,7 +150,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               ),
             ),
 
-            // Delete button
             if (widget.canDelete) ...<Widget>[
               const SizedBox(height: AppSpacing.lg),
               SizedBox(

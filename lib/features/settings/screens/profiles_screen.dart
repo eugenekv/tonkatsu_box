@@ -1,5 +1,3 @@
-// Экран управления профилями.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,15 +11,14 @@ import '../../../shared/models/profile.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/draggable_fab.dart';
 import '../../../shared/widgets/sub_screen_title_bar.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/create_profile_dialog.dart';
 import '../widgets/edit_profile_dialog.dart';
 
-/// Экран управления профилями.
 class ProfilesScreen extends ConsumerStatefulWidget {
-  /// Создаёт [ProfilesScreen].
   const ProfilesScreen({super.key});
 
   @override
@@ -44,8 +41,8 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
 
     final Map<String, ProfileStats> loaded = <String, ProfileStats>{};
     for (final Profile profile in data.profiles) {
-      // Для текущего профиля используем уже открытую БД,
-      // чтобы не закрыть singleton-подключение sqflite.
+      // Reuse the already-open DB for the current profile so we don't close
+      // the sqflite singleton connection.
       final bool isCurrent = profile.id == data.currentProfileId;
       loaded[profile.id] = await service.getProfileStats(
         profile.id,
@@ -65,7 +62,6 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
     final ProfileService service = ref.read(profileServiceProvider);
     await service.createProfile(result.name, result.color);
 
-    // Перечитываем данные
     final ProfilesData updated = await service.loadProfiles();
     ref.read(profilesDataProvider.notifier).state = updated;
 
@@ -109,7 +105,6 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
         }
     }
 
-    // Перечитываем данные
     final ProfilesData updated = await service.loadProfiles();
     ref.read(profilesDataProvider.notifier).state = updated;
     await _loadStats();
@@ -125,32 +120,21 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
 
     if (!mounted) return;
 
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.switchingProfile),
-        content: Text(l.appWillRestart),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l.confirm),
-          ),
-        ],
-      ),
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.switchingProfile,
+      message: l.appWillRestart,
+      confirmLabel: l.confirm,
+      destructive: false,
     );
 
-    if (confirmed != true) {
-      // Откатываем — пользователь передумал
+    if (!confirmed) {
       final ProfileService revertService = ref.read(profileServiceProvider);
       await revertService.switchProfile(data.currentProfileId);
       return;
     }
 
-    // Пропустить picker при следующем запуске — сразу в home
+    // Skip the picker on the next launch and go straight to home.
     final SharedPreferences prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool('skip_picker_once', true);
 

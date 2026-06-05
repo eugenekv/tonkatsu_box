@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
-import '../../../shared/theme/app_colors.dart';
 
-/// Диалог создания новой коллекции.
-///
-/// Возвращает название коллекции или null при отмене.
 class CreateCollectionDialog extends StatefulWidget {
-  /// Создаёт [CreateCollectionDialog].
   const CreateCollectionDialog({super.key});
 
-  /// Показывает диалог и возвращает название коллекции.
   static Future<String?> show(BuildContext context) {
     return showDialog<String>(
       context: context,
@@ -91,18 +85,14 @@ class _CreateCollectionDialogState extends State<CreateCollectionDialog> {
   }
 }
 
-/// Диалог переименования коллекции.
 class RenameCollectionDialog extends StatefulWidget {
-  /// Создаёт [RenameCollectionDialog].
   const RenameCollectionDialog({
     required this.currentName,
     super.key,
   });
 
-  /// Текущее название.
   final String currentName;
 
-  /// Показывает диалог и возвращает новое название.
   static Future<String?> show(BuildContext context, String currentName) {
     return showDialog<String>(
       context: context,
@@ -183,53 +173,6 @@ class _RenameCollectionDialogState extends State<RenameCollectionDialog> {
         FilledButton(
           onPressed: _submit,
           child: Text(l.rename),
-        ),
-      ],
-    );
-  }
-}
-
-/// Диалог подтверждения удаления.
-class DeleteCollectionDialog extends StatelessWidget {
-  /// Создаёт [DeleteCollectionDialog].
-  const DeleteCollectionDialog({
-    required this.collectionName,
-    super.key,
-  });
-
-  /// Название коллекции.
-  final String collectionName;
-
-  /// Показывает диалог и возвращает true при подтверждении.
-  static Future<bool> show(BuildContext context, String collectionName) async {
-    final bool? result = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) => DeleteCollectionDialog(
-        collectionName: collectionName,
-      ),
-    );
-    return result ?? false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final S l = S.of(context);
-    return AlertDialog(
-      title: Text(l.deleteCollectionTitle),
-      scrollable: true,
-      content: Text(l.deleteCollectionMessage(collectionName)),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l.cancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.error,
-            foregroundColor: Colors.white,
-          ),
-          child: Text(l.delete),
         ),
       ],
     );

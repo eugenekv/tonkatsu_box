@@ -9,6 +9,7 @@ import '../../../shared/services/png_export_service.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/draggable_fab.dart';
 import '../../../shared/widgets/sub_screen_title_bar.dart';
 import '../providers/mood_grid_detail_provider.dart';
@@ -172,24 +173,13 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
     final bool shrinking =
         newRows < state.grid.rows || newCols < state.grid.cols;
     if (shrinking) {
-      final bool? ok = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext ctx) => AlertDialog(
-          title: Text(l.moodGridShrinkTitle),
-          content: Text(l.moodGridShrinkMessage),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(l.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text(l.moodGridShrinkConfirm),
-            ),
-          ],
-        ),
+      final bool ok = await ConfirmDialog.show(
+        context,
+        title: l.moodGridShrinkTitle,
+        message: l.moodGridShrinkMessage,
+        confirmLabel: l.moodGridShrinkConfirm,
       );
-      if (ok != true) return;
+      if (!ok) return;
     }
 
     await ref
@@ -335,24 +325,13 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
   }
 
   Future<void> _confirmDelete(S l) async {
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.moodGridDeleteTitle),
-        content: Text(l.moodGridDeleteMessage),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l.moodGridDelete),
-          ),
-        ],
-      ),
+    final bool ok = await ConfirmDialog.show(
+      context,
+      title: l.moodGridDeleteTitle,
+      message: l.moodGridDeleteMessage,
+      confirmLabel: l.moodGridDelete,
     );
-    if (ok != true) return;
+    if (!ok) return;
     await ref.read(moodGridsProvider.notifier).delete(widget.gridId);
     if (!mounted) return;
     Navigator.of(context).pop();

@@ -8,6 +8,7 @@ import '../../../core/services/discord_rpc_service.dart';
 import '../../../core/services/image_cache_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/collection_picker_dialog.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/extensions/snackbar_extension.dart';
 import '../../../shared/widgets/screen_app_bar.dart';
 import '../../../core/database/dao/calendar_entry_dao.dart';
@@ -373,24 +374,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         type: SnackType.success,
       );
       if (result.sourceEmpty && widget.collectionId != null) {
-        final bool? confirmed = await showDialog<bool>(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: Text(S.of(context).collectionEmpty),
-            content: Text(S.of(context).collectionDeleteEmptyPrompt),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(S.of(context).keep),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(S.of(context).delete),
-              ),
-            ],
-          ),
+        final S l = S.of(context);
+        final bool confirmed = await ConfirmDialog.show(
+          context,
+          title: l.collectionEmpty,
+          message: l.collectionDeleteEmptyPrompt,
+          confirmLabel: l.delete,
+          cancelLabel: l.keep,
         );
-        if (confirmed == true && mounted) {
+        if (confirmed && mounted) {
           await ref
               .read(collectionsProvider.notifier)
               .delete(widget.collectionId!);
@@ -416,28 +408,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
 
   Future<void> _removeFromCollection(CollectionItem item) async {
     final String displayName = ref.currentDisplayNameOf(item);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(S.of(context).collectionRemoveItemTitle),
-        content: Text(S.of(context).collectionRemoveItemMessage(displayName)),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(S.of(context).cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(S.of(context).remove),
-          ),
-        ],
-      ),
+    final S l = S.of(context);
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.collectionRemoveItemTitle,
+      message: l.collectionRemoveItemMessage(displayName),
+      confirmLabel: l.remove,
     );
 
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     await ref
         .read(

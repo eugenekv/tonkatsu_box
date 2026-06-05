@@ -1,5 +1,3 @@
-// Контент экрана настроек кэширования изображений (без Scaffold/AppBar).
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,15 +6,11 @@ import '../../../core/services/image_cache_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/constants/platform_features.dart';
 import '../../../shared/extensions/snackbar_extension.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../widgets/settings_group.dart';
 import '../widgets/settings_tile.dart';
 
-/// Контент экрана настроек кэширования.
-///
-/// Позволяет включить/выключить offline mode, выбрать папку кэша,
-/// просмотреть статистику и очистить кэш.
 class CacheContent extends ConsumerStatefulWidget {
-  /// Создаёт [CacheContent].
   const CacheContent({super.key});
 
   @override
@@ -50,7 +44,6 @@ class _CacheContentState extends ConsumerState<CacheContent> {
     return SettingsGroup(
       title: S.of(context).cacheImageCache,
       children: <Widget>[
-        // Offline mode toggle
         FutureBuilder<bool>(
           future: _enabledFuture,
           builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
@@ -71,7 +64,6 @@ class _CacheContentState extends ConsumerState<CacheContent> {
           },
         ),
 
-        // Cache folder (desktop only)
         if (!kIsMobile)
           FutureBuilder<String>(
             future: _pathFuture,
@@ -90,7 +82,6 @@ class _CacheContentState extends ConsumerState<CacheContent> {
             },
           ),
 
-        // Cache stats
         FutureBuilder<(int, int)>(
           future: _statsFuture,
           builder:
@@ -144,26 +135,15 @@ class _CacheContentState extends ConsumerState<CacheContent> {
 
   Future<void> _clearCache(ImageCacheService cacheService) async {
     final S l10n = S.of(context);
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        scrollable: true,
-        title: Text(l10n.cacheClearCacheTitle),
-        content: Text(l10n.cacheClearCacheMessage),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.clear),
-          ),
-        ],
-      ),
+    final bool confirm = await ConfirmDialog.show(
+      context,
+      title: l10n.cacheClearCacheTitle,
+      message: l10n.cacheClearCacheMessage,
+      confirmLabel: l10n.clear,
+      destructive: false,
     );
 
-    if (confirm == true) {
+    if (confirm) {
       await cacheService.clearCache();
       if (!mounted) return;
       _refreshFutures();

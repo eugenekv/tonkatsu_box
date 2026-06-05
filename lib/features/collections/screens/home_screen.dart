@@ -15,6 +15,7 @@ import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/navigation/search_providers.dart';
 import '../../../shared/widgets/collection_picker_field.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/draggable_fab.dart';
 import '../../../shared/widgets/shimmer_loading.dart';
 import '../../home/providers/all_items_provider.dart';
@@ -30,14 +31,9 @@ import '../widgets/edit_collection_dialog.dart';
 import '../widgets/import_progress_dialog.dart';
 import 'collection_screen.dart';
 
-/// Главный экран приложения.
-///
-/// Показывает список коллекций пользователя с группировкой по типу.
 class HomeScreen extends ConsumerStatefulWidget {
-  /// Создаёт [HomeScreen].
   const HomeScreen({super.key});
 
-  /// Группа хоткеев этого экрана для легенды F1.
   static const ShortcutGroup shortcutGroup = ShortcutGroup(
     title: 'Коллекции',
     entries: <ShortcutEntry>[
@@ -168,7 +164,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return _buildEmptyState(context);
     }
 
-    // Фильтрация коллекций по имени (глобальный поиск).
     List<Collection> filteredCollections = collections;
     if (searchQuery.isNotEmpty) {
       final String query = searchQuery.toLowerCase();
@@ -177,7 +172,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .toList();
     }
 
-    // Сортировка
     filteredCollections = _sortCollections(filteredCollections, sortMode, sortDesc);
 
     if (isGridView) {
@@ -375,7 +369,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
 
       if (context.mounted) {
-        // Переходим к созданной коллекции
         _navigateToCollection(context, collection);
       }
     } on Exception catch (e) {
@@ -385,7 +378,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  /// Контекстное меню ПКМ на пустом месте экрана — действия из FAB.
   Future<void> _showEmptyAreaContextMenu(
     BuildContext context,
     WidgetRef ref,
@@ -444,7 +436,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  /// Контекстное меню ПКМ для коллекции (десктоп).
   Future<void> _showCollectionContextMenu(
     BuildContext context,
     WidgetRef ref,
@@ -584,8 +575,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetRef ref,
     Collection collection,
   ) async {
-    final bool confirmed =
-        await DeleteCollectionDialog.show(context, collection.name);
+    final S l = S.of(context);
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.deleteCollectionTitle,
+      message: l.deleteCollectionMessage(collection.name),
+      confirmLabel: l.delete,
+    );
 
     if (!confirmed) return;
 
@@ -605,7 +601,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _importCollection(BuildContext context, WidgetRef ref) async {
     final ImportService importService = ref.read(importServiceProvider);
 
-    // 1. Выбираем и парсим файл
     final XcollFile? xcoll;
     try {
       xcoll = await importService.pickAndParseFile();
@@ -617,23 +612,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
       return;
     }
-    if (xcoll == null) return; // Отменено
+    if (xcoll == null) return;
 
     if (!context.mounted) return;
 
-    // 2. Спрашиваем: создать новую или использовать существующую
     final int? targetCollectionId = await showDialog<int>(
       context: context,
       builder: (BuildContext dialogContext) =>
           _ImportTargetDialog(collections: ref.read(collectionsProvider)),
     );
-    // null = отменено, 0 = создать новую, >0 = ID существующей
+    // null = cancelled, 0 = create new, >0 = existing collection id
     if (targetCollectionId == null || !context.mounted) return;
 
     final int? collectionId =
         targetCollectionId == 0 ? null : targetCollectionId;
 
-    // 3. Импорт с прогрессом
     final ValueNotifier<ImportProgress?> progressNotifier =
         ValueNotifier<ImportProgress?>(null);
 
@@ -694,11 +687,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-/// Кнопка сортировки списка коллекций с popup menu.
-
-/// Диалог выбора целевой коллекции для импорта.
-///
-/// Возвращает 0 для "Создать новую", ID для существующей, null для отмены.
+/// Returns 0 for "create new", a collection id for an existing one, null on cancel.
 class _ImportTargetDialog extends StatefulWidget {
   const _ImportTargetDialog({required this.collections});
 

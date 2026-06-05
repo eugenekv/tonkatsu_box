@@ -1,5 +1,3 @@
-// Контент экрана управления базой данных (без Scaffold/AppBar).
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +7,7 @@ import '../../../shared/extensions/snackbar_extension.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/navigation/app_shell.dart';
 import '../../collections/providers/collections_provider.dart';
 import '../../home/providers/all_items_provider.dart';
@@ -19,11 +18,7 @@ import '../../wishlist/providers/wishlist_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/settings_group.dart';
 
-/// Контент экрана управления базой данных.
-///
-/// Содержит экспорт/импорт конфигурации и сброс базы данных.
 class DatabaseContent extends ConsumerWidget {
-  /// Создаёт [DatabaseContent].
   const DatabaseContent({super.key});
 
   @override
@@ -33,7 +28,6 @@ class DatabaseContent extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        // CONFIGURATION
         SettingsGroup(
           title: l10n.databaseConfiguration,
           children: <Widget>[
@@ -91,7 +85,6 @@ class DatabaseContent extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // DANGER ZONE
         SettingsGroup(
           title: l10n.databaseDangerZone,
           children: <Widget>[
@@ -167,29 +160,14 @@ class DatabaseContent extends ConsumerWidget {
 
   Future<void> _resetDatabase(BuildContext context, WidgetRef ref) async {
     final S l10n = S.of(context);
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        scrollable: true,
-        title: Text(l10n.databaseResetTitle),
-        content: Text(l10n.databaseResetMessage),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
-            child: Text(l10n.reset),
-          ),
-        ],
-      ),
+    final bool confirm = await ConfirmDialog.show(
+      context,
+      title: l10n.databaseResetTitle,
+      message: l10n.databaseResetMessage,
+      confirmLabel: l10n.reset,
     );
 
-    if (confirm == true && context.mounted) {
+    if (confirm && context.mounted) {
       final SettingsNotifier notifier =
           ref.read(settingsNotifierProvider.notifier);
       await notifier.flushDatabase();

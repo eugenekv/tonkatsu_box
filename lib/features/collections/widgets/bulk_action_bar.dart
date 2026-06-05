@@ -1,6 +1,5 @@
-// Bulk action bar — рендерится поверх контента когда выделен хотя бы
-// один элемент. Работает и в коллекции, и на All Items: оперирует
-// `List<CollectionItem>` через [BulkOperations].
+// Works both inside a collection and on All Items: operates on a
+// `List<CollectionItem>` via [BulkOperations], so collectionId is optional.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,21 +14,16 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/collection_picker_dialog.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../helpers/bulk_operations.dart';
 import '../providers/collections_provider.dart';
 import 'bulk_export/bulk_poster_export_dialog.dart';
 
-/// Bulk action bar над списком элементов.
-///
-/// - [items] — выделенные элементы (с `id`, `collectionId`, `mediaType`,
-///   `status` — этого хватает для всех операций).
-/// - [onClearSelection] — внешний callback, обнуляющий селекшн на
-///   стороне родителя (бар сам не знает про конкретный селекшн-провайдер).
-/// - [collectionId] — если задан, бар «знает», что мы внутри одной
-///   коллекции: исключает её из целей move/copy и показывает
-///   move-to-top / move-to-bottom при ручной сортировке.
+/// Selection toolbar that works both inside a single collection and on All
+/// Items. When [collectionId] is set the bar excludes that collection from
+/// move/copy targets and exposes move-to-top / move-to-bottom under manual
+/// sort; when null it acts globally over All Items.
 class BulkActionBar extends ConsumerWidget {
-  /// Создаёт [BulkActionBar].
   const BulkActionBar({
     required this.items,
     required this.onClearSelection,
@@ -40,29 +34,26 @@ class BulkActionBar extends ConsumerWidget {
     super.key,
   });
 
-  /// Выделенные элементы.
   final List<CollectionItem> items;
 
-  /// Колбэк сброса селекшна.
   final VoidCallback onClearSelection;
 
-  /// ID контекстной коллекции. `null` если бар стоит на All Items.
+  /// Null when the bar is on All Items rather than inside a collection.
   final int? collectionId;
 
-  /// Имя коллекции — используется как имя файла при экспорте в PNG.
+  /// Used as the file name when exporting to PNG.
   final String? collectionName;
 
-  /// Сколько элементов всего видно на экране после фильтров и поиска.
-  /// Используется чтобы скрыть «выделить все видимые», когда уже выделено всё.
+  /// Total items visible after filters/search; used to hide "select all
+  /// visible" once everything is already selected.
   final int? visibleCount;
 
-  /// Колбэк «выделить все видимые элементы». `null` скрывает кнопку.
+  /// Null hides the "select all visible" button.
   final VoidCallback? onSelectAllVisible;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final S l = S.of(context);
-    final ThemeData theme = Theme.of(context);
     final CollectionSortMode sortMode = collectionId == null
         ? CollectionSortMode.lastActivity
         : ref.watch(collectionSortProvider(collectionId));
@@ -154,7 +145,7 @@ class BulkActionBar extends ConsumerWidget {
                       icon: Icons.delete_outline,
                       tooltip: l.remove,
                       danger: true,
-                      onTap: () => _handleRemove(context, ref, theme),
+                      onTap: () => _handleRemove(context, ref),
                     ),
                   ],
                 ),
@@ -165,9 +156,6 @@ class BulkActionBar extends ConsumerWidget {
       ),
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // Handlers
 
   Future<void> _handleMove(BuildContext context, WidgetRef ref) async {
     final S l = S.of(context);
@@ -244,34 +232,16 @@ class BulkActionBar extends ConsumerWidget {
   Future<void> _handleRemove(
     BuildContext context,
     WidgetRef ref,
-    ThemeData theme,
   ) async {
     final S l = S.of(context);
     final int count = items.length;
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        final S dl = S.of(dialogContext);
-        return AlertDialog(
-          title: Text(dl.collectionRemoveItemTitle),
-          content: Text(dl.bulkRemoveConfirm(count)),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(dl.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: theme.colorScheme.error,
-              ),
-              child: Text(dl.remove),
-            ),
-          ],
-        );
-      },
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.collectionRemoveItemTitle,
+      message: l.bulkRemoveConfirm(count),
+      confirmLabel: l.remove,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     final List<CollectionItem> snapshot = List<CollectionItem>.of(items);
     final int removed = await BulkOperations.removeItems(ref, snapshot);
@@ -307,9 +277,6 @@ class BulkActionBar extends ConsumerWidget {
     onClearSelection();
   }
 }
-
-// ---------------------------------------------------------------------------
-// Internal widgets
 
 class _CloseButton extends StatelessWidget {
   const _CloseButton({required this.onPressed});

@@ -1,5 +1,3 @@
-// Диалог управления тегами коллекции.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,17 +7,14 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/color_picker_dialog.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../providers/collection_tags_provider.dart';
 
-/// Диалог для управления тегами коллекции (создание, переименование, удаление).
 class TagManagementDialog extends ConsumerStatefulWidget {
-  /// Создаёт [TagManagementDialog].
   const TagManagementDialog({required this.collectionId, super.key});
 
-  /// ID коллекции.
   final int collectionId;
 
-  /// Показывает диалог.
   static Future<void> show(BuildContext context, int collectionId) {
     return showDialog<void>(
       context: context,
@@ -108,25 +103,13 @@ class _TagManagementDialogState extends ConsumerState<TagManagementDialog> {
 
   Future<void> _deleteTag(CollectionTag tag) async {
     final S l = S.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.tagDelete),
-        content: Text(l.tagDeleteConfirm(tag.name)),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(l.delete),
-          ),
-        ],
-      ),
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.tagDelete,
+      message: l.tagDeleteConfirm(tag.name),
+      confirmLabel: l.delete,
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await ref
         .read(collectionTagsProvider(widget.collectionId).notifier)
         .delete(tag.id);
@@ -146,10 +129,8 @@ class _TagManagementDialogState extends ConsumerState<TagManagementDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // Поле создания нового тега
             Row(
               children: <Widget>[
-                // Цвет
                 _ColorDot(
                   color: _selectedColor,
                   size: 24,
@@ -189,7 +170,6 @@ class _TagManagementDialogState extends ConsumerState<TagManagementDialog> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Список тегов
             tagsAsync.when(
               data: (List<CollectionTag> tags) {
                 if (tags.isEmpty) {
@@ -261,10 +241,6 @@ class _TagManagementDialogState extends ConsumerState<TagManagementDialog> {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Точка-кружок цвета тега
-// ---------------------------------------------------------------------------
 
 class _ColorDot extends StatelessWidget {
   const _ColorDot({
