@@ -12,6 +12,7 @@ import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/utils/date_format_preset.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../providers/tracker_provider.dart';
 
 const Color _raBlue = Color(0xFF4A90D9);
@@ -748,27 +749,13 @@ class _RaAchievementsSectionState
 
   Future<void> _unlinkRa(BuildContext context) async {
     final S l = S.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.raUnlinkTitle),
-        content: Text(l.raUnlinkConfirm),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              l.raUnlinkButton,
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.raUnlinkTitle,
+      message: l.raUnlinkConfirm,
+      confirmLabel: l.raUnlinkButton,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     await ref
         .read(trackerDetailProvider((gameId: widget.gameId, platformId: widget.platformId)).notifier)

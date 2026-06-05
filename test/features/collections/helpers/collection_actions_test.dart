@@ -840,7 +840,7 @@ void main() {
           expect(find.byType(AlertDialog), findsOneWidget);
 
           final Finder deleteButton = find.widgetWithText(
-            FilledButton,
+            TextButton,
             'Delete',
           );
           expect(deleteButton, findsOneWidget);
@@ -890,7 +890,7 @@ void main() {
           await tester.pumpAndSettle();
 
           final Finder deleteButton = find.widgetWithText(
-            FilledButton,
+            TextButton,
             'Delete',
           );
           await tester.tap(deleteButton);

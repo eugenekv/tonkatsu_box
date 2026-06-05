@@ -29,10 +29,10 @@ import '../../../shared/models/steamgriddb_image.dart';
 import '../../../shared/models/tv_show.dart';
 import '../../../shared/models/visual_novel.dart';
 import '../../../shared/widgets/collection_picker_dialog.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../providers/canvas_provider.dart';
 import '../providers/collections_provider.dart';
 import '../widgets/copy_as_text_dialog.dart';
-import '../widgets/create_collection_dialog.dart';
 import '../widgets/edit_collection_dialog.dart';
 import '../../search/screens/search_screen.dart';
 import '../../settings/providers/settings_provider.dart';
@@ -195,27 +195,15 @@ class CollectionActions {
     required int collectionId,
   }) async {
     final NavigatorState navigator = Navigator.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        final S dl = S.of(context);
-        return AlertDialog(
-          title: Text(dl.collectionEmpty),
-          content: Text(dl.collectionDeleteEmptyPrompt),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(dl.keep),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(dl.delete),
-            ),
-          ],
-        );
-      },
+    final S dl = S.of(context);
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: dl.collectionEmpty,
+      message: dl.collectionDeleteEmptyPrompt,
+      confirmLabel: dl.delete,
+      cancelLabel: dl.keep,
     );
-    if (confirmed == true && context.mounted) {
+    if (confirmed && context.mounted) {
       await ref
           .read(collectionsProvider.notifier)
           .delete(collectionId);
@@ -237,32 +225,15 @@ class CollectionActions {
     final String displayName = item.displayName(
       ref.read(sharedPreferencesProvider).animeMangaTitleLanguage,
     );
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        final S dl = S.of(context);
-        return AlertDialog(
-          scrollable: true,
-          title: Text(dl.collectionRemoveItemTitle),
-          content: Text(dl.collectionRemoveItemMessage(displayName)),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(dl.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: Text(dl.remove),
-            ),
-          ],
-        );
-      },
+    final S dl = S.of(context);
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: dl.collectionRemoveItemTitle,
+      message: dl.collectionRemoveItemMessage(displayName),
+      confirmLabel: dl.remove,
     );
 
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     await ref
         .read(collectionItemsNotifierProvider(collectionId).notifier)
@@ -306,8 +277,13 @@ class CollectionActions {
     required WidgetRef ref,
     required Collection collection,
   }) async {
-    final bool confirmed =
-        await DeleteCollectionDialog.show(context, collection.name);
+    final S dl = S.of(context);
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: dl.deleteCollectionTitle,
+      message: dl.deleteCollectionMessage(collection.name),
+      confirmLabel: dl.delete,
+    );
 
     if (!confirmed || !context.mounted) return false;
 

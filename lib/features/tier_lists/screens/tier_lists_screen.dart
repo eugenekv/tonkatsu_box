@@ -1,5 +1,3 @@
-// Экран списка тир-листов.
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +11,7 @@ import '../../../shared/navigation/search_providers.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/draggable_fab.dart';
 import '../providers/mood_grids_provider.dart';
 import '../providers/tier_lists_provider.dart';
@@ -22,18 +21,13 @@ import '../../../shared/widgets/shimmer_loading.dart';
 import 'mood_grid_detail_screen.dart';
 import 'tier_list_detail_screen.dart';
 
-/// Экран списка тир-листов.
-///
-/// Если [collectionId] указан — показывает только тир-листы этой коллекции.
-/// Если null — показывает все тир-листы (глобальная вкладка навигации).
+/// When [collectionId] is set, shows only that collection's tier lists;
+/// when null, shows all tier lists (the global navigation tab).
 class TierListsScreen extends ConsumerStatefulWidget {
-  /// Создаёт [TierListsScreen].
   const TierListsScreen({this.collectionId, super.key});
 
-  /// ID коллекции для фильтрации. Null = все тир-листы.
   final int? collectionId;
 
-  /// Группа хоткеев этого экрана для легенды F1.
   static const ShortcutGroup shortcutGroup = ShortcutGroup(
     title: 'Тир-листы',
     entries: <ShortcutEntry>[
@@ -250,27 +244,13 @@ class _TierListsScreenState extends ConsumerState<TierListsScreen> {
 
   Future<void> _handleDelete(BuildContext context, TierList tierList) async {
     final S l = S.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.delete),
-        content: Text(l.tierListDeleteConfirm),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              l.delete,
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.delete,
+      message: l.tierListDeleteConfirm,
+      confirmLabel: l.delete,
     );
-    if (confirmed == true) {
+    if (confirmed) {
       if (widget.collectionId != null) {
         await ref
             .read(collectionTierListsProvider(widget.collectionId!).notifier)
@@ -481,27 +461,13 @@ class _TierListCard extends ConsumerWidget {
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
     final S l = S.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.delete),
-        content: Text(l.tierListDeleteConfirm),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              l.delete,
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.delete,
+      message: l.tierListDeleteConfirm,
+      confirmLabel: l.delete,
     );
-    if (confirmed == true) {
+    if (confirmed) {
       if (collectionId != null) {
         await ref
             .read(collectionTierListsProvider(collectionId!).notifier)
@@ -714,27 +680,13 @@ class _MoodGridCard extends ConsumerWidget {
 
   Future<void> _deleteGrid(BuildContext context, WidgetRef ref) async {
     final S l = S.of(context);
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.delete),
-        content: Text(l.moodGridDeleteMessage),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              l.delete,
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
+    final bool ok = await ConfirmDialog.show(
+      context,
+      title: l.delete,
+      message: l.moodGridDeleteMessage,
+      confirmLabel: l.delete,
     );
-    if (ok == true) {
+    if (ok) {
       await ref.read(moodGridsProvider.notifier).delete(grid.id);
     }
   }

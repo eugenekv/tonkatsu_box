@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/constants/platform_features.dart';
 import '../../../shared/extensions/snackbar_extension.dart';
 import '../../../shared/services/png_export_service.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/draggable_fab.dart';
 import '../../../shared/widgets/sub_screen_title_bar.dart';
 import '../../settings/providers/settings_provider.dart';
@@ -183,24 +184,13 @@ class _TierListDetailScreenState
 
   Future<void> _confirmClear(BuildContext context) async {
     final S l = S.of(context);
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.tierListClearAll),
-        content: Text(l.tierListClearConfirm),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l.tierListClearAll),
-          ),
-        ],
-      ),
+    final bool confirmed = await ConfirmDialog.show(
+      context,
+      title: l.tierListClearAll,
+      message: l.tierListClearConfirm,
+      confirmLabel: l.tierListClearAll,
     );
-    if (confirmed == true) {
+    if (confirmed) {
       await ref
           .read(tierListDetailProvider(widget.tierListId).notifier)
           .clearAll();

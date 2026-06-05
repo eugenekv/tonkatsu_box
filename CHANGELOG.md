@@ -102,6 +102,24 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Changed
 
+- **Unify every confirmation prompt on one shared dialog**
+
+  Delete / clear / reset confirmations used to be hand-rolled one by one, so
+  their wording and buttons drifted (some had a filled red button, some red
+  text, some plain). They now all use a single `ConfirmDialog` styled like the
+  tier-list delete prompt: two text buttons with the confirm action tinted red
+  for destructive actions. Reversible actions (clear image cache, switch
+  profile) keep a neutral confirm button.
+
+  * lib/shared/widgets/confirm_dialog.dart (ConfirmDialog, ConfirmDialog.show): New shared confirm/cancel dialog returning `Future<bool>`; `destructive` tints the confirm button, `cancelLabel` defaults to the localized Cancel.
+  * lib/features/collections/widgets/create_collection_dialog.dart (DeleteCollectionDialog): Removed — its callers now use ConfirmDialog.
+  * lib/features/collections/helpers/collection_actions.dart (CollectionActions.promptDeleteEmptyCollection, CollectionActions.removeItem, CollectionActions.deleteCollection), lib/features/collections/screens/home_screen.dart (_HomeScreenState._deleteCollection), lib/features/collections/screens/item_detail_screen.dart (_ItemDetailScreenState._removeFromCollection): Replace inline AlertDialogs with ConfirmDialog.
+  * lib/features/collections/widgets/bulk_action_bar.dart (BulkActionBar._handleRemove): Use ConfirmDialog; drop the now-unused `theme` argument.
+  * lib/features/collections/widgets/canvas_context_menu.dart (CanvasContextMenu._showDeleteConfirmation), lib/features/collections/widgets/tag_management_dialog.dart (_TagManagementDialogState._deleteTag), lib/features/collections/widgets/ra_achievements_section.dart (_RaAchievementsSectionState._unlinkRa): Use ConfirmDialog.
+  * lib/features/settings/content/cache_content.dart (_clearCache, neutral confirm), lib/features/settings/content/database_content.dart (_resetDatabase), lib/features/settings/widgets/edit_profile_dialog.dart (_confirmDelete), lib/features/settings/screens/profiles_screen.dart (_switchProfile, neutral confirm): Use ConfirmDialog.
+  * lib/features/tier_lists/screens/tier_lists_screen.dart (_handleDelete x2, _deleteGrid), lib/features/tier_lists/screens/tier_list_detail_screen.dart (_confirmClear), lib/features/tier_lists/screens/mood_grid_detail_screen.dart (_confirmResize, _confirmDelete): Use ConfirmDialog.
+  * lib/features/wishlist/widgets/wishlist_dialogs.dart (WishlistDialogs): Drop the private `_confirm` helper; route confirmDeleteTag / confirmClearResolved / confirmDeleteItem / confirmBulkDelete through ConfirmDialog.
+
 - **Unify segmented switchers on the shared pill style**
 
   The Material `SegmentedButton` controls in the add-image dialog, the
