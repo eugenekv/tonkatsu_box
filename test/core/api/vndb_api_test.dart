@@ -156,14 +156,18 @@ void main() {
         expect(totalPages, 1);
       });
 
-      test('should use tagId в фильтрах', () async {
+      // Captures the `filters` payload of a browseVn call and returns the
+      // individual filter nodes (unwrapping the leading 'and').
+      Future<List<dynamic>> captureFilters(
+        Future<void> Function() run,
+      ) async {
         Map<String, dynamic>? capturedData;
         when(() => mockDio.post<dynamic>(
               any(),
               data: any(named: 'data'),
             )).thenAnswer((Invocation inv) async {
-          capturedData =
-              inv.namedArguments[const Symbol('data')] as Map<String, dynamic>?;
+          capturedData = inv.namedArguments[const Symbol('data')]
+              as Map<String, dynamic>?;
           return makeResponse(<String, dynamic>{
             'results': <dynamic>[],
             'more': false,
@@ -171,13 +175,79 @@ void main() {
           });
         });
 
-        await api.browseVn(tagId: 'g7');
+        await run();
 
-        expect(capturedData, isNotNull);
         final dynamic filters = capturedData!['filters'];
-        expect(filters, isA<List<dynamic>>());
-        final List<dynamic> filterList = filters as List<dynamic>;
-        expect(filterList.first, 'and');
+        if (filters is List<dynamic> &&
+            filters.isNotEmpty &&
+            filters.first == 'and') {
+          return filters.sublist(1);
+        }
+        return <dynamic>[filters];
+      }
+
+      test('ANDs each selected tag as a tag filter', () async {
+        final List<dynamic> nodes = await captureFilters(
+          () => api.browseVn(tagIds: <String>['g7', 'g13']),
+        );
+        expect(nodes, anyElement(equals(<dynamic>['tag', '=', 'g7'])));
+        expect(nodes, anyElement(equals(<dynamic>['tag', '=', 'g13'])));
+      });
+
+      test('maps length to a length filter', () async {
+        final List<dynamic> nodes =
+            await captureFilters(() => api.browseVn(length: 3));
+        expect(nodes, anyElement(equals(<dynamic>['length', '=', 3])));
+      });
+
+      test('ORs the selected languages', () async {
+        final List<dynamic> nodes = await captureFilters(
+          () => api.browseVn(langs: <String>['en', 'ru']),
+        );
+        expect(
+          nodes,
+          anyElement(equals(<dynamic>[
+            'or',
+            <dynamic>['lang', '=', 'en'],
+            <dynamic>['lang', '=', 'ru'],
+          ])),
+        );
+      });
+
+      test('emits a bare lang predicate for a single language', () async {
+        final List<dynamic> nodes =
+            await captureFilters(() => api.browseVn(langs: <String>['en']));
+        expect(nodes, anyElement(equals(<dynamic>['lang', '=', 'en'])));
+        expect(
+          nodes,
+          isNot(anyElement(equals(<dynamic>['or', <dynamic>['lang', '=', 'en']]))),
+        );
+      });
+
+      test('maps a year range to released bounds', () async {
+        final List<dynamic> nodes = await captureFilters(
+          () => api.browseVn(startYear: 2010, endYear: 2015),
+        );
+        expect(nodes, anyElement(equals(<dynamic>['released', '>=', '2010-01-01'])));
+        expect(nodes, anyElement(equals(<dynamic>['released', '<=', '2015-12-31'])));
+      });
+
+      test('maps minRating to a rating threshold', () async {
+        final List<dynamic> nodes =
+            await captureFilters(() => api.browseVn(minRating: 80));
+        expect(nodes, anyElement(equals(<dynamic>['rating', '>=', 80])));
+      });
+
+      test('maps hasAnime to has_anime = 1', () async {
+        final List<dynamic> nodes =
+            await captureFilters(() => api.browseVn(hasAnime: true));
+        expect(nodes, anyElement(equals(<dynamic>['has_anime', '=', 1])));
+      });
+
+      test('omits has_anime when not requested', () async {
+        final List<dynamic> nodes =
+            await captureFilters(() => api.browseVn(hasAnime: false));
+        expect(nodes, isNot(anyElement(equals(<dynamic>['has_anime', '=', 1]))));
       });
 
       test('should handle ошибку ответа', () async {

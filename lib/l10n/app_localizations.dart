@@ -5413,6 +5413,54 @@ abstract class S {
   /// **'Year'**
   String get browseFilterYear;
 
+  /// No description provided for @browseFilterLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get browseFilterLength;
+
+  /// No description provided for @vndbLengthVeryShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Very short'**
+  String get vndbLengthVeryShort;
+
+  /// No description provided for @vndbLengthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short'**
+  String get vndbLengthShort;
+
+  /// No description provided for @vndbLengthMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get vndbLengthMedium;
+
+  /// No description provided for @vndbLengthLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Long'**
+  String get vndbLengthLong;
+
+  /// No description provided for @vndbLengthVeryLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Very long'**
+  String get vndbLengthVeryLong;
+
+  /// No description provided for @browseFilterAnimeAdaptation.
+  ///
+  /// In en, this message translates to:
+  /// **'Anime adaptation'**
+  String get browseFilterAnimeAdaptation;
+
+  /// No description provided for @vndbHasAnimeAdaptation.
+  ///
+  /// In en, this message translates to:
+  /// **'Has adaptation'**
+  String get vndbHasAnimeAdaptation;
+
   /// No description provided for @tagPickerTitle.
   ///
   /// In en, this message translates to:

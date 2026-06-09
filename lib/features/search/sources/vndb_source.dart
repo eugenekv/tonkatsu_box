@@ -1,4 +1,4 @@
-// Источник данных: визуальные новеллы из VNDB.
+// Search source: visual novels from VNDB.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,13 +8,19 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/media_type.dart';
 import '../../../shared/models/visual_novel.dart';
 import '../../../shared/theme/app_assets.dart';
+import '../filters/vndb_has_anime_filter.dart';
+import '../filters/vndb_language_filter.dart';
+import '../filters/vndb_length_filter.dart';
+import '../filters/vndb_min_rating_filter.dart';
 import '../filters/vndb_tag_filter.dart';
+import '../filters/year_filter.dart';
 import '../models/search_source.dart';
+import '../utils/filter_value_utils.dart';
 
-/// Размер страницы для запросов к VNDB API.
+/// Page size for VNDB API requests.
 const int _vndbPageSize = 20;
 
-/// Источник данных — визуальные новеллы из VNDB.
+/// Search source for visual novels from VNDB.
 class VndbSource extends SearchSource {
   @override
   String get id => 'visual_novels';
@@ -46,6 +52,11 @@ class VndbSource extends SearchSource {
   @override
   List<SearchFilter> get filters => <SearchFilter>[
         VndbTagFilter(),
+        VndbLengthFilter(),
+        VndbLanguageFilter(),
+        YearFilter(),
+        VndbMinRatingFilter(),
+        VndbHasAnimeFilter(),
       ];
 
   @override
@@ -71,16 +82,40 @@ class VndbSource extends SearchSource {
   }) async {
     final VndbApi vndb = ref.read(vndbApiProvider);
 
-    final String? tagId = filterValues['genre'] as String?;
+    final List<String>? tagIds = readFilterStringList(filterValues['genre']);
+    final int? length = filterValues['length'] as int?;
+    final List<String>? langs =
+        readFilterStringList(filterValues['language']);
+    final int? minRating = filterValues['minRating'] as int?;
+    final bool hasAnime = filterValues['hasAnime'] == true;
+
+    int? startYear;
+    int? endYear;
+    switch (filterValues['year']) {
+      case final int y:
+        startYear = y;
+        endYear = y;
+      case final (int, int) range:
+        startYear = range.$1;
+        endYear = range.$2;
+      default:
+        break;
+    }
 
     const int pageSize = _vndbPageSize;
 
     try {
-      // VNDB нативно комбинирует search + tag через ['and', ...]
+      // VNDB natively combines search + filters via ['and', ...].
       final (List<VisualNovel> novels, bool hasMore, int totalPages) =
           await vndb.browseVn(
         query: query,
-        tagId: tagId,
+        tagIds: tagIds,
+        length: length,
+        langs: langs,
+        startYear: startYear,
+        endYear: endYear,
+        minRating: minRating,
+        hasAnime: hasAnime ? true : null,
         sort: sortBy,
         page: page,
         results: pageSize,

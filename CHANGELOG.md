@@ -9,6 +9,20 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Expand VNDB search filters**
+
+  The Visual Novels tab grows from one filter (tag) to six: tags become
+  multi-select, plus length, language availability, release year, minimum
+  rating and an "has anime adaptation" toggle. Tags are AND-ed, languages
+  OR-ed, all backed by VNDB's native filter combinators.
+
+  * lib/core/api/vndb/vndb_vn_api.dart (VndbVnApi.browseVn), lib/core/api/vndb_api.dart (VndbApi.browseVn): Replace `tagId` with `tagIds` (multi) and add `length`, `langs`, `startYear`, `endYear`, `minRating`, `hasAnime`; build the `['and', ...]` filter array (languages as a nested `['or', ...]`, year as `released` bounds).
+  * lib/features/search/filters/vndb_length_filter.dart (VndbLengthFilter), vndb_language_filter.dart (VndbLanguageFilter), vndb_min_rating_filter.dart (VndbMinRatingFilter), vndb_has_anime_filter.dart (VndbHasAnimeFilter): New filters.
+  * lib/features/search/filters/vndb_tag_filter.dart (VndbTagFilter): Now `multiSelect` + `searchable`.
+  * lib/features/search/sources/vndb_source.dart (VndbSource.filters, VndbSource.fetch): Wire the new filters and map their values onto `browseVn`.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (browseFilterLength, vndbLengthVeryShort, vndbLengthShort, vndbLengthMedium, vndbLengthLong, vndbLengthVeryLong, browseFilterAnimeAdaptation, vndbHasAnimeAdaptation): New filter strings.
+  * test/core/api/vndb_api_test.dart: Cover the new `browseVn` filter-array building (tags, length, languages OR, year bounds, minRating, hasAnime).
+
 - **Add books as a new media type with OpenLibrary search**
 
   Books join games / movies / … as `MediaType.book`, backed by a `books_cache`
@@ -73,6 +87,15 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Changed
 
+- **Extract the shared filter-value reader used by the search sources**
+
+  Four search sources carried an identical private `_readStringList` helper;
+  it now lives in one place.
+
+  * lib/features/search/utils/filter_value_utils.dart (readFilterStringList): New — coerces a multi-select filter value to `List<String>`.
+  * lib/features/search/sources/anilist_anime_source.dart, anilist_manga_source.dart, mangabaka_source.dart, vndb_source.dart: Drop the private copy, use `readFilterStringList`.
+  * test/features/search/utils/filter_value_utils_test.dart: New.
+
 - **Decompose the TMDB client into a `tmdb/` submodule**
 
   The 1123-line `TmdbApi` god-class is split into a thin facade over a transport
@@ -89,6 +112,26 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
   * lib/core/api/tmdb/tmdb_reviews_api.dart (TmdbReviewsApi): New — `getMovieReviews` / `getTvReviews`, pinned to en-US.
   * lib/core/api/tmdb/tmdb_find_api.dart (TmdbFindApi): New — `findByImdbId` / `findByTvdbId` and `multiSearch`.
   * lib/core/api/tmdb/README.md: New — layer table and key points.
+
+- **Decompose the RA, VNDB, SteamGridDB and MangaBaka clients into submodules**
+
+  The four remaining single-file API clients are split into thin facades over a
+  transport client plus focused sub-clients, matching the existing `igdb/` /
+  `anilist/` / `tmdb/` layout. Behaviour and the public API are unchanged — each
+  facade re-exports the same types and delegates every method, so callers and
+  mocks are untouched. `RaApi` and `MangaBakaApi` also gain a `dispose()` for
+  consistency. MangaBaka, previously untested, gets its own unit suite.
+
+  * lib/core/api/ra_api.dart (RaApi, raApiProvider): Now a facade over `ra/`; re-exports `ra/ra_types.dart`; adds `dispose`.
+  * lib/core/api/ra/ra_http_client.dart (RaHttpClient): New — Dio transport with `z`/`y` credential state injected into `get`, `validateCredentials`, `handleError`.
+  * lib/core/api/ra/ra_types.dart (RaApiException, RaGameListEntry), ra_user_api.dart (RaUserApi), ra_games_api.dart (RaGamesApi), README.md: New — types, user calls (`getUserProfile`, `getCompletedGames`, `getUserAwardDates`), game calls (`getGameSummary`, `getGameInfoAndUserProgress`, `getGameList`).
+  * lib/core/api/vndb_api.dart (VndbApi, vndbApiProvider): Now a facade over `vndb/`; re-exports `vndb/vndb_types.dart`.
+  * lib/core/api/vndb/vndb_http_client.dart (VndbHttpClient), vndb_types.dart (VndbApiException), vndb_vn_api.dart (VndbVnApi), vndb_tags_api.dart (VndbTagsApi), README.md: New — `post` transport, `/vn` queries (`searchVn`, `browseVn`, `getVnById`, `getVnByIds`), `/tag` catalog (`fetchTags`).
+  * lib/core/api/steamgriddb_api.dart (SteamGridDbApi, steamGridDbApiProvider): Now a facade over `steamgriddb/`; re-exports `steamgriddb/steamgriddb_types.dart`.
+  * lib/core/api/steamgriddb/steamgriddb_http_client.dart (SteamGridDbHttpClient), steamgriddb_types.dart (SteamGridDbApiException), steamgriddb_games_api.dart (SteamGridDbGamesApi), steamgriddb_images_api.dart (SteamGridDbImagesApi), README.md: New — Bearer-auth `get`, `searchGames`, `getGrids` / `getHeroes` / `getLogos` / `getIcons`.
+  * lib/core/api/mangabaka_api.dart (MangaBakaApi, mangaBakaApiProvider): Now a facade over `mangabaka/`; re-exports `mangabaka/mangabaka_types.dart`; adds `dispose`.
+  * lib/core/api/mangabaka/mangabaka_http_client.dart (MangaBakaHttpClient), mangabaka_types.dart (MangaBakaApiException), mangabaka_manga_api.dart (MangaBakaMangaApi), mangabaka_tags_api.dart (MangaBakaTagsApi), README.md: New — `get` transport, `browseManga` / `getById`, `fetchTagCatalog`.
+  * test/core/api/mangabaka_api_test.dart: New — covers `browseManga` (pagination, malformed-skip), `getById` (success / null / 404 / error), `fetchTagCatalog` (parse, malformed-skip, error) and Dio error mapping.
 
 - **Redesign the first-run Welcome wizard**
 

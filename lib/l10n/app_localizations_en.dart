@@ -3003,6 +3003,30 @@ class SEn extends S {
   String get browseFilterYear => 'Year';
 
   @override
+  String get browseFilterLength => 'Length';
+
+  @override
+  String get vndbLengthVeryShort => 'Very short';
+
+  @override
+  String get vndbLengthShort => 'Short';
+
+  @override
+  String get vndbLengthMedium => 'Medium';
+
+  @override
+  String get vndbLengthLong => 'Long';
+
+  @override
+  String get vndbLengthVeryLong => 'Very long';
+
+  @override
+  String get browseFilterAnimeAdaptation => 'Anime adaptation';
+
+  @override
+  String get vndbHasAnimeAdaptation => 'Has adaptation';
+
+  @override
   String get tagPickerTitle => 'Select tags';
 
   @override
