@@ -3046,6 +3046,30 @@ class SRu extends S {
   String get browseFilterYear => 'Год';
 
   @override
+  String get browseFilterLength => 'Длительность';
+
+  @override
+  String get vndbLengthVeryShort => 'Очень короткая';
+
+  @override
+  String get vndbLengthShort => 'Короткая';
+
+  @override
+  String get vndbLengthMedium => 'Средняя';
+
+  @override
+  String get vndbLengthLong => 'Длинная';
+
+  @override
+  String get vndbLengthVeryLong => 'Очень длинная';
+
+  @override
+  String get browseFilterAnimeAdaptation => 'Аниме-адаптация';
+
+  @override
+  String get vndbHasAnimeAdaptation => 'Есть адаптация';
+
+  @override
   String get tagPickerTitle => 'Выбор тэгов';
 
   @override

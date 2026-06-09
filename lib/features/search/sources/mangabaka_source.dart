@@ -12,6 +12,7 @@ import '../filters/mangabaka_status_filter.dart';
 import '../filters/mangabaka_tag_filter.dart';
 import '../filters/mangabaka_type_filter.dart';
 import '../models/search_source.dart';
+import '../utils/filter_value_utils.dart';
 
 const int _mangaBakaPageSize = 20;
 
@@ -84,8 +85,8 @@ class MangaBakaSource extends SearchSource {
       type: filterValues['type'] as String?,
       status: filterValues['status'] as String?,
       contentRating: filterValues['content_rating'] as String?,
-      genres: _readStringList(filterValues['genre']),
-      tags: _readStringList(filterValues['tag']),
+      genres: readFilterStringList(filterValues['genre']),
+      tags: readFilterStringList(filterValues['tag']),
       page: page,
       perPage: _mangaBakaPageSize,
     );
@@ -101,13 +102,4 @@ class MangaBakaSource extends SearchSource {
 
   @override
   Widget? buildDiscoverFeed(BuildContext context, WidgetRef ref) => null;
-}
-
-/// Coerce a multi-select filter value (List, single, or null) to a list.
-List<String>? _readStringList(Object? value) {
-  return switch (value) {
-    final List<Object?> list => list.whereType<String>().toList(),
-    final String single => <String>[single],
-    _ => null,
-  };
 }

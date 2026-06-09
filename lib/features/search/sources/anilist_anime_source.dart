@@ -12,6 +12,7 @@ import '../filters/anilist_genre_filter.dart';
 import '../filters/anilist_tag_filter.dart';
 import '../filters/year_filter.dart';
 import '../models/search_source.dart';
+import '../utils/filter_value_utils.dart';
 
 const int _aniListPageSize = 20;
 
@@ -77,8 +78,8 @@ class AniListAnimeSource extends SearchSource {
   }) async {
     final AniListApi api = ref.read(aniListApiProvider);
 
-    final List<String>? genres = _readStringList(filterValues['genre']);
-    final List<String>? tags = _readStringList(filterValues['tag']);
+    final List<String>? genres = readFilterStringList(filterValues['genre']);
+    final List<String>? tags = readFilterStringList(filterValues['tag']);
     final String? status = filterValues['status'] as String?;
     final String? format = filterValues['format'] as String?;
     // Year is mapped onto startDate bounds, not seasonYear — the latter
@@ -126,14 +127,4 @@ class AniListAnimeSource extends SearchSource {
 
   @override
   Widget? buildDiscoverFeed(BuildContext context, WidgetRef ref) => null;
-}
-
-/// Coerce a multi-select filter value (List, single, or null) to
-/// `List&lt;String&gt;`.
-List<String>? _readStringList(Object? value) {
-  return switch (value) {
-    final List<Object?> list => list.whereType<String>().toList(),
-    final String single => <String>[single],
-    _ => null,
-  };
 }
