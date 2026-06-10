@@ -40,6 +40,7 @@ import 'migrations/migration.dart';
 import 'migrations/migration_registry.dart';
 import 'migrations/migration_v24.dart';
 import 'migrations/migration_v44.dart';
+import 'migrations/migration_v48.dart';
 import 'schema.dart';
 
 final Provider<DatabaseService> databaseServiceProvider =
@@ -253,7 +254,7 @@ class DatabaseService {
     return databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 47,
+        version: 48,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onConfigure: (Database db) async {
@@ -277,6 +278,10 @@ class DatabaseService {
     // run on fresh install, so invoke the seed migration explicitly.
     await MigrationV24().migrate(db);
     await MigrationV44.seedGenres(db);
+    // Source-aware book unique index lives in v48; replay it here so fresh
+    // installs get it too (createCollectionItemsTable is shared with the v8
+    // upgrade path and must stay untouched).
+    await MigrationV48().migrate(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
