@@ -127,6 +127,7 @@ class _SourceCard extends ConsumerWidget {
         DataSource.mangabaka => l.welcomeSourceDescMangaBaka,
         DataSource.vndb => l.welcomeSourceDescVndb,
         DataSource.openLibrary => l.welcomeSourceDescOpenLibrary,
+        DataSource.fantlab => l.welcomeSourceDescFantlab,
         _ => '',
       };
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/anilist_api.dart';
+import '../../../core/api/fantlab_api.dart';
 import '../../../core/api/igdb_api.dart';
 import '../../../core/api/mangabaka_api.dart';
 import '../../../core/api/openlibrary_api.dart';
@@ -639,15 +640,23 @@ class CollectionActions {
           await db.visualNovelDao.upsertVisualNovel(vn);
         case MediaType.book:
           final Book? cached = item.book;
-          // Fantlab refresh lands with its client; needs the cached row's OLID.
-          if (item.source != DataSource.openLibrary || cached == null) {
+          if (cached == null) return _RefreshOutcome.unsupported();
+          if (item.source == DataSource.openLibrary) {
+            final Book? full = await ref
+                .read(openLibraryApiProvider)
+                .getWork(cached.nativeId);
+            if (full == null) return _RefreshOutcome.notFound();
+            // OpenLibrary search rows carry year / pages the work lacks, so
+            // overlay rather than replace.
+            await db.bookDao.upsertBook(cached.withWorkDetails(full));
+          } else if (item.source == DataSource.fantlab) {
+            final Book? full =
+                await ref.read(fantlabApiProvider).getWork(cached.nativeId);
+            if (full == null) return _RefreshOutcome.notFound();
+            await db.bookDao.upsertBook(full);
+          } else {
             return _RefreshOutcome.unsupported();
           }
-          final Book? full = await ref
-              .read(openLibraryApiProvider)
-              .getWork(cached.nativeId);
-          if (full == null) return _RefreshOutcome.notFound();
-          await db.bookDao.upsertBook(cached.withWorkDetails(full));
         case MediaType.custom:
           return _RefreshOutcome.unsupported();
       }

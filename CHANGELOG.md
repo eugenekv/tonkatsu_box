@@ -9,6 +9,37 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Add Fantlab as a second book provider with a similar-books row**
+
+  Fantlab joins OpenLibrary under Books — its own search source (query search,
+  narrowed by literary work type: novel / novella / short story / cycle), with
+  cover, authors, rating, genres, awards and a BBCode-stripped synopsis. A
+  book's detail page now shows a "Similar books" row when the work comes from
+  Fantlab, the one book provider with a similars endpoint. Sparse Fantlab search
+  rows are fetched in full before the details sheet opens; OpenLibrary rows stay
+  instant and lazy-load only the description.
+
+  * lib/core/api/fantlab_api.dart (FantlabApi, fantlabApiProvider): New REST facade — `searchWorks`, `getWork`, `getSimilars`.
+  * lib/core/api/fantlab/fantlab_http_client.dart (FantlabHttpClient), fantlab_search_api.dart (FantlabSearchApi), fantlab_works_api.dart (FantlabWorksApi), fantlab_types.dart (FantlabApiException), README.md: New — Dio transport, `/search-works` (non-book types filtered out), `/work/{id}/extended`, `/work/{id}/similars`.
+  * lib/shared/models/book.dart (Book.fromFantlabSearchMatch, Book.fromFantlabWork, Book.fromFantlabSimilar): New factories for the three Fantlab payload shapes, with author / language / genre / award extraction helpers.
+  * lib/shared/utils/bbcode.dart (stripBbCodes): New — strips Fantlab BBCode tags from synopsis text.
+  * lib/features/search/sources/fantlab_source.dart (FantlabSource): New source-first Books provider (query-only, relevance order).
+  * lib/features/search/filters/fantlab_work_type_filter.dart (FantlabWorkTypeFilter): New work-type filter applied client-side by `name_eng`.
+  * lib/features/collections/widgets/book_similars_section.dart (BookSimilarsSection): New "Similar books" row, Fantlab-only.
+  * lib/features/collections/screens/item_detail_screen.dart (_ItemDetailScreenState._addBookFromSimilars): Show the similars row for Fantlab books and add a tapped similar to a chosen collection.
+  * lib/features/search/handlers/media_handlers.dart (_fetchFullBook, _enrichBook, _loadBookDescription): Per-provider full-work fetch — OpenLibrary overlays the search row, Fantlab replaces it.
+  * lib/features/search/handlers/simple_media_handler.dart (SimpleMediaHandler.enrichBeforeDetails): New flag — enrich sparse rows behind a spinner before opening the details sheet.
+  * lib/features/collections/helpers/collection_actions.dart (CollectionActions): Refresh a collected Fantlab book from the API.
+  * lib/shared/constants/source_catalog.dart (kSearchGroupToSources): Rename from `kSearchGroupToSource` and map each search group to a `List<DataSource>` so Books carries both OpenLibrary and Fantlab.
+  * lib/features/search/sources/openlibrary_source.dart (OpenLibrarySource), search_sources.dart (searchSources): Group OpenLibrary and Fantlab under the shared "Books" media label; register the Fantlab source.
+  * lib/features/search/utils/filter_ui.dart (filterAccentForGroup): Use the book accent for the Fantlab group's filter bar.
+  * lib/shared/models/data_source.dart (DataSource.fantlab), lib/shared/theme/app_assets.dart (AppAssets.iconFantlabColor), assets/images/icon_fantlab_color.png: Fantlab brand icon.
+  * lib/features/settings/content/credits_content.dart (CreditsContent), lib/features/welcome/widgets/welcome_step_sources.dart: Fantlab attribution under Credits → Data Providers and its welcome-screen blurb.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (searchSourceFantlab, searchSourceBooks, fantlabTypeNovel, fantlabTypeNovella, fantlabTypeShortStory, fantlabTypeCycle, bookSimilarTitle, creditsFantlabAttribution, welcomeSourceDescFantlab): New strings.
+  * test/core/api/fantlab_api_test.dart, test/features/search/sources/fantlab_source_test.dart, test/features/search/filters/fantlab_work_type_filter_test.dart, test/shared/utils/bbcode_test.dart, test/features/collections/widgets/book_similars_section_test.dart: New tests.
+  * test/shared/models/book_test.dart, test/shared/constants/source_catalog_test.dart, test/features/search/sources/search_sources_test.dart, search_sources_grouping_test.dart, source_output_media_type_test.dart: Cover the Fantlab factories, multi-source groups, and Fantlab source registration.
+  * test/helpers/mocks.dart (MockFantlabApi): New mock.
+
 - **Expand VNDB search filters**
 
   The Visual Novels tab grows from one filter (tag) to six: tags become

@@ -7,14 +7,15 @@ import 'package:tonkatsu_box/features/search/sources/tmdb_movies_source.dart';
 import 'package:tonkatsu_box/features/search/sources/tmdb_tv_source.dart';
 import 'package:tonkatsu_box/features/search/sources/anilist_anime_source.dart';
 import 'package:tonkatsu_box/features/search/sources/anilist_manga_source.dart';
+import 'package:tonkatsu_box/features/search/sources/fantlab_source.dart';
 import 'package:tonkatsu_box/features/search/sources/mangabaka_source.dart';
 import 'package:tonkatsu_box/features/search/sources/openlibrary_source.dart';
 import 'package:tonkatsu_box/features/search/sources/vndb_source.dart';
 
 void main() {
   group('searchSources', () {
-    test('contains 9 sources', () {
-      expect(searchSources, hasLength(9));
+    test('contains 10 sources', () {
+      expect(searchSources, hasLength(10));
     });
 
     test('first source is TmdbMoviesSource', () {
@@ -53,6 +54,10 @@ void main() {
       expect(searchSources[8], isA<OpenLibrarySource>());
     });
 
+    test('tenth source is FantlabSource', () {
+      expect(searchSources[9], isA<FantlabSource>());
+    });
+
     test('all sources have unique ids', () {
       final Set<String> ids =
           searchSources.map((SearchSource s) => s.id).toSet();
@@ -72,6 +77,7 @@ void main() {
         'mangabaka',
         'visual_novels',
         'openlibrary',
+        'fantlab',
       ]);
     });
   });

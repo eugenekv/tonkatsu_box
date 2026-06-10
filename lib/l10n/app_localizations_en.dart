@@ -1021,6 +1021,9 @@ class SEn extends S {
       'Book data from Open Library (CC0 / ODbL).';
 
   @override
+  String get creditsFantlabAttribution => 'Book data from Fantlab.';
+
+  @override
   String get creditsOpenSource => 'Open Source';
 
   @override
@@ -1826,6 +1829,12 @@ class SEn extends S {
   String get searchSourceOpenLibrary => 'OpenLibrary';
 
   @override
+  String get searchSourceFantlab => 'Fantlab';
+
+  @override
+  String get searchSourceBooks => 'Books';
+
+  @override
   String get searchHintManga => 'Search manga...';
 
   @override
@@ -1845,6 +1854,21 @@ class SEn extends S {
 
   @override
   String get bookSearchSubject => 'Subject';
+
+  @override
+  String get bookSimilarTitle => 'Similar books';
+
+  @override
+  String get fantlabTypeNovel => 'Novel';
+
+  @override
+  String get fantlabTypeNovella => 'Novella';
+
+  @override
+  String get fantlabTypeShortStory => 'Short story';
+
+  @override
+  String get fantlabTypeCycle => 'Cycle';
 
   @override
   String get searchSelectPlatform => 'Select Platform';
@@ -2326,7 +2350,7 @@ class SEn extends S {
   String get welcomeStepTour => 'Tour';
 
   @override
-  String get welcomeChipBooks => 'Books (OpenLibrary)';
+  String get welcomeChipBooks => 'Books (OpenLibrary, Fantlab)';
 
   @override
   String get welcomeSourcesTitle => 'Where the data comes from';
@@ -2367,6 +2391,10 @@ class SEn extends S {
   @override
   String get welcomeSourceDescOpenLibrary =>
       'An open catalog of millions of books.';
+
+  @override
+  String get welcomeSourceDescFantlab =>
+      'A detailed book catalog with ratings, awards and series.';
 
   @override
   String get welcomeTourTitle => 'Get to know the menu';

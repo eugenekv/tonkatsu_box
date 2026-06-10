@@ -1879,6 +1879,12 @@ abstract class S {
   /// **'Book data from Open Library (CC0 / ODbL).'**
   String get creditsOpenLibraryAttribution;
 
+  /// No description provided for @creditsFantlabAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Book data from Fantlab.'**
+  String get creditsFantlabAttribution;
+
   /// No description provided for @creditsOpenSource.
   ///
   /// In en, this message translates to:
@@ -3337,6 +3343,18 @@ abstract class S {
   /// **'OpenLibrary'**
   String get searchSourceOpenLibrary;
 
+  /// No description provided for @searchSourceFantlab.
+  ///
+  /// In en, this message translates to:
+  /// **'Fantlab'**
+  String get searchSourceFantlab;
+
+  /// No description provided for @searchSourceBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Books'**
+  String get searchSourceBooks;
+
   /// No description provided for @searchHintManga.
   ///
   /// In en, this message translates to:
@@ -3378,6 +3396,36 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Subject'**
   String get bookSearchSubject;
+
+  /// No description provided for @bookSimilarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar books'**
+  String get bookSimilarTitle;
+
+  /// No description provided for @fantlabTypeNovel.
+  ///
+  /// In en, this message translates to:
+  /// **'Novel'**
+  String get fantlabTypeNovel;
+
+  /// No description provided for @fantlabTypeNovella.
+  ///
+  /// In en, this message translates to:
+  /// **'Novella'**
+  String get fantlabTypeNovella;
+
+  /// No description provided for @fantlabTypeShortStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Short story'**
+  String get fantlabTypeShortStory;
+
+  /// No description provided for @fantlabTypeCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cycle'**
+  String get fantlabTypeCycle;
 
   /// No description provided for @searchSelectPlatform.
   ///
@@ -4192,7 +4240,7 @@ abstract class S {
   /// No description provided for @welcomeChipBooks.
   ///
   /// In en, this message translates to:
-  /// **'Books (OpenLibrary)'**
+  /// **'Books (OpenLibrary, Fantlab)'**
   String get welcomeChipBooks;
 
   /// No description provided for @welcomeSourcesTitle.
@@ -4266,6 +4314,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'An open catalog of millions of books.'**
   String get welcomeSourceDescOpenLibrary;
+
+  /// No description provided for @welcomeSourceDescFantlab.
+  ///
+  /// In en, this message translates to:
+  /// **'A detailed book catalog with ratings, awards and series.'**
+  String get welcomeSourceDescFantlab;
 
   /// No description provided for @welcomeTourTitle.
   ///

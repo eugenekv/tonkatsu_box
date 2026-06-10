@@ -18,9 +18,13 @@ Color filterAccentForGroup(String groupId) {
   return switch (groupId) {
     'tmdb' => AppColors.movieAccent,
     'igdb' => AppColors.gameAccent,
+    // AniList and MangaBaka are both manga/anime providers — same accent.
     'anilist' => AppColors.animeAccent,
+    'mangabaka' => AppColors.animeAccent,
     'vndb' => AppColors.visualNovelAccent,
-    'books' => AppColors.bookAccent,
+    // Both book providers share the book accent.
+    'openlibrary' => AppColors.bookAccent,
+    'fantlab' => AppColors.bookAccent,
     _ => AppColors.brand,
   };
 }

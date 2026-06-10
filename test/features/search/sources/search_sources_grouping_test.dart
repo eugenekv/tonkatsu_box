@@ -12,12 +12,13 @@ void main() {
       expect(groupIds, contains('igdb'));
       expect(groupIds, contains('anilist'));
       expect(groupIds, contains('vndb'));
-      expect(groupIds, contains('books'));
+      expect(groupIds, contains('openlibrary'));
+      expect(groupIds, contains('fantlab'));
     });
 
-    test('preserves order — tmdb first, books last', () {
+    test('preserves order — tmdb first, fantlab last', () {
       expect(groupedSearchSources.first.groupId, 'tmdb');
-      expect(groupedSearchSources.last.groupId, 'books');
+      expect(groupedSearchSources.last.groupId, 'fantlab');
     });
 
     test('tmdb group has 3 sources', () {
@@ -50,6 +51,18 @@ void main() {
           .firstWhere((SourceGroupEntry g) => g.groupId == 'vndb');
       expect(vndb.sources.length, 1);
       expect(vndb.sources.first.id, 'visual_novels');
+    });
+
+    test('each book provider is its own single-source group', () {
+      final SourceGroupEntry openLibrary = groupedSearchSources
+          .firstWhere((SourceGroupEntry g) => g.groupId == 'openlibrary');
+      expect(openLibrary.sources.length, 1);
+      expect(openLibrary.sources.single.id, 'openlibrary');
+
+      final SourceGroupEntry fantlab = groupedSearchSources
+          .firstWhere((SourceGroupEntry g) => g.groupId == 'fantlab');
+      expect(fantlab.sources.length, 1);
+      expect(fantlab.sources.single.id, 'fantlab');
     });
 
     test('total sources in groups matches searchSources', () {

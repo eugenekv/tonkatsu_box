@@ -89,6 +89,13 @@ class CreditsContent extends StatelessWidget {
         linkLabel: 'openlibrary.org',
         url: 'https://openlibrary.org/',
       ),
+      (
+        source: DataSource.fantlab,
+        name: 'Fantlab',
+        description: l10n.creditsFantlabAttribution,
+        linkLabel: 'fantlab.ru',
+        url: 'https://fantlab.ru/',
+      ),
     ];
 
     return Column(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/fantlab_api.dart';
 import '../../../core/api/openlibrary_api.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/services/image_cache_service.dart';
@@ -141,35 +142,18 @@ class MediaHandlers {
       sheetBuilder: (Book b, VoidCallback onAdd) => ItemDetailsSheet.book(
         b,
         onAddToCollection: onAdd,
-        // search.json omits the description — load the full work inside the
-        // open sheet (spinner), so the tap itself stays instant. OpenLibrary
-        // only; Fantlab wires its own loader later.
-        overviewLoader: b.description != null
-            ? null
-            : () async {
-                if (b.source != DataSource.openLibrary) return null;
-                try {
-                  final Book? full = await ref
-                      .read(openLibraryApiProvider)
-                      .getWork(b.nativeId);
-                  return full?.description;
-                } on Exception {
-                  return null;
-                }
-              },
+        // Search rows omit the description — load the full work inside the open
+        // sheet (spinner), so the tap itself stays instant. Both providers.
+        overviewLoader:
+            b.description != null ? null : () => _loadBookDescription(ref, b),
       ),
       // On add, cache the full work so the collected item's detail page also
-      // carries the description. Runs on the deliberate add, not on open.
-      enrich: (Book b) async {
-        if (b.source != DataSource.openLibrary) return b;
-        try {
-          final Book? full =
-              await ref.read(openLibraryApiProvider).getWork(b.nativeId);
-          return full != null ? b.withWorkDetails(full) : b;
-        } on Exception {
-          return b;
-        }
-      },
+      // carries the rich fields. Runs on the deliberate add, not on open.
+      enrich: (Book b) => _enrichBook(ref, b),
+      // Fantlab search rows are sparse (no cover / genres / description), so
+      // fetch the full work before opening the sheet. OpenLibrary rows are
+      // already rich, so they stay instant and lazy-load only the description.
+      enrichBeforeDetails: (Book b) => b.source == DataSource.fantlab,
     );
   }
 
@@ -214,5 +198,45 @@ class MediaHandlers {
         forItem(item, sourceId: sourceId);
     if (handler == null) return;
     await handler.addToAnyCollection(context, item, mediaType);
+  }
+}
+
+/// Loads the full-work description for [book] from its provider. Used by the
+/// details sheet's lazy overview loader.
+Future<String?> _loadBookDescription(WidgetRef ref, Book book) async {
+  try {
+    final Book? full = await _fetchFullBook(ref, book);
+    return full?.description;
+  } on Exception {
+    return null;
+  }
+}
+
+/// Returns the full-work version of [book] for caching on add. OpenLibrary
+/// search rows are overlaid (`withWorkDetails`) so their year / pages survive;
+/// Fantlab returns a complete record, so it replaces the search row outright.
+/// On any failure the original [book] is kept.
+Future<Book> _enrichBook(WidgetRef ref, Book book) async {
+  try {
+    final Book? full = await _fetchFullBook(ref, book);
+    if (full == null) return book;
+    return book.source == DataSource.openLibrary
+        ? book.withWorkDetails(full)
+        : full;
+  } on Exception {
+    return book;
+  }
+}
+
+/// Per-provider full-work fetch by native id. Null for sources without a work
+/// endpoint (or on a soft 404).
+Future<Book?> _fetchFullBook(WidgetRef ref, Book book) async {
+  switch (book.source) {
+    case DataSource.openLibrary:
+      return ref.read(openLibraryApiProvider).getWork(book.nativeId);
+    case DataSource.fantlab:
+      return ref.read(fantlabApiProvider).getWork(book.nativeId);
+    default:
+      return null;
   }
 }

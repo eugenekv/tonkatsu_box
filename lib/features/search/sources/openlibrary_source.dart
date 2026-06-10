@@ -26,16 +26,16 @@ class OpenLibrarySource extends SearchSource {
   MediaType get outputMediaType => MediaType.book;
 
   @override
-  String get groupId => 'books';
+  String get groupId => 'openlibrary';
 
   @override
-  String get groupName => 'Books';
+  String get groupName => 'OpenLibrary';
 
   @override
   IconData get groupIcon => Icons.menu_book;
 
   @override
-  String label(S l) => l.searchSourceOpenLibrary;
+  String label(S l) => l.searchSourceBooks;
 
   @override
   IconData get icon => Icons.menu_book;
