@@ -414,6 +414,7 @@ class _BrowseGridState extends ConsumerState<BrowseGrid> {
           mediaType: MediaType.book,
           externalId: externalId,
           source: item.source,
+          coverUrl: item.coverUrl,
         ),
         apiRating: item.rating,
         year: item.releaseYear,

@@ -15,12 +15,23 @@ String coverImageId({
   required MediaType mediaType,
   required int externalId,
   DataSource? source,
+  String? coverUrl,
 }) {
   if (mediaType == MediaType.manga) {
     return '${(source ?? DataSource.anilist).name}_$externalId';
   }
   if (mediaType == MediaType.book) {
-    return '${(source ?? DataSource.openLibrary).name}_$externalId';
+    final String base =
+        '${(source ?? DataSource.openLibrary).name}_$externalId';
+    // A Fantlab cover belongs to a specific edition (its id is embedded in the
+    // URL). Key by it so picking a different edition is a distinct cache entry
+    // rather than a stale overwrite of the same `work` file.
+    final RegExpMatch? edition = coverUrl != null
+        ? _fantlabEditionId.firstMatch(coverUrl)
+        : null;
+    return edition != null ? '${base}_e${edition.group(1)}' : base;
   }
   return externalId.toString();
 }
+
+final RegExp _fantlabEditionId = RegExp(r'/images/editions/\w+/(\d+)');

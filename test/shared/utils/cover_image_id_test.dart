@@ -42,6 +42,55 @@ void main() {
       expect(id.contains('/'), isFalse);
     });
 
+    test('book without a cover URL keeps the source-namespaced base id', () {
+      expect(
+        coverImageId(
+          mediaType: MediaType.book,
+          externalId: 3104,
+          source: DataSource.fantlab,
+        ),
+        'fantlab_3104',
+      );
+      expect(
+        coverImageId(mediaType: MediaType.book, externalId: 27448),
+        'openLibrary_27448',
+      );
+    });
+
+    test('book key includes the Fantlab edition id from the cover URL', () {
+      expect(
+        coverImageId(
+          mediaType: MediaType.book,
+          externalId: 3104,
+          source: DataSource.fantlab,
+          coverUrl: 'https://fantlab.ru/images/editions/big/24724?r=1',
+        ),
+        'fantlab_3104_e24724',
+      );
+      // A different edition is a distinct key — no stale cover reuse.
+      expect(
+        coverImageId(
+          mediaType: MediaType.book,
+          externalId: 3104,
+          source: DataSource.fantlab,
+          coverUrl: 'https://fantlab.ru/images/editions/big/7337',
+        ),
+        'fantlab_3104_e7337',
+      );
+    });
+
+    test('book key ignores a non-edition cover URL (OpenLibrary)', () {
+      expect(
+        coverImageId(
+          mediaType: MediaType.book,
+          externalId: 27448,
+          source: DataSource.openLibrary,
+          coverUrl: 'https://covers.openlibrary.org/b/id/123-L.jpg',
+        ),
+        'openLibrary_27448',
+      );
+    });
+
     test('non-manga types keep the bare external id', () {
       for (final MediaType type in <MediaType>[
         MediaType.game,

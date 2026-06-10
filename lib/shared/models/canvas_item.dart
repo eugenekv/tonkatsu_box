@@ -286,6 +286,7 @@ class CanvasItem with Exportable {
           mediaType: MediaType.book,
           externalId: book?.externalIdInt ?? 0,
           source: book?.source,
+          coverUrl: book?.coverUrl,
         ),
       CanvasItemType.custom => (customMedia?.id ?? 0).toString(),
       _ => '0',

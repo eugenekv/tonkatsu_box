@@ -18,7 +18,9 @@ import '../../../shared/models/tv_show.dart';
 import '../../../shared/models/visual_novel.dart';
 import '../../collections/providers/collections_provider.dart';
 import '../../settings/providers/settings_provider.dart';
+import '../../collections/widgets/fantlab_edition_picker.dart';
 import '../services/search_collection_adder.dart';
+import '../widgets/fantlab_book_sheet.dart';
 import '../widgets/item_details_sheet.dart';
 import 'game_handler.dart';
 import 'media_action_handler.dart';
@@ -122,6 +124,10 @@ class MediaHandlers {
             ref.read(settingsNotifierProvider).animeMangaTitleLanguage,
       ),
     );
+    // Edition the user picked in the Fantlab editions strip, tagged with its
+    // work id so it only applies to that book; consumed by `enrich`. Reset
+    // each time a book sheet opens.
+    ({String workId, FantlabEdition edition})? pendingBookEdition;
     _byType[Book] = SimpleMediaHandler<Book>(
       ref: ref,
       adder: adder,
@@ -134,22 +140,46 @@ class MediaHandlers {
         mediaType: MediaType.book,
         externalId: b.externalIdInt,
         source: b.source,
+        coverUrl: b.coverUrl,
       ),
       titleOf: (Book b) => b.title,
       imageUrlOf: (Book b) => b.coverUrl,
       upsert: (Book b) => ref.read(bookDaoProvider).upsertBook(b),
       sourceOf: (Book b) => b.source,
-      sheetBuilder: (Book b, VoidCallback onAdd) => ItemDetailsSheet.book(
-        b,
-        onAddToCollection: onAdd,
-        // Search rows omit the description — load the full work inside the open
-        // sheet (spinner), so the tap itself stays instant. Both providers.
-        overviewLoader:
-            b.description != null ? null : () => _loadBookDescription(ref, b),
-      ),
+      sheetBuilder: (Book b, VoidCallback onAdd) {
+        final Future<String?> Function()? overviewLoader =
+            b.description != null ? null : () => _loadBookDescription(ref, b);
+        // Fantlab books get an inline editions strip; the picked edition is
+        // captured here and applied to the saved record by `enrich`.
+        if (b.source == DataSource.fantlab) {
+          return FantlabBookSheet(
+            work: b,
+            onAddToCollection: onAdd,
+            onEditionChanged: (String workId, FantlabEdition? ed) =>
+                pendingBookEdition =
+                    ed == null ? null : (workId: workId, edition: ed),
+            overviewLoader: overviewLoader,
+          );
+        }
+        return ItemDetailsSheet.book(
+          b,
+          onAddToCollection: onAdd,
+          // Search rows omit the description — load the full work inside the
+          // open sheet (spinner), so the tap itself stays instant.
+          overviewLoader: overviewLoader,
+        );
+      },
       // On add, cache the full work so the collected item's detail page also
-      // carries the rich fields. Runs on the deliberate add, not on open.
-      enrich: (Book b) => _enrichBook(ref, b),
+      // carries the rich fields, then overlay the picked Fantlab edition (if
+      // any). Runs on the deliberate add, not on open.
+      enrich: (Book b) async {
+        final Book enriched = await _enrichBook(ref, b);
+        final ({String workId, FantlabEdition edition})? pending =
+            pendingBookEdition;
+        return pending != null && pending.workId == b.nativeId
+            ? applyFantlabEdition(enriched, pending.edition)
+            : enriched;
+      },
       // Fantlab search rows are sparse (no cover / genres / description), so
       // fetch the full work before opening the sheet. OpenLibrary rows are
       // already rich, so they stay instant and lazy-load only the description.

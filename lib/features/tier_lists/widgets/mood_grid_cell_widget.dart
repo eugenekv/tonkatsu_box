@@ -107,6 +107,7 @@ class MoodGridCellWidget extends StatelessWidget {
           mediaType: cell.mediaType!,
           externalId: cell.externalId!,
           source: cell.source,
+          coverUrl: url,
         ),
         remoteUrl: url,
         fit: BoxFit.cover,

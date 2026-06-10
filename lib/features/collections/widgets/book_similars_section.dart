@@ -151,6 +151,7 @@ class _SimilarRowState extends State<_SimilarRow> {
                       mediaType: MediaType.book,
                       externalId: book.externalIdInt,
                       source: DataSource.fantlab,
+                      coverUrl: book.coverUrl,
                     ),
                     year: book.publishYear,
                     apiRating: book.rating,

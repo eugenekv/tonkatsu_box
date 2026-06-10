@@ -53,6 +53,7 @@ class ItemDetailsSheet extends StatelessWidget {
     this.coverHeight = 150,
     this.screenScraperGameName,
     this.screenScraperPlatformId,
+    this.editionsSection,
     super.key,
   });
 
@@ -254,8 +255,10 @@ class ItemDetailsSheet extends StatelessWidget {
     Book book, {
     required VoidCallback onAddToCollection,
     Future<String?> Function()? overviewLoader,
+    Widget? editionsSection,
   }) {
     return ItemDetailsSheet(
+      editionsSection: editionsSection,
       title: book.title,
       icon: Icons.menu_book,
       overview: book.description,
@@ -281,6 +284,7 @@ class ItemDetailsSheet extends StatelessWidget {
         mediaType: MediaType.book,
         externalId: book.externalIdInt,
         source: book.source,
+        coverUrl: book.coverUrl,
       ),
       externalUrl: book.externalUrl,
       dataSource: book.source,
@@ -328,6 +332,10 @@ class ItemDetailsSheet extends StatelessWidget {
   /// game name + IGDB platform id.
   final String? screenScraperGameName;
   final int? screenScraperPlatformId;
+
+  /// Inline section rendered below the overview (book editions strip). Kept as
+  /// an opaque widget so this generic sheet stays decoupled from Fantlab.
+  final Widget? editionsSection;
 
   @override
   Widget build(BuildContext context) {
@@ -423,6 +431,7 @@ class ItemDetailsSheet extends StatelessWidget {
                         )
                       else if (overviewLoader != null)
                         _LazyOverview(loader: overviewLoader!),
+                      ?editionsSection,
                       if (screenScraperGameName != null &&
                           screenScraperPlatformId != null)
                         ScreenScraperGallerySection(

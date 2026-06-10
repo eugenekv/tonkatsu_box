@@ -57,6 +57,7 @@ class CoverInfo {
         mediaType: mediaType,
         externalId: externalId,
         source: source,
+        coverUrl: thumbnailUrl,
       );
 
   /// Тип изображения для локального кэша (`ImageCacheService`).
