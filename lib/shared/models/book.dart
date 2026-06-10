@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../utils/bbcode.dart';
 import 'data_source.dart';
 
 /// Book metadata from OpenLibrary or Fantlab.
@@ -135,6 +136,128 @@ class Book {
       rating: rating,
       ratingCount: ratingCount,
       externalUrl: 'https://openlibrary.org$key',
+    );
+  }
+
+  /// Lightweight [Book] from a Fantlab `/search-works` `matches[]` entry. Holds
+  /// what the search grid needs (title, authors, cover, year, rating); the
+  /// description / subjects / series / awards arrive when the work is opened
+  /// ([Book.fromFantlabWork]).
+  factory Book.fromFantlabSearchMatch(Map<String, dynamic> match) {
+    final String id = _fantlabId(match['work_id']);
+    final String rus = _trimmed(match['rusname']);
+    final String orig = _trimmed(match['name']);
+    final String title =
+        rus.isNotEmpty ? rus : (orig.isNotEmpty ? orig : 'Unknown');
+    final int coverEdition = _fantlabCoverEdition(match);
+
+    return Book(
+      id: id,
+      source: DataSource.fantlab,
+      nativeId: id,
+      title: title,
+      originalTitle: orig.isNotEmpty && orig != title ? orig : null,
+      authors: _fantlabSearchAuthors(match),
+      coverUrl:
+          coverEdition > 0 ? _fantlabCoverUrlFromEdition(coverEdition) : null,
+      publishYear: _positiveYear(match['year']),
+      workType: _nonEmpty(match['name_show_im']),
+      // Fantlab ratings are already on a 1–10 scale. `midmark_by_weight`
+      // matches the value the work page shows as its primary rating.
+      rating: _fantlabRating(match['midmark_by_weight']) ??
+          _fantlabRating(match['midmark']) ??
+          _fantlabRating(match['rating']),
+      ratingCount: _intOrNull(match['markcount']),
+      externalUrl: _fantlabWorkUrl(id),
+    );
+  }
+
+  /// Full [Book] from a Fantlab `/work/{id}/extended` response (a superset of
+  /// `/work/{id}` that also carries `classificatory`, `awards`, `parents` and
+  /// `editions_blocks`). [extended] may be passed separately when the rich
+  /// blocks come from a second call; otherwise they are read from [work].
+  factory Book.fromFantlabWork(
+    Map<String, dynamic> work, {
+    Map<String, dynamic>? extended,
+  }) {
+    final Map<String, dynamic> rich = extended ?? work;
+    final String id = _fantlabId(work['work_id']);
+    final String rus = _trimmed(work['work_name']);
+    final String orig = _trimmed(work['work_name_orig']);
+    final String title =
+        rus.isNotEmpty ? rus : (orig.isNotEmpty ? orig : 'Unknown');
+    final ({int? pages, String? isbn, int? editionId}) edition =
+        _fantlabFirstEdition(rich['editions_blocks']);
+    final Object? ratingObj = work['rating'];
+
+    return Book(
+      id: id,
+      source: DataSource.fantlab,
+      nativeId: id,
+      title: title,
+      originalTitle: orig.isNotEmpty && orig != title ? orig : null,
+      authors: _fantlabWorkAuthors(work['authors']),
+      description: _stripFantlabText(work['work_description']),
+      // The work's own `image` is often null; fall back to the cover of its
+      // first edition.
+      coverUrl: _fantlabCoverUrl(work['image']) ??
+          (edition.editionId != null
+              ? _fantlabCoverUrlFromEdition(edition.editionId!)
+              : null),
+      pageCount: edition.pages,
+      publishYear: _positiveYear(work['work_year']),
+      isbn10: edition.isbn != null && edition.isbn!.length == 10
+          ? edition.isbn
+          : null,
+      isbn13: edition.isbn != null && edition.isbn!.length == 13
+          ? edition.isbn
+          : null,
+      languages: _fantlabLanguages(work['lang_code']),
+      subjects: _fantlabClassificatory(rich['classificatory']),
+      workType: _nonEmpty(work['work_type']),
+      series: _fantlabSeries(rich['parents']),
+      awards: _fantlabAwards(rich['awards']),
+      rating: _fantlabRating(_fantlabRatingValue(ratingObj)),
+      ratingCount:
+          _intOrNull(work['val_voters']) ?? _fantlabRatingVoters(ratingObj),
+      externalUrl: _fantlabWorkUrl(id),
+    );
+  }
+
+  /// [Book] from a Fantlab `/work/{id}/similars` array entry. That payload has
+  /// its own shape (`id`, `name`, `creators.authors`, `stat.rating`, `saga`),
+  /// distinct from `/work/{id}`.
+  factory Book.fromFantlabSimilar(Map<String, dynamic> entry) {
+    final String id = _fantlabId(entry['id']);
+    final String rus = _trimmed(entry['name']);
+    final String orig = _trimmed(entry['name_orig']);
+    final String title =
+        rus.isNotEmpty ? rus : (orig.isNotEmpty ? orig : 'Unknown');
+    final Object? creators = entry['creators'];
+    final Object? authors =
+        creators is Map<String, dynamic> ? creators['authors'] : null;
+    final Object? stat = entry['stat'];
+    final Object? saga = entry['saga'];
+
+    return Book(
+      id: id,
+      source: DataSource.fantlab,
+      nativeId: id,
+      title: title,
+      originalTitle: orig.isNotEmpty && orig != title ? orig : null,
+      authors: _fantlabWorkAuthors(authors),
+      description: _stripFantlabText(entry['description']),
+      coverUrl: _fantlabCoverUrl(entry['image']),
+      publishYear: _positiveYear(entry['year']),
+      workType: _nonEmpty(entry['name_type']),
+      series:
+          saga is Map<String, dynamic> ? _nonEmpty(saga['name']) : null,
+      rating: stat is Map<String, dynamic>
+          ? _fantlabRating(stat['rating'])
+          : null,
+      ratingCount:
+          stat is Map<String, dynamic> ? _intOrNull(stat['voters']) : null,
+      externalUrl: _fantlabWorkUrl(id),
     );
   }
 
@@ -419,5 +542,240 @@ class Book {
     if (text == null) return null;
     final String clean = text.replaceAll(_htmlTagPattern, '').trim();
     return clean.isEmpty ? null : clean;
+  }
+
+  // --- Fantlab helpers -------------------------------------------------------
+
+  /// `https://fantlab.ru/work{id}` — the canonical work page.
+  static String _fantlabWorkUrl(String id) => 'https://fantlab.ru/work$id';
+
+  /// Cover URL from an edition id (search results expose `pic_edition_id`).
+  static String _fantlabCoverUrlFromEdition(int editionId) =>
+      'https://fantlab.ru/images/editions/big/$editionId';
+
+  /// Cover edition id from a search match — the manually chosen
+  /// `pic_edition_id`, falling back to Fantlab's auto pick
+  /// `pic_edition_id_auto`. Returns 0 when neither is set.
+  static int _fantlabCoverEdition(Map<String, dynamic> match) {
+    final int manual = _intOrNull(match['pic_edition_id']) ?? 0;
+    if (manual > 0) return manual;
+    return _intOrNull(match['pic_edition_id_auto']) ?? 0;
+  }
+
+  /// Prefixes a Fantlab image path (`/images/editions/big/24724?r=…`) with the
+  /// host. Already-absolute URLs pass through.
+  static String? _fantlabCoverUrl(Object? path) {
+    if (path is! String || path.isEmpty) return null;
+    if (path.startsWith('http')) return path;
+    return 'https://fantlab.ru$path';
+  }
+
+  /// Tolerant id parse — Fantlab's Perl backend returns `work_id` as an int, a
+  /// string, or a single-element array. Keeps the digits as a string; falls
+  /// back to the trimmed input.
+  static String _fantlabId(Object? raw) {
+    if (raw is num) return raw.toInt().toString();
+    if (raw is String) {
+      final String trimmed = raw.trim();
+      return int.tryParse(trimmed)?.toString() ?? trimmed;
+    }
+    if (raw is List<dynamic> && raw.isNotEmpty) return _fantlabId(raw.first);
+    return '';
+  }
+
+  /// Pulls `rating` out of a `{rating, true_rating, voters}` object, or returns
+  /// the value as-is (string / num / array) for the looser search payloads.
+  static Object? _fantlabRatingValue(Object? rating) {
+    if (rating is Map<String, dynamic>) return rating['rating'];
+    return rating;
+  }
+
+  static int? _fantlabRatingVoters(Object? rating) {
+    if (rating is Map<String, dynamic>) return _intOrNull(rating['voters']);
+    return null;
+  }
+
+  /// Parses a Fantlab rating (already on a 1–10 scale) from a num, a numeric
+  /// string (`"8.62"`), or an array (`[8.53]`). Non-positive values are
+  /// treated as "no rating".
+  static double? _fantlabRating(Object? raw) {
+    final double? value;
+    if (raw is num) {
+      value = raw.toDouble();
+    } else if (raw is String) {
+      value = double.tryParse(raw.trim());
+    } else if (raw is List<dynamic> && raw.isNotEmpty) {
+      value = _fantlabRating(raw.first);
+    } else {
+      value = null;
+    }
+    return (value != null && value > 0) ? value : null;
+  }
+
+  static String _trimmed(Object? value) =>
+      value is String ? value.trim() : '';
+
+  static String? _nonEmpty(Object? value) {
+    final String trimmed = _trimmed(value);
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  static int? _intOrNull(Object? value) {
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
+  }
+
+  static int? _positiveYear(Object? value) {
+    final int? year = _intOrNull(value);
+    return (year != null && year > 0) ? year : null;
+  }
+
+  static String? _stripFantlabText(Object? raw) {
+    if (raw is! String || raw.isEmpty) return null;
+    final String clean = stripBbCodes(raw);
+    return clean.isEmpty ? null : clean;
+  }
+
+  /// MARC-ish language list from Fantlab's ISO `lang_code` (`"pl"`, `"ru"`).
+  static List<String> _fantlabLanguages(Object? langCode) {
+    final String? code = _nonEmpty(langCode);
+    return code != null ? <String>[code] : const <String>[];
+  }
+
+  /// Individual author names from a `/search-works` match (`autor1_rusname` …
+  /// `autor5_rusname`), falling back to the combined `all_autor_rusname`.
+  static List<String> _fantlabSearchAuthors(Map<String, dynamic> match) {
+    final List<String> out = <String>[];
+    for (int i = 1; i <= 5; i++) {
+      final String name = _trimmed(match['autor${i}_rusname']);
+      if (name.isNotEmpty) out.add(name);
+    }
+    if (out.isEmpty) {
+      final String all = _trimmed(match['all_autor_rusname']);
+      if (all.isNotEmpty) out.add(all);
+    }
+    return out;
+  }
+
+  /// Author names from a `/work/{id}` `authors[]` array (or the similars
+  /// `creators.authors`). Keeps authors (`type == 'autor'` or untyped),
+  /// dropping tagged non-authors like translators, and caps the list so a
+  /// credits-heavy work can't flood the card.
+  static List<String> _fantlabWorkAuthors(Object? authors) {
+    if (authors is! List<dynamic>) return const <String>[];
+    final List<String> out = <String>[];
+    for (final Map<String, dynamic> a
+        in authors.whereType<Map<String, dynamic>>()) {
+      final String? type = a['type'] as String?;
+      if (type != null && type != 'autor') continue;
+      final String name = _trimmed(a['name']);
+      if (name.isNotEmpty) out.add(name);
+      if (out.length >= 5) break;
+    }
+    return out;
+  }
+
+  /// Flattens the `extended.classificatory` genre tree into a clean subject
+  /// list (`genre_group[].genre[].label`).
+  static List<String> _fantlabClassificatory(Object? classificatory) {
+    if (classificatory is! Map<String, dynamic>) return const <String>[];
+    final Object? groups = classificatory['genre_group'];
+    if (groups is! List<dynamic>) return const <String>[];
+    final List<String> labels = <String>[];
+    for (final Map<String, dynamic> group
+        in groups.whereType<Map<String, dynamic>>()) {
+      final Object? genres = group['genre'];
+      if (genres is! List<dynamic>) continue;
+      for (final Map<String, dynamic> genre
+          in genres.whereType<Map<String, dynamic>>()) {
+        final String label = _trimmed(genre['label']);
+        if (label.isNotEmpty) labels.add(label);
+      }
+    }
+    return _cleanSubjects(labels);
+  }
+
+  /// Award names from `extended.awards` (`win` first, then `nom`), preferring
+  /// the Russian label.
+  static List<String> _fantlabAwards(Object? awards) {
+    if (awards is! Map<String, dynamic>) return const <String>[];
+    final List<String> out = <String>[];
+    for (final String key in const <String>['win', 'nom']) {
+      final Object? list = awards[key];
+      if (list is! List<dynamic>) continue;
+      for (final Map<String, dynamic> award
+          in list.whereType<Map<String, dynamic>>()) {
+        final String name = _trimmed(award['award_rusname']).isNotEmpty
+            ? _trimmed(award['award_rusname'])
+            : _trimmed(award['award_name']);
+        if (name.isNotEmpty) out.add(name);
+      }
+    }
+    return _dedupe(out);
+  }
+
+  /// Series / cycle name from `extended.parents` — the root cycle in the
+  /// `digest` chain, falling back to `cycles`.
+  static String? _fantlabSeries(Object? parents) {
+    if (parents is! Map<String, dynamic>) return null;
+    final Object? digest = parents['digest'];
+    if (digest is List<dynamic>) {
+      for (final Object? chain in digest) {
+        if (chain is List<dynamic>) {
+          for (final Map<String, dynamic> work
+              in chain.whereType<Map<String, dynamic>>()) {
+            final String name = _trimmed(work['work_name']);
+            if (name.isNotEmpty) return name;
+          }
+        } else if (chain is Map<String, dynamic>) {
+          final String name = _trimmed(chain['work_name']);
+          if (name.isNotEmpty) return name;
+        }
+      }
+    }
+    final Object? cycles = parents['cycles'];
+    if (cycles is List<dynamic>) {
+      for (final Map<String, dynamic> cycle
+          in cycles.whereType<Map<String, dynamic>>()) {
+        final String name = _trimmed(cycle['work_name']).isNotEmpty
+            ? _trimmed(cycle['work_name'])
+            : _trimmed(cycle['name']);
+        if (name.isNotEmpty) return name;
+      }
+    }
+    return null;
+  }
+
+  /// Edition data from `extended.editions_blocks`: the first edition's id (for a
+  /// cover fallback) plus the first page count / ISBN found across editions
+  /// (fields the bare work response lacks).
+  static ({int? pages, String? isbn, int? editionId}) _fantlabFirstEdition(
+    Object? blocks,
+  ) {
+    if (blocks is! Map<String, dynamic>) {
+      return (pages: null, isbn: null, editionId: null);
+    }
+    int? editionId;
+    int? pages;
+    String? isbn;
+    for (final Map<String, dynamic> block
+        in blocks.values.whereType<Map<String, dynamic>>()) {
+      final Object? list = block['list'];
+      if (list is! List<dynamic>) continue;
+      for (final Map<String, dynamic> ed
+          in list.whereType<Map<String, dynamic>>()) {
+        editionId ??= _intOrNull(ed['edition_id']);
+        pages ??= _intOrNull(ed['pages']);
+        if (isbn == null) {
+          final String rawIsbn = _trimmed(ed['isbn']).replaceAll('-', '');
+          if (rawIsbn.isNotEmpty) isbn = rawIsbn;
+        }
+        if (editionId != null && pages != null && isbn != null) {
+          return (pages: pages, isbn: isbn, editionId: editionId);
+        }
+      }
+    }
+    return (pages: pages, isbn: isbn, editionId: editionId);
   }
 }

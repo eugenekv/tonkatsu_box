@@ -32,6 +32,7 @@ class SimpleMediaHandler<T extends Object> implements MediaActionHandler {
     required this.sheetBuilder,
     this.sourceOf,
     this.enrich,
+    this.enrichBeforeDetails,
   })  : _ref = ref,
         _adder = adder,
         _targetCollectionId = targetCollectionId;
@@ -56,11 +57,18 @@ class SimpleMediaHandler<T extends Object> implements MediaActionHandler {
   final DataSource? Function(T item)? sourceOf;
 
   /// Optional one-shot fetch that fills in detail a search result lacks (e.g.
-  /// an OpenLibrary book description). Applied only when writing to the cache
-  /// (add-to-collection), NOT on tap — opening the details sheet stays
-  /// instant. The sheet shows the missing detail via its own lazy loader.
-  /// Failures fall back to the original item.
+  /// an OpenLibrary book description). Applied when writing to the cache
+  /// (add-to-collection) and, for sources flagged by [enrichBeforeDetails],
+  /// before opening the details sheet. Failures fall back to the original item.
   final Future<T> Function(T item)? enrich;
+
+  /// When this returns true for an item, the details sheet opens with the
+  /// [enrich]ed item (behind a spinner) instead of the lightweight search
+  /// result — for sources whose search rows are too sparse to render a useful
+  /// sheet (Fantlab: no cover / genres / description until the work is
+  /// fetched). Sources with rich search rows (OpenLibrary) leave this null so
+  /// the sheet opens instantly and lazy-loads only the description.
+  final bool Function(T item)? enrichBeforeDetails;
 
   /// Enriches [item] behind a blocking spinner. No-op (and no spinner) for
   /// sources without an [enrich] step.
@@ -80,7 +88,13 @@ class SimpleMediaHandler<T extends Object> implements MediaActionHandler {
       await _addToCollection(context, _targetCollectionId, typed);
       return;
     }
-    showDetails(context, typed, mediaType);
+    // Sources with sparse search rows (Fantlab) fetch the full record before
+    // the sheet so it shows the cover / genres / description, not a stub.
+    final T forDetails = (enrichBeforeDetails?.call(typed) ?? false)
+        ? await _enriched(context, typed)
+        : typed;
+    if (!context.mounted) return;
+    showDetails(context, forDetails, mediaType);
   }
 
   @override

@@ -132,6 +132,216 @@ void main() {
       });
     });
 
+    group('fromFantlabSearchMatch', () {
+      Map<String, dynamic> match() => <String, dynamic>{
+            'work_id': 3104,
+            'rusname': 'Солярис',
+            'name': 'Solaris',
+            'year': 1961,
+            'pic_edition_id': 24724,
+            'name_show_im': 'роман',
+            'midmark_by_weight': <double>[8.62],
+            'midmark': <double>[8.65],
+            'markcount': 9026,
+            'autor1_rusname': 'Станислав Лем',
+            'all_autor_rusname': 'Станислав Лем',
+          };
+
+      test('maps a match to a Fantlab book', () {
+        final Book book = Book.fromFantlabSearchMatch(match());
+        expect(book.id, '3104');
+        expect(book.source, DataSource.fantlab);
+        expect(book.nativeId, '3104');
+        expect(book.title, 'Солярис');
+        expect(book.originalTitle, 'Solaris');
+        expect(book.authors, <String>['Станислав Лем']);
+        expect(book.publishYear, 1961);
+        expect(book.workType, 'роман');
+        expect(book.coverUrl,
+            'https://fantlab.ru/images/editions/big/24724');
+        expect(book.externalUrl, 'https://fantlab.ru/work3104');
+        expect(book.externalIdInt, 3104);
+      });
+
+      test('prefers midmark_by_weight for the rating; markcount as count', () {
+        final Book book = Book.fromFantlabSearchMatch(match());
+        expect(book.rating, closeTo(8.62, 0.0001));
+        expect(book.ratingCount, 9026);
+      });
+
+      test('tolerates work_id arriving as a string', () {
+        final Map<String, dynamic> m = match()..['work_id'] = '3104';
+        expect(Book.fromFantlabSearchMatch(m).id, '3104');
+      });
+
+      test('tolerates work_id arriving as a single-element array', () {
+        final Map<String, dynamic> m = match()..['work_id'] = <int>[3104];
+        final Book book = Book.fromFantlabSearchMatch(m);
+        expect(book.id, '3104');
+        expect(book.externalIdInt, 3104);
+      });
+
+      test('falls back to all_autor_rusname when no numbered authors', () {
+        final Map<String, dynamic> m = match()..remove('autor1_rusname');
+        expect(
+          Book.fromFantlabSearchMatch(m).authors,
+          <String>['Станислав Лем'],
+        );
+      });
+
+      test('drops a zero cover edition id', () {
+        final Map<String, dynamic> m = match()..['pic_edition_id'] = 0;
+        expect(Book.fromFantlabSearchMatch(m).coverUrl, isNull);
+      });
+
+      test('falls back to pic_edition_id_auto when pic_edition_id is 0', () {
+        final Map<String, dynamic> m = match()
+          ..['pic_edition_id'] = 0
+          ..['pic_edition_id_auto'] = 555;
+        expect(
+          Book.fromFantlabSearchMatch(m).coverUrl,
+          'https://fantlab.ru/images/editions/big/555',
+        );
+      });
+    });
+
+    group('fromFantlabWork', () {
+      Map<String, dynamic> work() => <String, dynamic>{
+            'work_id': 3104,
+            'work_name': 'Солярис',
+            'work_name_orig': 'Solaris',
+            'work_description': '[b]An epic[/b] tale [USER=1]nog[/USER]',
+            'image': '/images/editions/big/24724?r=1',
+            'work_type': 'Роман',
+            'work_year': 1961,
+            'lang_code': 'pl',
+            'val_voters': 9026,
+            'rating': <String, dynamic>{'rating': '8.62', 'voters': 9026},
+            'authors': <Map<String, dynamic>>[
+              <String, dynamic>{'name': 'Станислав Лем', 'type': 'autor'},
+              <String, dynamic>{'name': 'Переводчик', 'type': 'translator'},
+            ],
+            'classificatory': <String, dynamic>{
+              'genre_group': <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'genre': <Map<String, dynamic>>[
+                    <String, dynamic>{'label': 'Планетарная фантастика'},
+                  ],
+                },
+              ],
+            },
+            'awards': <String, dynamic>{
+              'win': <Map<String, dynamic>>[
+                <String, dynamic>{'award_rusname': 'Премия имени Лема'},
+              ],
+            },
+            'parents': <String, dynamic>{
+              'digest': <List<Map<String, dynamic>>>[
+                <Map<String, dynamic>>[
+                  <String, dynamic>{'work_name': 'Цикл о контакте'},
+                ],
+              ],
+            },
+            'editions_blocks': <String, dynamic>{
+              '10': <String, dynamic>{
+                'list': <Map<String, dynamic>>[
+                  <String, dynamic>{'pages': 200, 'isbn': '978-5-17-012345-6'},
+                ],
+              },
+            },
+          };
+
+      test('maps base fields and strips BB-codes from the description', () {
+        final Book book = Book.fromFantlabWork(work());
+        expect(book.id, '3104');
+        expect(book.source, DataSource.fantlab);
+        expect(book.title, 'Солярис');
+        expect(book.originalTitle, 'Solaris');
+        expect(book.description, 'An epic tale nog');
+        expect(book.workType, 'Роман');
+        expect(book.publishYear, 1961);
+        expect(book.languages, <String>['pl']);
+        expect(book.coverUrl,
+            'https://fantlab.ru/images/editions/big/24724?r=1');
+      });
+
+      test('keeps only real authors (type == autor)', () {
+        expect(Book.fromFantlabWork(work()).authors, <String>['Станислав Лем']);
+      });
+
+      test('parses the string rating object and voter count', () {
+        final Book book = Book.fromFantlabWork(work());
+        expect(book.rating, closeTo(8.62, 0.0001));
+        expect(book.ratingCount, 9026);
+      });
+
+      test('pulls subjects / awards / series from the extended blocks', () {
+        final Book book = Book.fromFantlabWork(work());
+        expect(book.subjects, <String>['Планетарная фантастика']);
+        expect(book.awards, <String>['Премия имени Лема']);
+        expect(book.series, 'Цикл о контакте');
+      });
+
+      test('reads page count and a normalised 13-digit ISBN from editions', () {
+        final Book book = Book.fromFantlabWork(work());
+        expect(book.pageCount, 200);
+        expect(book.isbn13, '9785170123456');
+        expect(book.isbn10, isNull);
+      });
+
+      test('falls back to the first edition cover when image is null', () {
+        final Map<String, dynamic> w = work()
+          ..remove('image')
+          ..['editions_blocks'] = <String, dynamic>{
+            '32': <String, dynamic>{
+              'list': <Map<String, dynamic>>[
+                <String, dynamic>{'edition_id': 491880},
+              ],
+            },
+          };
+        expect(
+          Book.fromFantlabWork(w).coverUrl,
+          'https://fantlab.ru/images/editions/big/491880',
+        );
+      });
+    });
+
+    group('fromFantlabSimilar', () {
+      Map<String, dynamic> entry() => <String, dynamic>{
+            'id': 134421,
+            'name': 'Ложная слепота',
+            'name_orig': 'Blindsight',
+            'name_type': 'роман',
+            'year': 2006,
+            'image': '/images/editions/big/160373',
+            'description': 'desc',
+            'creators': <String, dynamic>{
+              'authors': <Map<String, dynamic>>[
+                <String, dynamic>{'name': 'Питер Уоттс', 'type': 'autor'},
+              ],
+            },
+            'stat': <String, dynamic>{'rating': '7.87', 'voters': 5573},
+            'saga': <String, dynamic>{'name': 'Огнепад'},
+          };
+
+      test('maps a similar entry to a Fantlab book', () {
+        final Book book = Book.fromFantlabSimilar(entry());
+        expect(book.id, '134421');
+        expect(book.source, DataSource.fantlab);
+        expect(book.title, 'Ложная слепота');
+        expect(book.originalTitle, 'Blindsight');
+        expect(book.authors, <String>['Питер Уоттс']);
+        expect(book.publishYear, 2006);
+        expect(book.workType, 'роман');
+        expect(book.series, 'Огнепад');
+        expect(book.rating, closeTo(7.87, 0.0001));
+        expect(book.ratingCount, 5573);
+        expect(book.coverUrl,
+            'https://fantlab.ru/images/editions/big/160373');
+        expect(book.externalUrl, 'https://fantlab.ru/work134421');
+      });
+    });
+
     group('db round-trip', () {
       test('toDb / fromDb preserves every field', () {
         final Book book = createTestBook(

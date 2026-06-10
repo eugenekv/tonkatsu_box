@@ -5,22 +5,32 @@ import 'package:tonkatsu_box/shared/models/data_source.dart';
 
 void main() {
   group('kDataSourceCatalog', () {
-    test('has one entry per search-source group', () {
-      expect(kDataSourceCatalog.length, groupedSearchSources.length);
+    test('every search-source group is mapped to its sources', () {
+      for (final SourceGroupEntry g in groupedSearchSources) {
+        expect(
+          kSearchGroupToSources.containsKey(g.groupId),
+          isTrue,
+          reason: 'group "${g.groupId}" is not mapped in kSearchGroupToSources',
+        );
+      }
     });
 
-    test('mirrors the search screen provider groups one-to-one', () {
+    test('mirrors the mapped search-group sources', () {
       final Set<DataSource> catalogSources = kDataSourceCatalog
           .map((SourceInfo info) => info.source)
           .toSet();
 
-      final Set<DataSource?> searchSourcesMapped = groupedSearchSources
-          .map((SourceGroupEntry g) => kSearchGroupToSource[g.groupId])
+      final Set<DataSource> searchSourcesMapped = kSearchGroupToSources.values
+          .expand((List<DataSource> sources) => sources)
           .toSet();
 
-      // Every search group must be mapped (no nulls leaking through).
-      expect(searchSourcesMapped.contains(null), isFalse);
       expect(catalogSources, searchSourcesMapped);
+    });
+
+    test('has no duplicate sources', () {
+      final List<DataSource> sources =
+          kDataSourceCatalog.map((SourceInfo i) => i.source).toList();
+      expect(sources.length, sources.toSet().length);
     });
 
     test('every entry lists at least one media type', () {
@@ -39,13 +49,20 @@ void main() {
       expect(needKey, <DataSource>{DataSource.igdb, DataSource.tmdb});
     });
 
-    test('excludes SteamGridDB, Fantlab and VGMaps', () {
+    test('excludes the non-searchable SteamGridDB and VGMaps', () {
       final Set<DataSource> sources =
           kDataSourceCatalog.map((SourceInfo i) => i.source).toSet();
 
       expect(sources.contains(DataSource.steamGridDb), isFalse);
-      expect(sources.contains(DataSource.fantlab), isFalse);
       expect(sources.contains(DataSource.vgMaps), isFalse);
+    });
+
+    test('includes both book providers — OpenLibrary and Fantlab', () {
+      final Set<DataSource> sources =
+          kDataSourceCatalog.map((SourceInfo i) => i.source).toSet();
+
+      expect(sources.contains(DataSource.openLibrary), isTrue);
+      expect(sources.contains(DataSource.fantlab), isTrue);
     });
   });
 }

@@ -23,6 +23,7 @@ import '../../../shared/models/collection.dart';
 import '../../../shared/models/collection_item.dart';
 import '../../../shared/models/item_status.dart';
 import '../../../shared/models/custom_media.dart';
+import '../../../shared/models/book.dart';
 import '../../../shared/models/media_type.dart';
 import '../../../shared/models/movie.dart';
 import '../../../shared/models/tv_show.dart';
@@ -38,6 +39,7 @@ import '../widgets/episode_tracker_section.dart';
 import '../widgets/item_tags_section.dart';
 import '../widgets/anime_progress_section.dart';
 import '../widgets/book_progress_section.dart';
+import '../widgets/book_similars_section.dart';
 import '../widgets/manga_progress_section.dart';
 import '../widgets/dialogs/add_time_dialog.dart';
 import '../providers/tracker_provider.dart';
@@ -705,6 +707,16 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
             tmdbId: item.externalId,
             mediaType: item.mediaType,
           ),
+        // Similar books — Fantlab is the only book provider with a similars
+        // endpoint.
+        if (settings.showRecommendations &&
+            item.mediaType == MediaType.book &&
+            item.book?.source == DataSource.fantlab &&
+            item.book?.nativeId != null)
+          BookSimilarsSection(
+            workId: item.book!.nativeId,
+            onAddBook: _addBookFromSimilars,
+          ),
       ],
       authorComment: item.authorComment,
       userComment: item.userComment,
@@ -842,6 +854,57 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       success
           ? l.searchAddedToNamed(title, collectionName)
           : l.searchAlreadyInNamed(title, collectionName),
+      type: success ? SnackType.success : SnackType.info,
+    );
+  }
+
+  /// Adds a book tapped in the "Similar books" row to a chosen collection,
+  /// caching the full record first. Carries `book.source` so the Fantlab
+  /// origin survives.
+  Future<void> _addBookFromSimilars(Book book) async {
+    final Map<int, List<CollectedItemInfo>> ownMap =
+        await ref.read(collectedBookIdsProvider.future);
+    final Set<int?> alreadyIn = <CollectedItemInfo>[
+      ...?ownMap[book.externalIdInt],
+    ].map((CollectedItemInfo i) => i.collectionId).toSet();
+
+    if (!mounted) return;
+    final S l = S.of(context);
+    final CollectionChoice? choice = await showCollectionPickerDialog(
+      context: context,
+      ref: ref,
+      title: l.searchAddToCollection,
+      alreadyInCollectionIds: alreadyIn,
+    );
+    if (choice == null || !mounted) return;
+
+    final int? collectionId;
+    final String collectionName;
+    switch (choice) {
+      case ChosenCollection(:final Collection collection):
+        collectionId = collection.id;
+        collectionName = collection.name;
+      case WithoutCollection():
+        collectionId = null;
+        collectionName = l.collectionsUncategorized;
+    }
+
+    await ref.read(databaseServiceProvider).bookDao.upsertBook(book);
+
+    final bool success = await ref
+        .read(collectionItemsNotifierProvider(collectionId).notifier)
+        .addItem(
+          mediaType: MediaType.book,
+          externalId: book.externalIdInt,
+          source: book.source,
+        );
+
+    if (!mounted) return;
+
+    context.showSnack(
+      success
+          ? l.searchAddedToNamed(book.title, collectionName)
+          : l.searchAlreadyInNamed(book.title, collectionName),
       type: success ? SnackType.success : SnackType.info,
     );
   }

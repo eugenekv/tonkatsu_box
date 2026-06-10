@@ -560,6 +560,7 @@ class CollectionItem with Exportable {
         mediaType: mediaType,
         externalId: externalId,
         source: source,
+        coverUrl: thumbnailUrl,
       );
 
   @override

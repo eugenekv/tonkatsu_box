@@ -33,7 +33,7 @@
 
 ---
 
-Tonkatsu Box is a free, open-source app to organize your media collections. Search millions of titles from IGDB, TMDB, VNDB, AniList, and MangaBaka. Track your progress, rate everything, create visual boards and mood grids, and import your library from Steam, Trakt.tv, RetroAchievements, MyAnimeList, or AniList.
+Tonkatsu Box is a free, open-source app to organize your media collections. Search millions of titles from IGDB, TMDB, VNDB, AniList, MangaBaka, OpenLibrary, and Fantlab. Track your progress, rate everything, create visual boards and mood grids, and import your library from Steam, Trakt.tv, RetroAchievements, MyAnimeList, or AniList.
 
 <p align="center">
   <img src="docs/screenshots/mockup_main_all.jpg" width="800" alt="Main screen">
@@ -67,7 +67,7 @@ Tonkatsu Box is a free, open-source app to organize your media collections. Sear
 |---|---|
 | **Collections** | Organize by platform, genre, or any way you like. Grid, list, and table views |
 | **Wishlist** | Dedicated top-level list for what you want to play, watch, or read next |
-| **Search** | IGDB (games), TMDB (movies/TV), AniList (anime & manga), MangaBaka (manga), VNDB (visual novels) |
+| **Search** | IGDB (games), TMDB (movies/TV), AniList (anime & manga), MangaBaka (manga), VNDB (visual novels), OpenLibrary & Fantlab (books) |
 | **Progress Tracking** | Status, ratings 1-10, episode tracking for TV shows and anime |
 | **Discord Rich Presence** | Show what you're playing/watching/reading in Discord (desktop) |
 | **Visual Boards** | Drag-and-drop canvas with posters, notes, and connections |
@@ -143,6 +143,8 @@ Already tracking elsewhere? Bring your data:
 | <img src="assets/images/icon_vndb_color.png" width="28" alt="VNDB"> | Visual Novels | [VNDB](https://vndb.org/) | Not required |
 | <img src="assets/images/icon_anilist_color.png" width="28" alt="AniList"> | Anime & Manga | [AniList](https://anilist.co/) | Not required |
 | <img src="assets/images/icon_mangabaka_color.png" width="28" alt="MangaBaka"> | Manga | [MangaBaka](https://mangabaka.org/) | Not required |
+| <img src="assets/images/open_library_color.png" width="28" alt="OpenLibrary"> | Books | [OpenLibrary](https://openlibrary.org/) | Not required |
+| <img src="assets/images/icon_fantlab_color.png" width="28" alt="Fantlab"> | Books | [Fantlab](https://fantlab.ru/) | Not required |
 | <img src="assets/images/icon_steamgriddb_color.png" width="28" alt="SteamGridDB"> | Artwork | [SteamGridDB](https://www.steamgriddb.com/) | Built-in |
 | <img src="assets/images/icon_scrapper_color.png" width="28" alt="ScreenScraper"> | Retro media gallery | [ScreenScraper](https://www.screenscraper.fr/) | Required (user account) |
 | <img src="assets/images/ra_logo.png" width="28" alt="RetroAchievements"> | Achievements | [RetroAchievements](https://retroachievements.org/) | Required |
@@ -190,7 +192,7 @@ Contributions welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for build ins
 
 ## Credits
 
-Data: [IGDB](https://www.igdb.com/) · [TMDB](https://www.themoviedb.org/) · [VNDB](https://vndb.org/) · [AniList](https://anilist.co/) · [MangaBaka](https://mangabaka.org/) · [MyAnimeList](https://myanimelist.net/) · [RetroAchievements](https://retroachievements.org/) · [SteamGridDB](https://www.steamgriddb.com/) · [ScreenScraper](https://www.screenscraper.fr/)
+Data: [IGDB](https://www.igdb.com/) · [TMDB](https://www.themoviedb.org/) · [VNDB](https://vndb.org/) · [AniList](https://anilist.co/) · [MangaBaka](https://mangabaka.org/) · [OpenLibrary](https://openlibrary.org/) · [Fantlab](https://fantlab.ru/) · [MyAnimeList](https://myanimelist.net/) · [RetroAchievements](https://retroachievements.org/) · [SteamGridDB](https://www.steamgriddb.com/) · [ScreenScraper](https://www.screenscraper.fr/)
 
 *This product uses the TMDB API but is not endorsed or certified by TMDB.*
 

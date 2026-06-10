@@ -24,8 +24,10 @@ class SourceInfo {
   final SourceKeyRequirement keyRequirement;
 }
 
-/// Data providers backing the Search screen, in search-tab order. SteamGridDB,
-/// Fantlab and VGMaps are intentionally absent — they are not searchable.
+/// Data providers backing the Search screen — one entry per provider, in
+/// search-tab order (the wizard "Sources" step and Settings → Credits render
+/// from this). SteamGridDB and VGMaps are absent (not searchable). OpenLibrary
+/// and Fantlab are separate book providers, each its own entry.
 const List<SourceInfo> kDataSourceCatalog = <SourceInfo>[
   SourceInfo(
     source: DataSource.tmdb,
@@ -63,14 +65,22 @@ const List<SourceInfo> kDataSourceCatalog = <SourceInfo>[
     mediaTypes: <MediaType>[MediaType.book],
     url: 'https://openlibrary.org/',
   ),
+  SourceInfo(
+    source: DataSource.fantlab,
+    mediaTypes: <MediaType>[MediaType.book],
+    url: 'https://fantlab.ru/',
+  ),
 ];
 
-/// Maps a search-source `groupId` to its [DataSource] (used by the sync test).
-const Map<String, DataSource> kSearchGroupToSource = <String, DataSource>{
-  'tmdb': DataSource.tmdb,
-  'igdb': DataSource.igdb,
-  'anilist': DataSource.anilist,
-  'mangabaka': DataSource.mangabaka,
-  'vndb': DataSource.vndb,
-  'books': DataSource.openLibrary,
+/// Maps a search-source `groupId` to the [DataSource]s in that group (used by
+/// the sync test). Each provider is its own group (source-first).
+const Map<String, List<DataSource>> kSearchGroupToSources =
+    <String, List<DataSource>>{
+  'tmdb': <DataSource>[DataSource.tmdb],
+  'igdb': <DataSource>[DataSource.igdb],
+  'anilist': <DataSource>[DataSource.anilist],
+  'mangabaka': <DataSource>[DataSource.mangabaka],
+  'vndb': <DataSource>[DataSource.vndb],
+  'openlibrary': <DataSource>[DataSource.openLibrary],
+  'fantlab': <DataSource>[DataSource.fantlab],
 };

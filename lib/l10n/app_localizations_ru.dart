@@ -1041,6 +1041,9 @@ class SRu extends S {
       'Данные о книгах из Open Library (CC0 / ODbL).';
 
   @override
+  String get creditsFantlabAttribution => 'Данные о книгах из Fantlab.';
+
+  @override
   String get creditsOpenSource => 'Открытый исходный код';
 
   @override
@@ -1850,6 +1853,12 @@ class SRu extends S {
   String get searchSourceOpenLibrary => 'OpenLibrary';
 
   @override
+  String get searchSourceFantlab => 'Fantlab';
+
+  @override
+  String get searchSourceBooks => 'Книги';
+
+  @override
   String get searchHintManga => 'Поиск манги...';
 
   @override
@@ -1869,6 +1878,27 @@ class SRu extends S {
 
   @override
   String get bookSearchSubject => 'Тема';
+
+  @override
+  String get bookSimilarTitle => 'Похожие книги';
+
+  @override
+  String get editionPickerTitle => 'Выбрать издание';
+
+  @override
+  String get editionPickerEmpty => 'Изданий нет';
+
+  @override
+  String get fantlabTypeNovel => 'Роман';
+
+  @override
+  String get fantlabTypeNovella => 'Повесть';
+
+  @override
+  String get fantlabTypeShortStory => 'Рассказ';
+
+  @override
+  String get fantlabTypeCycle => 'Цикл';
 
   @override
   String get searchSelectPlatform => 'Выбрать платформу';
@@ -2369,7 +2399,7 @@ class SRu extends S {
   String get welcomeStepTour => 'Тур';
 
   @override
-  String get welcomeChipBooks => 'Книги (OpenLibrary)';
+  String get welcomeChipBooks => 'Книги (OpenLibrary, Fantlab)';
 
   @override
   String get welcomeSourcesTitle => 'Откуда берутся данные';
@@ -2409,6 +2439,10 @@ class SRu extends S {
   @override
   String get welcomeSourceDescOpenLibrary =>
       'Открытый каталог из миллионов книг.';
+
+  @override
+  String get welcomeSourceDescFantlab =>
+      'Подробный каталог книг с оценками, наградами и циклами.';
 
   @override
   String get welcomeTourTitle => 'Знакомство с меню';
