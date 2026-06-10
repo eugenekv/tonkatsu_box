@@ -11,12 +11,11 @@ class MigrationV28 extends Migration {
 
   @override
   Future<void> migrate(Database db) async {
-    try {
-      await db.execute(
-        'ALTER TABLE custom_items ADD COLUMN display_type TEXT',
-      );
-    } on DatabaseException {
-      // Column already present on installs that picked it up via _onCreate.
-    }
+    await Migration.addColumnIfAbsent(
+      db,
+      'custom_items',
+      'display_type',
+      'display_type TEXT',
+    );
   }
 }

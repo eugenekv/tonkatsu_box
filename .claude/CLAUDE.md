@@ -104,31 +104,38 @@ final databaseServiceProvider = Provider<DatabaseService>((ref) => DatabaseServi
 ### База данных (`lib/core/database/`)
 - SQLite через sqflite_common_ffi
 - Провайдер: `databaseServiceProvider`
-- Актуальное количество таблиц и номер миграции смотреть в `schema.dart` / `database_service.dart` (`version:` в `_initDatabase()`) — не доверять этому файлу
+- Номер версии смотреть в `database_service.dart` (`version:` в `_initDatabase()` = версия последней миграции)
 
-#### Структура файлов БД:
+#### Модель миграций (единый источник правды)
+**Миграции — единственный источник схемы.** И свежая установка, и апгрейд строят БД одним и тем же способом — прогоном цепочки миграций по порядку:
+- `_onCreate` (свежая БД) → гоняет **всю** цепочку `MigrationRegistry.all` (v1..N) с нуля.
+- `_onUpgrade` (существующая БД) → гоняет `MigrationRegistry.pending(oldVersion)`.
+
+Никакого `createAll`/«полной схемы одним куском» в продакшене нет — это раньше был второй, руками-синхронизируемый источник, который дрейфовал от миграций (удалён). Прогон цепочки с пустой БД обязан давать ровно ту же схему, что у реально обновлённых БД — это проверяет `test/core/database/schema_parity_test.dart` (golden-снимок схемы).
+
+`schema.dart` (`DatabaseSchema`) остаётся только как набор `create*Table` DDL-хелперов, которые зовут отдельные миграции (и сетап тестов). Эти хелперы **иммутабельны наравне с миграциями**: добавить колонку в существующий `create*Table` нельзя — он отражает форму таблицы на момент её создающей миграции, и правка сломает replay.
+
 ```
 lib/core/database/
-├── database_service.dart          # CRUD-операции, _initDatabase, _onCreate, _onUpgrade
-├── schema.dart                    # DatabaseSchema — все CREATE TABLE (18 методов + createAll)
+├── database_service.dart          # CRUD + _initDatabase + _onCreate/_onUpgrade (оба гоняют цепочку)
 └── migrations/
-    ├── migration.dart             # Абстрактный класс Migration (version, description, migrate)
-    ├── migration_registry.dart    # MigrationRegistry.all / .pending(oldVersion)
-    ├── migration_v2.dart          # MigrationV2..MigrationVN — по файлу на версию
-    └── ...
+    ├── migration.dart             # Абстрактный Migration (version, description, migrate) + addColumnIfAbsent
+    ├── migration_registry.dart    # MigrationRegistry.all (v1..N) / .pending(oldVersion)
+    ├── migration_v1.dart          # Базовая схема (стартовая точка цепочки)
+    └── migration_vN.dart          # по файлу на версию
 ```
 
-#### Правила работы с миграциями:
-- **Новая таблица** → добавить метод `create*Table` в `DatabaseSchema` (`schema.dart`)
-- **Новая миграция** → создать `migration_vN.dart` с классом `MigrationVN extends Migration`
-- Зарегистрировать миграцию в `MigrationRegistry.all` (`migration_registry.dart`)
-- Увеличить `version` в `_initDatabase()` (`database_service.dart`)
-- Если миграция создаёт новую таблицу — вызывать `DatabaseSchema.create*Table(db)`, а **не** дублировать SQL
-- Если миграция содержит ALTER/UPDATE — SQL пишется inline в методе `migrate()`
-- `_onCreate` вызывает `DatabaseSchema.createAll(db)` + `MigrationV24().migrate(db)` для seed статических справочников — **не трогать**
-- `_onUpgrade` итерирует `MigrationRegistry.pending(oldVersion)` — **не трогать**
-- SQL-запросы в миграциях **нельзя** менять задним числом — только добавлять новые миграции
-- `database_service.dart` содержит **только** CRUD-операции и инициализацию — никаких CREATE TABLE / ALTER TABLE
+#### ⚠️ ГЛАВНОЕ ПРАВИЛО: существующие миграции ИММУТАБЕЛЬНЫ
+**Никогда не редактируй уже существующую миграцию — только добавляй новую.** Каждая миграция — исторический факт; её правка меняет результат прогона цепочки и расходится с реально установленными БД. Это включает SQL внутри `migrate()` и любой DDL, который она инлайнит. Менять схему = **новая** миграция.
+
+#### Как добавить изменение схемы:
+- Создать `migration_vN.dart` с `class MigrationVN extends Migration`; **DDL пиши inline в `migrate()`** (новый `CREATE`/`ALTER` — прямо в миграции). Существующие `create*Table`-хелперы трогать нельзя (см. выше).
+- Зарегистрировать в `MigrationRegistry.all` (`migration_registry.dart`), в конец.
+- Увеличить `version` в `_initDatabase()` (`database_service.dart`).
+- **Новая колонка** → `Migration.addColumnIfAbsent(db, table, column, def)` (идемпотентно), **не** голый `ALTER ... ADD COLUMN`.
+- **Индекс** → `CREATE [UNIQUE] INDEX IF NOT EXISTS`.
+- Прогнать `schema_parity_test` — обновить golden, если изменение схемы намеренное.
+- `database_service.dart` — только CRUD и инициализация, никаких CREATE/ALTER.
 
 ### Tests (test/)
 - Mirror structure: test/ mirrors lib/
@@ -297,9 +304,9 @@ D-pad и кнопка A обрабатываются глобально в `Navi
 ## Ключевые файлы для ориентации
 | Файл | Описание |
 |------|----------|
-| `lib/core/database/database_service.dart` | CRUD-операции БД |
-| `lib/core/database/schema.dart` | Определения всех таблиц (DatabaseSchema) |
-| `lib/core/database/migrations/` | Миграции БД (v2–v24, реестр, базовый класс) |
+| `lib/core/database/database_service.dart` | CRUD + инициализация; `_onCreate`/`_onUpgrade` гоняют цепочку миграций |
+| `lib/core/database/migrations/` | Миграции БД (v1..N) — единственный источник схемы; реестр, базовый класс |
+| `lib/core/database/schema.dart` | Иммутабельные `create*Table` DDL-хелперы для миграций (без `createAll`) |
 | `lib/features/collections/widgets/canvas_view.dart` | Главный виджет Board/Canvas |
 | `lib/features/collections/providers/canvas_provider.dart` | State канваса |
 | `lib/features/collections/providers/collections_provider.dart` | State коллекций |

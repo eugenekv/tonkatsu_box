@@ -64,3 +64,11 @@ app.*.map.json
 .env.local
 
 /dev/
+
+# SQLite databases (local / reference dumps — never commit)
+*.db
+*.db-shm
+*.db-wal
+
+# Kotlin build artifacts
+android/.kotlin/

@@ -12,7 +12,16 @@ class MigrationV36 extends Migration {
 
   @override
   Future<void> migrate(Database db) async {
-    await DatabaseSchema.createMoodGridsTable(db);
+    await db.execute('''
+      CREATE TABLE mood_grids (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        rows INTEGER NOT NULL DEFAULT 1,
+        cols INTEGER NOT NULL DEFAULT 5,
+        created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+        updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+      )
+    ''');
     await DatabaseSchema.createMoodGridCellsTable(db);
   }
 }
