@@ -1,10 +1,9 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import '../schema.dart';
 import 'migration.dart';
 
-/// Creates `collection_items` and folds the legacy `collection_games` table
-/// (games-only) into it under `media_type = 'game'`.
+/// Creates `collection_items`, folds the legacy `collection_games` table
+/// (games-only) into it under `media_type = 'game'`, then drops the old table.
 class MigrationV8 extends Migration {
   @override
   int get version => 8;
@@ -15,7 +14,27 @@ class MigrationV8 extends Migration {
 
   @override
   Future<void> migrate(Database db) async {
-    await DatabaseSchema.createCollectionItemsTable(db);
+    await db.execute('''
+      CREATE TABLE collection_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        collection_id INTEGER NOT NULL,
+        media_type TEXT NOT NULL DEFAULT 'game',
+        external_id INTEGER NOT NULL,
+        platform_id INTEGER,
+        current_season INTEGER DEFAULT 0,
+        current_episode INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'not_started',
+        author_comment TEXT,
+        user_comment TEXT,
+        added_at INTEGER NOT NULL,
+        FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+        UNIQUE(collection_id, media_type, external_id)
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX idx_collection_items_collection
+      ON collection_items(collection_id)
+    ''');
     await _migrateCollectionGamesToItems(db);
   }
 
@@ -29,5 +48,6 @@ class MigrationV8 extends Migration {
         author_comment, user_comment, added_at
       FROM collection_games
     ''');
+    await db.execute('DROP TABLE collection_games');
   }
 }

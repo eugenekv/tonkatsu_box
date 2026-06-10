@@ -1,45 +1,11 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+/// Immutable `CREATE TABLE` DDL helpers called by individual migrations (and
+/// test setup). There is intentionally no `createAll` — a database is built by
+/// running the migration chain (see `database_service.dart`). Each method
+/// reflects its table's shape at the migration that creates it; never modify
+/// one (it would change the migration replay).
 abstract final class DatabaseSchema {
-  static Future<void> createAll(Database db) async {
-    await createPlatformsTable(db);
-    await createGamesTable(db);
-    await createCollectionsTable(db);
-    await createCanvasItemsTable(db);
-    await createCanvasViewportTable(db);
-    await createCanvasConnectionsTable(db);
-    await createGameCanvasViewportTable(db);
-    await createMoviesCacheTable(db);
-    await createTvShowsCacheTable(db);
-    await createTvSeasonsCacheTable(db);
-    await createCollectionItemsTable(db);
-    await createTvEpisodesCacheTable(db);
-    await createWatchedEpisodesTable(db);
-    await createTmdbGenresTable(db);
-    await createWishlistTable(db);
-    await createIgdbGenresTable(db);
-    await createVisualNovelsCacheTable(db);
-    await createVndbTagsTable(db);
-    await createMangaCacheTable(db);
-    await createBooksCacheTable(db);
-    await createTierListsTable(db);
-    await createTierDefinitionsTable(db);
-    await createTierListEntriesTable(db);
-    await createCustomItemsTable(db);
-    await createCollectionTagsTable(db);
-    await createTrackerProfilesTable(db);
-    await createTrackerGameDataTable(db);
-    await createTrackerAchievementsTable(db);
-    await createAnimeCacheTable(db);
-    await createMoodGridsTable(db);
-    await createMoodGridCellsTable(db);
-    await createAniListTagsTable(db);
-    await createMangaBakaGenresTable(db);
-    await createMangaBakaTagsTable(db);
-    await createTrackedReleasesTable(db);
-    await createCalendarEntriesTable(db);
-  }
-
   static Future<void> createPlatformsTable(Database db) async {
     await db.execute('''
       CREATE TABLE platforms (

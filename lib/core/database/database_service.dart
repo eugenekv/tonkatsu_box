@@ -38,10 +38,6 @@ import 'dao/tracker_dao.dart';
 import 'dao/wishlist_dao.dart';
 import 'migrations/migration.dart';
 import 'migrations/migration_registry.dart';
-import 'migrations/migration_v24.dart';
-import 'migrations/migration_v44.dart';
-import 'migrations/migration_v48.dart';
-import 'schema.dart';
 
 final Provider<DatabaseService> databaseServiceProvider =
     Provider<DatabaseService>((Ref ref) {
@@ -273,15 +269,11 @@ class DatabaseService {
 
   Future<void> _onCreate(Database db, int version) async {
     _log.info('Creating database schema v$version');
-    await DatabaseSchema.createAll(db);
-    // Seed static reference tables (genres, tags, platforms): migrations don't
-    // run on fresh install, so invoke the seed migration explicitly.
-    await MigrationV24().migrate(db);
-    await MigrationV44.seedGenres(db);
-    // Source-aware book unique index lives in v48; replay it here so fresh
-    // installs get it too (createCollectionItemsTable is shared with the v8
-    // upgrade path and must stay untouched).
-    await MigrationV48().migrate(db);
+    // Single source of truth: a fresh DB is built by running the whole
+    // migration chain (v1..N) in order, exactly like an upgrade from zero.
+    for (final Migration migration in MigrationRegistry.all) {
+      await migration.migrate(db);
+    }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {

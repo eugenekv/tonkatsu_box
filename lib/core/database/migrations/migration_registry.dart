@@ -1,4 +1,5 @@
 import 'migration.dart';
+import 'migration_v1.dart';
 import 'migration_v2.dart';
 import 'migration_v3.dart';
 import 'migration_v4.dart';
@@ -49,6 +50,7 @@ import 'migration_v48.dart';
 
 abstract final class MigrationRegistry {
   static final List<Migration> all = <Migration>[
+    MigrationV1(),
     MigrationV2(),
     MigrationV3(),
     MigrationV4(),
