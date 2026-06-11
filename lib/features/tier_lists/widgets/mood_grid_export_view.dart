@@ -32,10 +32,14 @@ class MoodGridExportView extends StatelessWidget {
   Widget build(BuildContext context) {
     final String template = grid.captionTemplate ?? '';
     final bool showCaptions = template.trim().isNotEmpty;
+    // Mirrors the row layout below: every cell carries xs padding on both
+    // sides, the captions block is a fixed-width child, and the container
+    // adds lg padding around everything.
     final double cellsWidth =
-        _cellWidth * grid.cols + AppSpacing.md * (grid.cols + 1);
-    final double width =
-        cellsWidth + (showCaptions ? _captionWidth + AppSpacing.md : 0);
+        (_cellWidth + 2 * AppSpacing.xs) * grid.cols;
+    final double width = cellsWidth +
+        2 * AppSpacing.lg +
+        (showCaptions ? _captionWidth : 0);
 
     return RepaintBoundary(
       key: repaintKey,

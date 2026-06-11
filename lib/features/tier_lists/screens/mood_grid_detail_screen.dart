@@ -38,8 +38,9 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final S l = S.of(context);
-    final AsyncValue<MoodGridDetailState> async =
-        ref.watch(moodGridDetailProvider(widget.gridId));
+    final AsyncValue<MoodGridDetailState> async = ref.watch(
+      moodGridDetailProvider(widget.gridId),
+    );
 
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -60,9 +61,8 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
                         cells: state.cells,
                         mediaByPosition: state.mediaByPosition,
                         onCellTap: (MoodGridCell c) => _pickItem(c),
-                        onCellContextMenu:
-                            (MoodGridCell c, Offset pos) =>
-                                _showCellContextMenu(c, pos, l),
+                        onCellContextMenu: (MoodGridCell c, Offset pos) =>
+                            _showCellContextMenu(c, pos, l),
                       ),
                       Positioned(
                         left: -10000,
@@ -94,7 +94,8 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
                 DraggableFabItem(
                   icon: Icons.view_column_outlined,
                   label: l.moodGridCaptionTemplate,
-                  onTap: () => _editCaptionTemplate(state.grid.captionTemplate, l),
+                  onTap: () =>
+                      _editCaptionTemplate(state.grid.captionTemplate, l),
                 ),
                 const DraggableFabDivider(),
                 DraggableFabItem(
@@ -128,11 +129,11 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
               onDecrement: state.grid.rows <= 1
                   ? null
                   : () => _resize(
-                        newRows: state.grid.rows - 1,
-                        newCols: state.grid.cols,
-                        state: state,
-                        l: l,
-                      ),
+                      newRows: state.grid.rows - 1,
+                      newCols: state.grid.cols,
+                      state: state,
+                      l: l,
+                    ),
               onIncrement: () => _resize(
                 newRows: state.grid.rows + 1,
                 newCols: state.grid.cols,
@@ -146,11 +147,11 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
               onDecrement: state.grid.cols <= 1
                   ? null
                   : () => _resize(
-                        newRows: state.grid.rows,
-                        newCols: state.grid.cols - 1,
-                        state: state,
-                        l: l,
-                      ),
+                      newRows: state.grid.rows,
+                      newCols: state.grid.cols - 1,
+                      state: state,
+                      l: l,
+                    ),
               onIncrement: () => _resize(
                 newRows: state.grid.rows,
                 newCols: state.grid.cols + 1,
@@ -187,14 +188,14 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
         .resize(newRows: newRows, newCols: newCols);
   }
 
-  Future<void> _showCellContextMenu(
-    MoodGridCell cell,
-    Offset pos,
-    S l,
-  ) async {
+  Future<void> _showCellContextMenu(MoodGridCell cell, Offset pos, S l) async {
     if (cell.id < 0) return;
-    final RelativeRect position =
-        RelativeRect.fromLTRB(pos.dx, pos.dy, pos.dx, pos.dy);
+    final RelativeRect position = RelativeRect.fromLTRB(
+      pos.dx,
+      pos.dy,
+      pos.dx,
+      pos.dy,
+    );
     final String? action = await showMenu<String>(
       context: context,
       position: position,
@@ -246,8 +247,9 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
 
   Future<void> _editLabel(MoodGridCell cell, S l) async {
     if (cell.id < 0) return;
-    final TextEditingController controller =
-        TextEditingController(text: cell.label ?? '');
+    final TextEditingController controller = TextEditingController(
+      text: cell.label ?? '',
+    );
     final String? newLabel = await showDialog<String>(
       context: context,
       builder: (BuildContext ctx) => AlertDialog(
@@ -279,8 +281,9 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
 
   Future<void> _pickItem(MoodGridCell cell) async {
     if (cell.id < 0) return;
-    final MoodGridItemPickerResult? result =
-        await showMoodGridItemPicker(context);
+    final MoodGridItemPickerResult? result = await showMoodGridItemPicker(
+      context,
+    );
     if (result == null) return;
     final CollectionItem item = result.item;
     await ref
@@ -295,8 +298,9 @@ class _MoodGridDetailScreenState extends ConsumerState<MoodGridDetailScreen> {
   }
 
   Future<void> _renameGrid(String current, S l) async {
-    final TextEditingController controller =
-        TextEditingController(text: current);
+    final TextEditingController controller = TextEditingController(
+      text: current,
+    );
     final String? newName = await showDialog<String>(
       context: context,
       builder: (BuildContext ctx) => AlertDialog(
@@ -408,10 +412,7 @@ class _Stepper extends StatelessWidget {
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: Text(label, style: AppTypography.bodySmall),
           ),
-          _StepIcon(
-            icon: Icons.remove,
-            onPressed: onDecrement,
-          ),
+          _StepIcon(icon: Icons.remove, onPressed: onDecrement),
           SizedBox(
             width: 28,
             child: Text(
@@ -420,10 +421,7 @@ class _Stepper extends StatelessWidget {
               style: AppTypography.body,
             ),
           ),
-          _StepIcon(
-            icon: Icons.add,
-            onPressed: onIncrement,
-          ),
+          _StepIcon(icon: Icons.add, onPressed: onIncrement),
         ],
       ),
     );
@@ -458,8 +456,7 @@ class _CaptionTemplateDialog extends StatefulWidget {
   final S l;
 
   @override
-  State<_CaptionTemplateDialog> createState() =>
-      _CaptionTemplateDialogState();
+  State<_CaptionTemplateDialog> createState() => _CaptionTemplateDialogState();
 }
 
 class _CaptionTemplateDialogState extends State<_CaptionTemplateDialog> {
@@ -497,38 +494,40 @@ class _CaptionTemplateDialogState extends State<_CaptionTemplateDialog> {
       title: Text(l.moodGridCaptionTemplate),
       content: SizedBox(
         width: 420,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              l.moodGridCaptionTemplateHint,
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+        // Scrollable: on phones the on-screen keyboard can squeeze the dialog
+        // to ~150px of height.
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                l.moodGridCaptionTemplateHint,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextField(
-              controller: _controller,
-              maxLines: 3,
-              minLines: 1,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _controller,
+                maxLines: 3,
+                minLines: 1,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: <Widget>[
-                for (final String token in kMoodGridCaptionTokens)
-                  ActionChip(
-                    label: Text('{{$token}}'),
-                    onPressed: () => _insertToken(token),
-                  ),
-              ],
-            ),
-          ],
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: <Widget>[
+                  for (final String token in kMoodGridCaptionTokens)
+                    ActionChip(
+                      label: Text('{{$token}}'),
+                      onPressed: () => _insertToken(token),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       actions: <Widget>[
