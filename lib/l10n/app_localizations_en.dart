@@ -892,6 +892,244 @@ class SEn extends S {
   String get databaseReset => 'Database has been reset';
 
   @override
+  String get storageLocationTitle => 'Data Location';
+
+  @override
+  String get storageLocationSubtitle =>
+      'Folder that stores the database and profiles. Avoid folders that a cloud service syncs live (OneDrive, Syncthing): the database can get corrupted mid-write. To move data between devices, use export instead.';
+
+  @override
+  String get storageLocationDangerWarning =>
+      'Warning: changing the data folder can lead to data loss. You do this at your own risk.';
+
+  @override
+  String get storageLocationFolder => 'Data folder';
+
+  @override
+  String get storageLocationFallbackWarning =>
+      'Selected folder is unavailable, using the default one';
+
+  @override
+  String get storageLocationChange => 'Change Folder';
+
+  @override
+  String get storageLocationReset => 'Reset to Default';
+
+  @override
+  String get storageLocationSelectDialog => 'Select data folder';
+
+  @override
+  String storageLocationNotWritable(String path) {
+    return 'No write access: $path';
+  }
+
+  @override
+  String get storageLocationPermissionTitle => 'Storage Access Needed';
+
+  @override
+  String get storageLocationPermissionMessage =>
+      'Android requires the \"All files access\" permission for a custom data folder. In the list that opens, find Tonkatsu Box, enable the access, then come back and pick the folder again.';
+
+  @override
+  String get storageLocationLegacyPermissionMessage =>
+      'A custom data folder needs the Storage permission. Enable it in the app settings, then come back and pick the folder again.';
+
+  @override
+  String get storageLocationOpenSettings => 'Open Settings';
+
+  @override
+  String get storageLocationDbTooNew =>
+      'The database in this folder was made by a newer app version. Update the app on this device first.';
+
+  @override
+  String get storageLocationDbCorrupted =>
+      'The database in this folder is corrupted or incomplete. If a sync tool is still copying it, try again later.';
+
+  @override
+  String get storageLocationUseExistingTitle => 'Existing Data Found';
+
+  @override
+  String get storageLocationUseExistingMessage =>
+      'The selected folder already contains a database. The app will switch to that data after restart.';
+
+  @override
+  String get storageLocationUseExistingConfirm => 'Use It';
+
+  @override
+  String get storageLocationCopyTitle => 'Copy Current Data?';
+
+  @override
+  String get storageLocationCopyMessage =>
+      'The selected folder is empty. Your collections will be copied there; saved images will download again as needed. Data in the old folder stays untouched.';
+
+  @override
+  String get storageLocationCopyConfirm => 'Copy';
+
+  @override
+  String get storageLocationCopyError =>
+      'Failed to copy data to the selected folder';
+
+  @override
+  String get storageLocationResetTitle => 'Reset Data Folder?';
+
+  @override
+  String get storageLocationResetMessage =>
+      'The app will switch back to the default data folder after restart. Data in the custom folder stays untouched.';
+
+  @override
+  String get storageLocationRestartTitle => 'Restart Required';
+
+  @override
+  String get storageLocationRestartMessage =>
+      'The new data folder will be used after restart. Restart now?';
+
+  @override
+  String get storageLocationRestartNow => 'Restart';
+
+  @override
+  String get storageLocationRestartLater =>
+      'The change will take effect after restart';
+
+  @override
+  String get backupTitle => 'Backup';
+
+  @override
+  String get backupRestoreTile => 'Restore the previous database';
+
+  @override
+  String get backupNone => 'No backup yet';
+
+  @override
+  String get backupRestoreConfirmTitle => 'Restore Previous Database?';
+
+  @override
+  String backupRestoreConfirmMessage(String date) {
+    return 'Current data will be replaced with the backup from $date. The replaced data becomes the new backup, so restoring again undoes this.';
+  }
+
+  @override
+  String get backupRestoreConfirm => 'Restore';
+
+  @override
+  String get backupRestored => 'Database restored';
+
+  @override
+  String get backupRestoreError => 'Failed to restore the backup';
+
+  @override
+  String get backupRestartMessage =>
+      'The restored data will be used after restart. Restart now?';
+
+  @override
+  String get lanSyncTitle => 'Network Sync';
+
+  @override
+  String get lanSyncOpenTile => 'Nearby devices';
+
+  @override
+  String get lanSyncTileSubtitle =>
+      'Transfer data directly between devices on the same Wi-Fi network';
+
+  @override
+  String lanSyncVisibleAs(String name) {
+    return 'This device is visible as $name';
+  }
+
+  @override
+  String get lanSyncNoDevices =>
+      'No devices found. Open this screen on both devices connected to the same Wi-Fi network. Access point isolation and VPNs block discovery.';
+
+  @override
+  String get lanSyncPull => 'Tap to get its data';
+
+  @override
+  String get lanSyncReceiveTitle => 'Replace Data?';
+
+  @override
+  String lanSyncReceiveMessage(
+    String device,
+    String date,
+    int collections,
+    int items,
+  ) {
+    return 'Data from $device, $date: $collections collections, $items items.\n\nCurrent data will be REPLACED. A backup copy stays next to the database.';
+  }
+
+  @override
+  String get lanSyncReplace => 'Replace';
+
+  @override
+  String lanSyncWaiting(String name) {
+    return 'Confirm the request on $name...';
+  }
+
+  @override
+  String get lanSyncIncomingTitle => 'Data Request';
+
+  @override
+  String lanSyncIncomingMessage(String name) {
+    return '$name wants to get a copy of your data. Allow?';
+  }
+
+  @override
+  String get lanSyncAllow => 'Allow';
+
+  @override
+  String get lanSyncDenied => 'The other device declined the request';
+
+  @override
+  String get lanSyncManifestError => 'The device did not respond';
+
+  @override
+  String get lanSyncReceiveError => 'Failed to get the data';
+
+  @override
+  String get lanSyncTooNew =>
+      'The data on that device was made by a newer app version. Update the app on this device first.';
+
+  @override
+  String get lanSyncCorrupted =>
+      'The transfer came through damaged. Try again.';
+
+  @override
+  String get lanSyncReceived => 'Data received';
+
+  @override
+  String get lanSyncRestartMessage =>
+      'The received data will be used after restart. Restart now?';
+
+  @override
+  String get lanSyncFirewallNote =>
+      'Windows may ask for firewall permission on first start - allow access on private networks.';
+
+  @override
+  String get folderPickerNewFolder => 'New folder';
+
+  @override
+  String get folderPickerVolumeList => 'Storage devices';
+
+  @override
+  String get folderPickerInternalStorage => 'Internal storage';
+
+  @override
+  String get folderPickerSelect => 'Select';
+
+  @override
+  String get folderPickerFolderName => 'Folder name';
+
+  @override
+  String get folderPickerInvalidName => 'Invalid folder name';
+
+  @override
+  String get folderPickerEmpty => 'No subfolders';
+
+  @override
+  String get folderPickerReadError => 'Cannot read this folder';
+
+  @override
+  String get folderPickerCreateError => 'Could not create folder';
+
+  @override
   String get traktTitle => 'Trakt Import';
 
   @override

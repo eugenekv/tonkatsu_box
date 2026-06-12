@@ -907,6 +907,244 @@ class SRu extends S {
   String get databaseReset => 'База данных сброшена';
 
   @override
+  String get storageLocationTitle => 'Расположение данных';
+
+  @override
+  String get storageLocationSubtitle =>
+      'Папка, где хранятся база данных и профили. Не выбирайте папку, которую облако синхронизирует на лету (OneDrive, Syncthing): база может повредиться посреди записи. Для переноса между устройствами используйте экспорт.';
+
+  @override
+  String get storageLocationDangerWarning =>
+      'Внимание: смена папки данных может привести к их потере. Вы делаете это на свой страх и риск.';
+
+  @override
+  String get storageLocationFolder => 'Папка данных';
+
+  @override
+  String get storageLocationFallbackWarning =>
+      'Выбранная папка недоступна, используется стандартная';
+
+  @override
+  String get storageLocationChange => 'Выбрать папку';
+
+  @override
+  String get storageLocationReset => 'Сбросить на стандартную';
+
+  @override
+  String get storageLocationSelectDialog => 'Выберите папку для данных';
+
+  @override
+  String storageLocationNotWritable(String path) {
+    return 'Нет прав на запись: $path';
+  }
+
+  @override
+  String get storageLocationPermissionTitle => 'Нужен доступ к файлам';
+
+  @override
+  String get storageLocationPermissionMessage =>
+      'Для своей папки Android требует разрешение «Доступ ко всем файлам». В открывшемся списке найдите Tonkatsu Box, включите доступ, затем вернитесь и выберите папку ещё раз.';
+
+  @override
+  String get storageLocationLegacyPermissionMessage =>
+      'Для своей папки нужно разрешение «Память». Включите его в настройках приложения, затем вернитесь и выберите папку ещё раз.';
+
+  @override
+  String get storageLocationOpenSettings => 'Открыть настройки';
+
+  @override
+  String get storageLocationDbTooNew =>
+      'База данных в этой папке создана более новой версией приложения. Сначала обновите приложение на этом устройстве.';
+
+  @override
+  String get storageLocationDbCorrupted =>
+      'База данных в этой папке повреждена или скопирована не до конца. Если её ещё копирует программа синхронизации, попробуйте позже.';
+
+  @override
+  String get storageLocationUseExistingTitle => 'Найдены существующие данные';
+
+  @override
+  String get storageLocationUseExistingMessage =>
+      'В выбранной папке уже есть база данных. После перезапуска приложение переключится на эти данные.';
+
+  @override
+  String get storageLocationUseExistingConfirm => 'Использовать';
+
+  @override
+  String get storageLocationCopyTitle => 'Скопировать текущие данные?';
+
+  @override
+  String get storageLocationCopyMessage =>
+      'Выбранная папка пуста. Коллекции будут скопированы туда; сохранённые картинки загрузятся заново по мере надобности. Данные в старой папке останутся на месте.';
+
+  @override
+  String get storageLocationCopyConfirm => 'Копировать';
+
+  @override
+  String get storageLocationCopyError =>
+      'Не удалось скопировать данные в выбранную папку';
+
+  @override
+  String get storageLocationResetTitle => 'Сбросить папку данных?';
+
+  @override
+  String get storageLocationResetMessage =>
+      'После перезапуска приложение вернётся к стандартной папке данных. Данные в вашей папке останутся на месте.';
+
+  @override
+  String get storageLocationRestartTitle => 'Нужен перезапуск';
+
+  @override
+  String get storageLocationRestartMessage =>
+      'Новая папка данных начнёт использоваться после перезапуска. Перезапустить сейчас?';
+
+  @override
+  String get storageLocationRestartNow => 'Перезапустить';
+
+  @override
+  String get storageLocationRestartLater =>
+      'Изменение вступит в силу после перезапуска';
+
+  @override
+  String get backupTitle => 'Резервная копия';
+
+  @override
+  String get backupRestoreTile => 'Восстановить предыдущую базу';
+
+  @override
+  String get backupNone => 'Копии пока нет';
+
+  @override
+  String get backupRestoreConfirmTitle => 'Восстановить предыдущую базу?';
+
+  @override
+  String backupRestoreConfirmMessage(String date) {
+    return 'Текущие данные будут заменены резервной копией от $date. Заменённые данные сами станут копией, так что повторное восстановление отменит это действие.';
+  }
+
+  @override
+  String get backupRestoreConfirm => 'Восстановить';
+
+  @override
+  String get backupRestored => 'База данных восстановлена';
+
+  @override
+  String get backupRestoreError => 'Не удалось восстановить копию';
+
+  @override
+  String get backupRestartMessage =>
+      'Восстановленные данные начнут использоваться после перезапуска. Перезапустить сейчас?';
+
+  @override
+  String get lanSyncTitle => 'Синхронизация по сети';
+
+  @override
+  String get lanSyncOpenTile => 'Устройства поблизости';
+
+  @override
+  String get lanSyncTileSubtitle =>
+      'Прямая передача данных между устройствами в одной Wi-Fi сети';
+
+  @override
+  String lanSyncVisibleAs(String name) {
+    return 'Это устройство видно в сети как $name';
+  }
+
+  @override
+  String get lanSyncNoDevices =>
+      'Устройства не найдены. Откройте этот экран на обоих устройствах в одной Wi-Fi сети. Изоляция точки доступа и VPN мешают обнаружению.';
+
+  @override
+  String get lanSyncPull => 'Нажмите, чтобы забрать его данные';
+
+  @override
+  String get lanSyncReceiveTitle => 'Заменить данные?';
+
+  @override
+  String lanSyncReceiveMessage(
+    String device,
+    String date,
+    int collections,
+    int items,
+  ) {
+    return 'Данные с $device, $date: коллекций $collections, элементов $items.\n\nТекущие данные будут ЗАМЕНЕНЫ. Резервная копия останется рядом с базой данных.';
+  }
+
+  @override
+  String get lanSyncReplace => 'Заменить';
+
+  @override
+  String lanSyncWaiting(String name) {
+    return 'Подтвердите запрос на $name...';
+  }
+
+  @override
+  String get lanSyncIncomingTitle => 'Запрос данных';
+
+  @override
+  String lanSyncIncomingMessage(String name) {
+    return '$name хочет забрать копию ваших данных. Разрешить?';
+  }
+
+  @override
+  String get lanSyncAllow => 'Разрешить';
+
+  @override
+  String get lanSyncDenied => 'На другом устройстве отклонили запрос';
+
+  @override
+  String get lanSyncManifestError => 'Устройство не ответило';
+
+  @override
+  String get lanSyncReceiveError => 'Не удалось получить данные';
+
+  @override
+  String get lanSyncTooNew =>
+      'Данные на том устройстве созданы более новой версией приложения. Сначала обновите приложение здесь.';
+
+  @override
+  String get lanSyncCorrupted =>
+      'Передача прошла с ошибкой. Попробуйте ещё раз.';
+
+  @override
+  String get lanSyncReceived => 'Данные получены';
+
+  @override
+  String get lanSyncRestartMessage =>
+      'Полученные данные начнут использоваться после перезапуска. Перезапустить сейчас?';
+
+  @override
+  String get lanSyncFirewallNote =>
+      'При первом запуске Windows может спросить разрешение брандмауэра - разрешите доступ в частных сетях.';
+
+  @override
+  String get folderPickerNewFolder => 'Новая папка';
+
+  @override
+  String get folderPickerVolumeList => 'Накопители';
+
+  @override
+  String get folderPickerInternalStorage => 'Внутренняя память';
+
+  @override
+  String get folderPickerSelect => 'Выбрать';
+
+  @override
+  String get folderPickerFolderName => 'Имя папки';
+
+  @override
+  String get folderPickerInvalidName => 'Недопустимое имя папки';
+
+  @override
+  String get folderPickerEmpty => 'Подпапок нет';
+
+  @override
+  String get folderPickerReadError => 'Не удалось прочитать папку';
+
+  @override
+  String get folderPickerCreateError => 'Не удалось создать папку';
+
+  @override
   String get traktTitle => 'Импорт Trakt';
 
   @override

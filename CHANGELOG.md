@@ -7,6 +7,171 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Fixed
+
+- **AniList search and images failing with 403 "manually blocked"**
+
+  AniList banned the default Dart User-Agent (`Dart/3.12 (dart:io)`), which
+  403s every Flutter app that does not identify itself — both the GraphQL
+  API and the image CDN (covers, avatars). The app now sends a descriptive
+  TonkatsuBox User-Agent on every HTTP client.
+
+  * lib/core/services/app_http_overrides.dart (AppHttpOverrides): New.
+    Global HttpOverrides stamping the User-Agent onto all clients (Dio,
+    NetworkImage, cached_network_image); installed in main.dart.
+  * lib/core/api/anilist/anilist_graphql_client.dart
+    (AniListGraphQLClient): Explicit User-Agent header as well.
+
+### Changed
+
+- **Skeleton loaders on the main list screens instead of spinners**
+
+  The collection grid, wishlist, releases and the home collections list
+  now show shimmer placeholders shaped like the incoming content.
+
+  * lib/shared/widgets/shimmer_loading.dart (ShimmerList,
+    ShimmerPosterGrid): New.
+  * collection_screen.dart, wishlist_screen.dart, releases_screen.dart,
+    home_screen.dart: Loading branches switched to the shimmer widgets.
+
+- **Design tokens for animation durations, border radii and button heights**
+
+  Duration, radius and button-height literals across widgets replaced
+  with a shared scale; a few stray values unified along the way (tooltip
+  delay, compact button heights, platform badge rounding).
+
+  * lib/shared/theme/app_durations.dart (AppDurations): New.
+  * lib/shared/theme/app_spacing.dart (AppSpacing.radiusXxs,
+    AppSpacing.buttonHeight, buttonHeightCompact, buttonHeightDense): New.
+  * lib/shared/theme/app_colors.dart (AppColors.brandLight,
+    AppColors.brandPale): Removed — unused.
+
+### Added
+
+- **Network sync: pull data directly from another device on the same Wi-Fi**
+
+  Settings → Database gains a "Network Sync" entry opening a device list.
+  While the screen is open the device is discoverable on the local network;
+  tapping a discovered device shows what it holds (name, date, collection
+  and item counts) and, after confirmations on both sides — the receiving
+  one and the serving one — replaces local data with that device's snapshot
+  and offers a restart. No accounts, no cloud, no third-party tools: plain
+  Wi-Fi. Transfers are refused outside private networks, a snapshot made by
+  a newer app version is rejected (schema cannot be downgraded), a damaged
+  transfer fails the integrity check, and a backup copy stays next to the
+  database.
+
+  * lib/core/services/lan_sync_service.dart (LanSyncService, LanPeer): New.
+    UDP-broadcast discovery (port 47813, per-session instance id, peer
+    expiry, unicast pong replies so devices find each other even when
+    Windows broadcasts through the wrong interface or the firmware
+    filters broadcasts), dart:io HttpServer serving /manifest and
+    /snapshot with per-request approval and a private-network guard,
+    client helpers fetchManifest and downloadSnapshot.
+  * lib/core/database/sqlite_health.dart (readUserVersion, quickCheckOk):
+    New. Shared schema-version and integrity probes used by both
+    StorageRoot.validateDataDir and DbSyncService.inspectSnapshot.
+  * lib/features/settings/screens/lan_sync_screen.dart (LanSyncScreen): New.
+    Device list, pull flow with progress, incoming-request approval dialog;
+    the server lives only while the screen is open.
+  * lib/core/services/db_sync_service.dart (DbSyncService.buildManifest,
+    DbSyncService.deviceMeta, DbSyncService.sendSnapshot): Manifest
+    building and device identity made public for the server; snapshots
+    fall back to a WAL checkpoint plus file copy on firmwares whose
+    SQLite predates VACUUM INTO (the version is probed once up front).
+  * lib/features/settings/content/database_content.dart
+    (DatabaseContent.build): Network Sync entry between Data Location and
+    Danger Zone.
+
+- **One-tap restore of the database backup left by a sync**
+
+  Settings → Database gains a "Backup" section showing when the backup next
+  to the database was made; restoring swaps the live database with it, and
+  since the replaced data becomes the new backup, a second restore undoes
+  the first. The backup is validated (schema version, integrity) before the
+  swap. This is the only recovery path on Android's default data folder,
+  which file managers cannot reach. The backup file now also travels along
+  when the data folder is copied to a new location.
+
+  * lib/core/services/db_sync_service.dart (DbSyncService.backupTimestamp,
+    DbSyncService.restoreBackup): New. Backup discovery without opening
+    the database; validated file swap.
+  * lib/features/settings/widgets/backup_section.dart (BackupSection): New.
+    Settings group with the backup date and the restore flow.
+  * lib/features/settings/content/database_content.dart
+    (DatabaseContent.build): Mount BackupSection before Danger Zone.
+  * lib/core/services/storage_root.dart (StorageRoot._copyDbFiles): Carry
+    the `.bak` file when copying data to a new folder.
+
+- **Custom data folder: the database and profiles can live in any user-picked directory**
+
+  Settings → Database grows a "Data Location" section: pick any folder for the
+  app's data (database, profiles), reset back to the default, see which folder
+  is active. Picking a folder that already holds a database switches to it
+  without copying — a quick way to look at another data set; picking an empty
+  folder offers to copy the current data (live database flushed via WAL
+  checkpoint first, image caches re-download on demand). Switching always asks
+  for an app restart. A configured folder that is missing or emptied at startup
+  falls back to the default location with a warning instead of crashing or
+  silently creating a fresh database.
+
+  The database found in a custom folder is validated before use — both when
+  picking the folder and on every app start. A database made by a newer app
+  version is refused with a clear message (schema cannot be downgraded), and
+  a corrupted or half-copied file (e.g. a sync tool delivered it mid-write)
+  falls back to the default location instead of crashing. This makes the
+  folder-shared-via-Syncthing workflow safe.
+
+  On Android the system SAF picker is replaced with an in-app folder browser
+  over the real filesystem (the SAF URI-to-path conversion is firmware
+  guesswork and produced non-existent paths on some devices); it lists all
+  mounted volumes (internal storage, SD card, USB OTG) and can create folders.
+  Storage permissions are handled per Android version: "All files access" on
+  Android 11+ (with a system-list fallback for OEM firmwares that hide the
+  per-app screen) and the classic storage permission on Android 10 and below.
+
+  * lib/core/services/storage_root.dart (StorageRoot, StorageRootResolution,
+    DataDirVerdict): New. Single resolver of the data root: custom dir from
+    prefs (custom_storage_dir) with fallback to the default AppSupport
+    location; validateDataDir (schema-version and integrity checks,
+    memoized per session), hasData, isWritable, copyDataTo helpers; public
+    dbFileName, profilesFileName, profilesFolderName constants.
+  * lib/shared/utils/storage_access.dart (pickRawFolder, ensureStorageAccess,
+    offerAppRestart): New. Android permission flow and raw-path folder
+    picking shared between settings sections.
+  * lib/core/services/db_sync_service.dart (DbSyncService),
+    lib/shared/models/sync_manifest.dart (SyncManifest): New. Transport-
+    agnostic database snapshot engine (send/inspect/receive) for the
+    upcoming LAN sync; no UI yet.
+  * lib/core/database/migrations/migration_registry.dart
+    (MigrationRegistry.latestVersion): New getter backing the
+    schema-version guard.
+  * lib/core/services/storage_volumes.dart (StorageVolumes, StorageVolume):
+    New. Detects mounted Android volumes under /storage; primaryPath getter.
+  * lib/shared/widgets/folder_picker_dialog.dart (FolderPickerDialog,
+    FolderPickerRoot): New. In-app folder browser with multi-volume root list,
+    ".." navigation and folder creation.
+  * lib/features/settings/widgets/storage_location_section.dart
+    (StorageLocationSection): New. Settings group with the current path,
+    change/reset buttons, copy and restart flows, per-version Android
+    permission handling.
+  * lib/features/settings/content/database_content.dart (DatabaseContent.build):
+    Mount StorageLocationSection between Configuration and Danger Zone.
+  * lib/core/database/database_service.dart (DatabaseService._initDatabase,
+    DatabaseService.checkpointWal): Resolve the base path via
+    StorageRoot.resolve(); new checkpointWal() flushes the WAL (logs an
+    incomplete busy checkpoint) so a live database can be file-copied.
+  * lib/core/services/profile_service.dart (ProfileService.getBasePath):
+    Resolve via StorageRoot; layout constants now referenced from StorageRoot.
+  * lib/core/services/image_cache_service.dart
+    (ImageCacheService.getBaseCachePath): Default branch resolves via
+    StorageRoot so profile image caches follow the data root.
+  * android/app/src/main/AndroidManifest.xml: MANAGE_EXTERNAL_STORAGE,
+    legacy READ/WRITE_EXTERNAL_STORAGE (maxSdkVersion 29),
+    requestLegacyExternalStorage.
+  * pubspec.yaml: Add permission_handler, android_intent_plus,
+    device_info_plus.
+
 ## [0.33.0] - 2026-06-11
 
 ### Added
