@@ -7,6 +7,23 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Fixed
+
+- **Restore sorting by name on the collections list**
+
+  The collections folder list lost its sort-mode picker in an earlier
+  title-bar refactor — the floating action only flipped the direction, so
+  there was no way to switch from date-created to alphabetical. The sort
+  action now opens a dialog to choose the mode (Date Created / Name) and
+  the direction together, applied only on confirm.
+
+  * lib/features/collections/screens/home_screen.dart
+    (_HomeScreenState._showSortOptions, _SortDialog, _SortChoice): New. The
+    sort entry in the floating menu is relabeled "Sort" with an Icons.sort
+    glyph and opens the dialog; the picked mode and direction are written
+    via collectionListSortProvider.setSortMode and
+    collectionListSortDescProvider.setDescending.
+
 ## [0.34.0] - 2026-06-12
 
 ### Fixed

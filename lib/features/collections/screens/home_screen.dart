@@ -106,10 +106,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ref.read(collectionListViewModeProvider.notifier).toggle(),
               ),
               DraggableFabItem(
-                icon: sortDesc ? Icons.arrow_upward : Icons.arrow_downward,
-                label: sortMode.localizedDisplayLabel(l),
-                onTap: () =>
-                    ref.read(collectionListSortDescProvider.notifier).toggle(),
+                icon: Icons.sort,
+                label: l.collectionFilterSort,
+                onTap: () => _showSortOptions(context, ref, sortMode, sortDesc),
               ),
             ],
           ),
@@ -543,6 +542,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Future<void> _showSortOptions(
+    BuildContext context,
+    WidgetRef ref,
+    CollectionListSortMode currentMode,
+    bool descending,
+  ) async {
+    final _SortChoice? choice = await showDialog<_SortChoice>(
+      context: context,
+      builder: (BuildContext context) => _SortDialog(
+        initialMode: currentMode,
+        initialDescending: descending,
+      ),
+    );
+    if (choice == null) return;
+    await ref.read(collectionListSortProvider.notifier).setSortMode(choice.mode);
+    await ref
+        .read(collectionListSortDescProvider.notifier)
+        .setDescending(descending: choice.descending);
+  }
+
   Future<void> _renameCollection(
     BuildContext context,
     WidgetRef ref,
@@ -677,6 +696,104 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } else if (!result.isCancelled && result.error != null) {
       context.showSnack(result.error!, type: SnackType.error);
     }
+  }
+}
+
+/// Sort mode and direction picked in [_SortDialog].
+class _SortChoice {
+  const _SortChoice(this.mode, this.descending);
+
+  final CollectionListSortMode mode;
+  final bool descending;
+}
+
+/// Picks the collections-list sort mode and direction in one dialog, applied
+/// only when the user confirms. Returns a [_SortChoice] or null on cancel.
+class _SortDialog extends StatefulWidget {
+  const _SortDialog({
+    required this.initialMode,
+    required this.initialDescending,
+  });
+
+  final CollectionListSortMode initialMode;
+  final bool initialDescending;
+
+  @override
+  State<_SortDialog> createState() => _SortDialogState();
+}
+
+class _SortDialogState extends State<_SortDialog> {
+  late CollectionListSortMode _mode = widget.initialMode;
+  late bool _descending = widget.initialDescending;
+
+  @override
+  Widget build(BuildContext context) {
+    final S l = S.of(context);
+    return AlertDialog(
+      title: Text(l.collectionFilterSort),
+      scrollable: true,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          RadioGroup<CollectionListSortMode>(
+            groupValue: _mode,
+            onChanged: (CollectionListSortMode? value) {
+              if (value != null) setState(() => _mode = value);
+            },
+            child: Column(
+              children: <Widget>[
+                for (final CollectionListSortMode mode
+                    in CollectionListSortMode.values)
+                  RadioListTile<CollectionListSortMode>(
+                    title: Text(mode.localizedDisplayLabel(l)),
+                    value: mode,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+              ],
+            ),
+          ),
+          const Divider(),
+          RadioGroup<bool>(
+            groupValue: _descending,
+            onChanged: (bool? value) {
+              if (value != null) setState(() => _descending = value);
+            },
+            child: Column(
+              children: <Widget>[
+                RadioListTile<bool>(
+                  title: Text(
+                    _mode.localizedDescription(l, descending: false),
+                  ),
+                  value: false,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+                RadioListTile<bool>(
+                  title: Text(
+                    _mode.localizedDescription(l, descending: true),
+                  ),
+                  value: true,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l.cancel),
+        ),
+        FilledButton(
+          onPressed: () =>
+              Navigator.of(context).pop(_SortChoice(_mode, _descending)),
+          child: Text(l.apply),
+        ),
+      ],
+    );
   }
 }
 

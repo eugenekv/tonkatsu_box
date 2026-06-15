@@ -406,5 +406,92 @@ void main() {
         expect(cards[1].collection.name, 'New');
       });
     });
+
+    group('диалог сортировки', () {
+      // createdDate desc=false → newest first, so the initial order is
+      // Zebra(2025), Alpha(2024); alphabetical asc flips it to Alpha, Zebra.
+      final List<Collection> collections = <Collection>[
+        Collection(
+          id: 1,
+          name: 'Zebra',
+          author: 'User',
+          type: CollectionType.own,
+          createdAt: DateTime(2025),
+        ),
+        Collection(
+          id: 2,
+          name: 'Alpha',
+          author: 'User',
+          type: CollectionType.own,
+          createdAt: DateTime(2024),
+        ),
+      ];
+
+      Future<void> openSortDialog(WidgetTester tester) async {
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.text('Sort'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+
+      testWidgets('should show both sort modes when sort item tapped',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createWidget(collections: collections));
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+
+        await openSortDialog(tester);
+
+        expect(find.text('Date Created'), findsOneWidget);
+        expect(find.text('Name'), findsOneWidget);
+        expect(find.text('Apply'), findsOneWidget);
+      });
+
+      testWidgets('should re-sort by name when picked and applied',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createWidget(collections: collections));
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+
+        await openSortDialog(tester);
+        await tester.tap(find.text('Name'));
+        await tester.pump();
+        await tester.tap(find.text('Apply'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        final List<CollectionCard> cards = tester
+            .widgetList<CollectionCard>(find.byType(CollectionCard))
+            .toList();
+        expect(cards[0].collection.name, 'Alpha');
+        expect(cards[1].collection.name, 'Zebra');
+      });
+
+      testWidgets('should keep current sort when dialog cancelled',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createWidget(collections: collections));
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+
+        await openSortDialog(tester);
+        await tester.tap(find.text('Name'));
+        await tester.pump();
+        await tester.tap(find.text('Cancel'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        final List<CollectionCard> cards = tester
+            .widgetList<CollectionCard>(find.byType(CollectionCard))
+            .toList();
+        expect(cards[0].collection.name, 'Zebra');
+        expect(cards[1].collection.name, 'Alpha');
+      });
+    });
   });
 }
