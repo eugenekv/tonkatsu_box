@@ -9,6 +9,23 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Fixed
 
+- **Folder picker crashing with "Permission denied" on some newer Android builds**
+
+  Choosing a custom data folder failed with `PathAccessException: ... '/storage/'
+  (Permission denied)` on some newer Android builds (seen on Android 16 / Pixel)
+  even with "All files access" granted, while working on others (Android 10, 13):
+  the volume detector listed `/storage` directly, which those builds refuse
+  regardless of the permission. Storage volumes are now derived from the
+  per-volume app directories instead of listing `/storage`, so detection no
+  longer depends on that OEM-specific behaviour.
+
+  * lib/core/services/storage_volumes.dart (StorageVolumes.detect,
+    StorageVolumes.externalDirsProvider): Derive volume roots from
+    getExternalStorageDirectories() by trimming the `/Android/data/<pkg>/files`
+    suffix; no `/storage` listing. detect() is now async.
+  * lib/shared/utils/storage_access.dart (pickRawFolder): Await the async
+    detect() and guard the BuildContext across the gap.
+
 - **Restore sorting by name on the collections list**
 
   The collections folder list lost its sort-mode picker in an earlier

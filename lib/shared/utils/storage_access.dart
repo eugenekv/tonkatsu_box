@@ -55,7 +55,8 @@ Future<String?> pickRawFolder(
   }
 
   final S l10n = S.of(context);
-  final List<StorageVolume> volumes = StorageVolumes.detect();
+  final List<StorageVolume> volumes = await StorageVolumes.detect();
+  if (!context.mounted) return null;
   final List<FolderPickerRoot> roots = volumes.isEmpty
       ? <FolderPickerRoot>[
           FolderPickerRoot(
