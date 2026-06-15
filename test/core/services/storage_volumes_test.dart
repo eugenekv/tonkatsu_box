@@ -1,79 +1,63 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart' as p;
 import 'package:tonkatsu_box/core/services/storage_volumes.dart';
 
 void main() {
-  late Directory tempDir;
-
-  setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('storage_volumes_test');
-    StorageVolumes.storageRoot = tempDir.path;
-  });
-
-  tearDown(() async {
-    StorageVolumes.storageRoot = '/storage';
-    if (tempDir.existsSync()) {
-      await tempDir.delete(recursive: true);
-    }
+  tearDown(() {
+    StorageVolumes.externalDirsProvider = () async => null;
   });
 
   group('StorageVolumes', () {
     group('detect', () {
-      test('finds the primary volume', () async {
-        await Directory(p.join(tempDir.path, 'emulated', '0'))
-            .create(recursive: true);
+      test('derives volume roots and marks the first as primary', () async {
+        StorageVolumes.externalDirsProvider = () async => <Directory>[
+              Directory('/storage/emulated/0/Android/data/pkg/files'),
+              Directory('/storage/ABCD-1234/Android/data/pkg/files'),
+            ];
 
-        final List<StorageVolume> volumes = StorageVolumes.detect();
+        final List<StorageVolume> volumes = await StorageVolumes.detect();
 
-        expect(volumes, hasLength(1));
-        expect(volumes.first.path, p.join(tempDir.path, 'emulated', '0'));
-        expect(volumes.first.isPrimary, isTrue);
-      });
-
-      test('finds removable volumes after the primary', () async {
-        await Directory(p.join(tempDir.path, 'emulated', '0'))
-            .create(recursive: true);
-        await Directory(p.join(tempDir.path, 'B1C2-3D4E')).create();
-        await Directory(p.join(tempDir.path, 'A1B2-3C4D')).create();
-
-        final List<StorageVolume> volumes = StorageVolumes.detect();
-
-        expect(volumes, hasLength(3));
-        expect(volumes.first.isPrimary, isTrue);
-        expect(
-          volumes.map((StorageVolume v) => p.basename(v.path)).toList(),
-          <String>['0', 'A1B2-3C4D', 'B1C2-3D4E'],
-        );
+        expect(volumes, hasLength(2));
+        expect(volumes[0].path, '/storage/emulated/0');
+        expect(volumes[0].isPrimary, isTrue);
+        expect(volumes[1].path, '/storage/ABCD-1234');
         expect(volumes[1].isPrimary, isFalse);
       });
 
-      test('skips the self alias and the emulated container', () async {
-        await Directory(p.join(tempDir.path, 'emulated', '0'))
-            .create(recursive: true);
-        await Directory(p.join(tempDir.path, 'self')).create();
+      test('dedupes repeated volume roots', () async {
+        StorageVolumes.externalDirsProvider = () async => <Directory>[
+              Directory('/storage/emulated/0/Android/data/pkg/files'),
+              Directory('/storage/emulated/0/Android/data/pkg/cache'),
+            ];
 
-        final List<StorageVolume> volumes = StorageVolumes.detect();
-
-        expect(volumes, hasLength(1));
-        expect(volumes.first.isPrimary, isTrue);
-      });
-
-      test('ignores plain files under the storage root', () async {
-        await Directory(p.join(tempDir.path, 'emulated', '0'))
-            .create(recursive: true);
-        await File(p.join(tempDir.path, 'mount.log')).writeAsString('x');
-
-        final List<StorageVolume> volumes = StorageVolumes.detect();
+        final List<StorageVolume> volumes = await StorageVolumes.detect();
 
         expect(volumes, hasLength(1));
+        expect(volumes.single.path, '/storage/emulated/0');
       });
 
-      test('returns empty when the storage root does not exist', () {
-        StorageVolumes.storageRoot = p.join(tempDir.path, 'missing');
+      test('skips entries without an Android segment', () async {
+        StorageVolumes.externalDirsProvider = () async => <Directory>[
+              Directory('/weird/path/files'),
+            ];
 
-        expect(StorageVolumes.detect(), isEmpty);
+        final List<StorageVolume> volumes = await StorageVolumes.detect();
+
+        expect(volumes, isEmpty);
+      });
+
+      test('returns empty when the query yields null', () async {
+        StorageVolumes.externalDirsProvider = () async => null;
+
+        expect(await StorageVolumes.detect(), isEmpty);
+      });
+
+      test('survives a failing query', () async {
+        StorageVolumes.externalDirsProvider =
+            () async => throw const FileSystemException('boom');
+
+        expect(await StorageVolumes.detect(), isEmpty);
       });
     });
   });
