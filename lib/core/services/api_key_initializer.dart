@@ -16,6 +16,7 @@ class ApiKeys {
     this.igdbAccessToken,
     this.raUsername,
     this.raApiKey,
+    this.comicVineApiKey,
   });
 
   /// Key precedence: user key → built-in (ApiDefaults) → null.
@@ -55,6 +56,10 @@ class ApiKeys {
     final String? raUsername = prefs.getString(SettingsKeys.raUsername);
     final String? raApiKey = prefs.getString(SettingsKeys.raApiKey);
 
+    // ComicVine: user key from prefs only, no built-in.
+    final String? comicVineApiKey =
+        prefs.getString(SettingsKeys.comicVineApiKey);
+
     return ApiKeys(
       tmdbApiKey: tmdbApiKey,
       steamGridDbApiKey: steamGridDbApiKey,
@@ -67,6 +72,10 @@ class ApiKeys {
           ? raUsername
           : null,
       raApiKey: (raApiKey != null && raApiKey.isNotEmpty) ? raApiKey : null,
+      comicVineApiKey:
+          (comicVineApiKey != null && comicVineApiKey.isNotEmpty)
+              ? comicVineApiKey
+              : null,
     );
   }
 
@@ -83,6 +92,8 @@ class ApiKeys {
   final String? raUsername;
 
   final String? raApiKey;
+
+  final String? comicVineApiKey;
 }
 
 /// Overridden in main() via `apiKeysProvider.overrideWithValue(...)`.

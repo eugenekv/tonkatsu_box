@@ -276,7 +276,9 @@ class ItemDetailsSheet extends StatelessWidget {
         if (book.authorsString != null)
           (Icons.person_outline, book.authorsString!),
         if (book.pageCount != null)
-          (Icons.menu_book, '${book.pageCount} pages'),
+          book.isComic
+              ? (Icons.auto_stories, '${book.pageCount} issues')
+              : (Icons.menu_book, '${book.pageCount} pages'),
         if (book.series != null) (Icons.collections_bookmark, book.series!),
       ],
       posterUrl: book.coverUrl,

@@ -50,13 +50,13 @@ void main() {
       );
     });
 
-    testWidgets('exposes key fields for IGDB and TMDB only',
+    testWidgets('exposes key fields for IGDB, TMDB and ComicVine',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidget());
       await tester.pumpAndSettle();
 
-      // IGDB (Client ID + Secret) + TMDB (key) = 3 inline fields.
-      expect(find.byType(InlineTextField), findsNWidgets(3));
+      // IGDB (Client ID + Secret) + TMDB (key) + ComicVine (key) = 4 fields.
+      expect(find.byType(InlineTextField), findsNWidgets(4));
     });
   });
 }

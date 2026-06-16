@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../utils/bbcode.dart';
+import 'book_kind.dart';
 import 'data_source.dart';
 
 /// Book metadata from OpenLibrary or Fantlab.
@@ -34,6 +35,7 @@ class Book {
     this.ratingCount,
     this.externalUrl,
     this.cachedAt,
+    this.kind = BookKind.book,
   });
 
   factory Book.fromDb(Map<String, dynamic> row) {
@@ -60,6 +62,7 @@ class Book {
       ratingCount: row['rating_count'] as int?,
       externalUrl: row['external_url'] as String?,
       cachedAt: row['cached_at'] as int?,
+      kind: BookKind.fromName(row['kind'] as String?),
     );
   }
 
@@ -261,6 +264,45 @@ class Book {
     );
   }
 
+  /// [Book] from a ComicVine `volume` object — both the `/search` rows and the
+  /// richer `/volume/{id}` payload share this shape. Tagged
+  /// [BookKind.comic]; the numeric [id] feeds `external_id` while [nativeId]
+  /// keeps the `4050-{id}` detail-endpoint id so the full volume can be
+  /// refetched. `count_of_issues` is stored in [pageCount] — for comics this
+  /// is the number of issues in the series, not pages (the UI labels it
+  /// accordingly via [BookKind.comic]); `start_year` arrives as a string and
+  /// is parsed to a year. On the detail payload `people` (creators) feeds
+  /// [authors] and `characters` feeds [subjects] — comics have no genres, so
+  /// the character list stands in for the genre/tag chips.
+  factory Book.fromComicVineVolume(Map<String, dynamic> json) {
+    final int numericId = _intOrNull(json['id']) ?? 0;
+    final String id = numericId.toString();
+    final Object? publisher = json['publisher'];
+    final String? publisherName = publisher is Map<String, dynamic>
+        ? _nonEmpty(publisher['name'])
+        : null;
+    // `description` is full HTML; `deck` is a short plain-text blurb fallback.
+    final String? rawDescription =
+        (json['description'] ?? json['deck']) as String?;
+
+    return Book(
+      id: id,
+      source: DataSource.comicVine,
+      nativeId: '4050-$id',
+      title: _nonEmpty(json['name']) ?? 'Unknown',
+      authors: _comicVineNames(json['people'], max: _comicVineMaxPeople),
+      description: _stripComicVineText(rawDescription),
+      coverUrl: _comicVineCover(json['image']),
+      subjects: _comicVineNames(json['characters'], max: _comicVineMaxCharacters),
+      pageCount: _intOrNull(json['count_of_issues']),
+      publishYear: _yearFrom(json['start_year'] as String?),
+      publishers:
+          publisherName != null ? <String>[publisherName] : const <String>[],
+      externalUrl: _nonEmpty(json['site_detail_url']),
+      kind: BookKind.comic,
+    );
+  }
+
   /// Provider numeric id stored as a string (`"27448"` / `"3104"`). The column
   /// type is `TEXT` as headroom for a future non-numeric id, but today the
   /// content is always digits — so [externalIdInt] feeds
@@ -321,12 +363,20 @@ class Book {
   /// Unix timestamp of when this row was cached; null on fresh / export data.
   final int? cachedAt;
 
+  /// Prose book vs. comic / graphic novel. Lets ComicVine volumes share the
+  /// `book` media type while staying separable.
+  final BookKind kind;
+
   /// Integer key for `collection_items.external_id` (INTEGER).
   int get externalIdInt => int.parse(id);
 
   String? get formattedRating => rating?.toStringAsFixed(1);
 
   int? get releaseYear => publishYear;
+
+  /// True for ComicVine volumes — lets the UI label [pageCount] as the issue
+  /// count of the series rather than a page count.
+  bool get isComic => kind == BookKind.comic;
 
   String? get authorsString => authors.isEmpty ? null : authors.join(', ');
 
@@ -356,6 +406,7 @@ class Book {
       'rating_count': ratingCount,
       'external_url': externalUrl,
       'cached_at': cachedAt ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'kind': kind.value,
     };
   }
 
@@ -389,6 +440,7 @@ class Book {
     int? ratingCount,
     String? externalUrl,
     int? cachedAt,
+    BookKind? kind,
   }) {
     return Book(
       id: id ?? this.id,
@@ -413,6 +465,7 @@ class Book {
       ratingCount: ratingCount ?? this.ratingCount,
       externalUrl: externalUrl ?? this.externalUrl,
       cachedAt: cachedAt ?? this.cachedAt,
+      kind: kind ?? this.kind,
     );
   }
 
@@ -543,6 +596,53 @@ class Book {
     final String clean = text.replaceAll(_htmlTagPattern, '').trim();
     return clean.isEmpty ? null : clean;
   }
+
+  // --- ComicVine helpers -----------------------------------------------------
+
+  /// Strips ComicVine's HTML descriptions (and entities) to plain text.
+  static String? _stripComicVineText(Object? raw) {
+    if (raw is! String || raw.isEmpty) return null;
+    final String clean = stripBbCodes(raw);
+    return clean.isEmpty ? null : clean;
+  }
+
+  /// Picks a cover from a ComicVine `image` object, preferring a mid-size URL
+  /// (good for grids) and falling back to larger / smaller variants.
+  static String? _comicVineCover(Object? image) {
+    if (image is! Map<String, dynamic>) return null;
+    for (final String key in const <String>[
+      'medium_url',
+      'super_url',
+      'screen_large_url',
+      'original_url',
+    ]) {
+      final String? url = _nonEmpty(image[key]);
+      if (url != null) return url;
+    }
+    return null;
+  }
+
+  /// Distinct `name` values from a ComicVine array of `{name: ...}` objects
+  /// (`people` → [authors], `characters` → [subjects]), in API order, capped
+  /// at [max]. These arrays appear only on `/volume` detail payloads — the
+  /// search / browse list rows omit them, so list items stay lightweight.
+  static List<String> _comicVineNames(Object? raw, {required int max}) {
+    if (raw is! List) return const <String>[];
+    final List<String> names = <String>[];
+    for (final Object? item in raw) {
+      if (item is Map<String, dynamic>) {
+        final String? name = _nonEmpty(item['name']);
+        if (name != null && !names.contains(name)) names.add(name);
+      }
+      if (names.length >= max) break;
+    }
+    return names;
+  }
+
+  // Creators are few; characters can run to dozens — comics have no genres, so
+  // the character list stands in for the genre/tag chips.
+  static const int _comicVineMaxPeople = 12;
+  static const int _comicVineMaxCharacters = 15;
 
   // --- Fantlab helpers -------------------------------------------------------
 

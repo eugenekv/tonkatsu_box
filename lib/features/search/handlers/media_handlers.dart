@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/comicvine_api.dart';
 import '../../../core/api/fantlab_api.dart';
 import '../../../core/api/openlibrary_api.dart';
 import '../../../core/database/database_service.dart';
@@ -266,6 +267,8 @@ Future<Book?> _fetchFullBook(WidgetRef ref, Book book) async {
       return ref.read(openLibraryApiProvider).getWork(book.nativeId);
     case DataSource.fantlab:
       return ref.read(fantlabApiProvider).getWork(book.nativeId);
+    case DataSource.comicVine:
+      return ref.read(comicVineApiProvider).getVolume(book.nativeId);
     default:
       return null;
   }

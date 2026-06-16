@@ -1,11 +1,130 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tonkatsu_box/shared/models/book.dart';
+import 'package:tonkatsu_box/shared/models/book_kind.dart';
 import 'package:tonkatsu_box/shared/models/data_source.dart';
 
 import '../../helpers/test_helpers.dart';
 
 void main() {
   group('Book', () {
+    group('fromComicVineVolume', () {
+      Map<String, dynamic> volume() => <String, dynamic>{
+            'id': 796,
+            'name': 'Batman',
+            'start_year': '1940',
+            'count_of_issues': 716,
+            'publisher': <String, dynamic>{'id': 10, 'name': 'DC Comics'},
+            'image': <String, dynamic>{
+              'medium_url': 'https://cv/medium.jpg',
+              'super_url': 'https://cv/super.jpg',
+            },
+            'site_detail_url':
+                'https://comicvine.gamespot.com/batman/4050-796/',
+            'description': '<p>The <b>Dark Knight</b>.</p>',
+          };
+
+      test('maps a volume to a comic-kind book', () {
+        final Book book = Book.fromComicVineVolume(volume());
+        expect(book.id, '796');
+        expect(book.source, DataSource.comicVine);
+        expect(book.kind, BookKind.comic);
+        expect(book.nativeId, '4050-796');
+        expect(book.title, 'Batman');
+        expect(book.publishYear, 1940);
+        expect(book.pageCount, 716); // count_of_issues
+        expect(book.publishers, <String>['DC Comics']);
+        expect(book.coverUrl, 'https://cv/medium.jpg');
+        expect(book.externalUrl,
+            'https://comicvine.gamespot.com/batman/4050-796/');
+      });
+
+      test('strips HTML from the description', () {
+        final Book book = Book.fromComicVineVolume(volume());
+        expect(book.description, 'The Dark Knight.');
+      });
+
+      test('isComic is true; prose books are false', () {
+        expect(Book.fromComicVineVolume(volume()).isComic, isTrue);
+        expect(createTestBook().isComic, isFalse);
+      });
+
+      test('rows without people carry no authors', () {
+        expect(Book.fromComicVineVolume(volume()).authors, isEmpty);
+      });
+
+      test('maps people to authors, deduped, skipping nameless entries', () {
+        final Map<String, dynamic> v = volume()
+          ..['people'] = <dynamic>[
+            <String, dynamic>{'name': 'Bob Kane'},
+            <String, dynamic>{'name': 'Bill Finger'},
+            <String, dynamic>{'name': 'Bob Kane'}, // duplicate dropped
+            <String, dynamic>{'id': 5}, // nameless dropped
+            'garbage', // non-map dropped
+          ];
+        expect(
+          Book.fromComicVineVolume(v).authors,
+          <String>['Bob Kane', 'Bill Finger'],
+        );
+      });
+
+      test('caps people at 12', () {
+        final Map<String, dynamic> v = volume()
+          ..['people'] = <Map<String, dynamic>>[
+            for (int i = 0; i < 20; i++) <String, dynamic>{'name': 'Person $i'},
+          ];
+        expect(Book.fromComicVineVolume(v).authors, hasLength(12));
+      });
+
+      test('rows without characters carry no subjects', () {
+        expect(Book.fromComicVineVolume(volume()).subjects, isEmpty);
+      });
+
+      test('maps characters to subjects (the tag slot), capped at 15', () {
+        final Map<String, dynamic> v = volume()
+          ..['characters'] = <Map<String, dynamic>>[
+            for (int i = 0; i < 20; i++) <String, dynamic>{'name': 'Char $i'},
+          ];
+        final Book book = Book.fromComicVineVolume(v);
+        expect(book.subjects, hasLength(15));
+        expect(book.subjects.first, 'Char 0');
+      });
+
+      test('falls back to deck when description is absent', () {
+        final Map<String, dynamic> v = volume()
+          ..remove('description')
+          ..['deck'] = 'Volume 1.';
+        expect(Book.fromComicVineVolume(v).description, 'Volume 1.');
+      });
+
+      test('tolerates a missing publisher and image', () {
+        final Map<String, dynamic> v = volume()
+          ..remove('publisher')
+          ..remove('image');
+        final Book book = Book.fromComicVineVolume(v);
+        expect(book.publishers, isEmpty);
+        expect(book.coverUrl, isNull);
+      });
+
+      test('kind survives a db round-trip', () {
+        final Book comic = Book.fromComicVineVolume(volume());
+        final Book back = Book.fromDb(comic.toDb());
+        expect(back.kind, BookKind.comic);
+        expect(back.source, DataSource.comicVine);
+      });
+
+      test('default Book kind is book and round-trips', () {
+        final Book book = createTestBook();
+        expect(book.kind, BookKind.book);
+        expect(Book.fromDb(book.toDb()).kind, BookKind.book);
+      });
+
+      test('legacy rows without a kind column default to book', () {
+        final Map<String, dynamic> row = createTestBook().toDb()
+          ..remove('kind');
+        expect(Book.fromDb(row).kind, BookKind.book);
+      });
+    });
+
     group('fromOpenLibrarySearchDoc', () {
       Map<String, dynamic> doc() => <String, dynamic>{
             'key': '/works/OL27448W',

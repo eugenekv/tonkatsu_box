@@ -128,6 +128,7 @@ class _SourceCard extends ConsumerWidget {
         DataSource.vndb => l.welcomeSourceDescVndb,
         DataSource.openLibrary => l.welcomeSourceDescOpenLibrary,
         DataSource.fantlab => l.welcomeSourceDescFantlab,
+        DataSource.comicVine => l.welcomeSourceDescComicVine,
         _ => '',
       };
 }
@@ -147,6 +148,7 @@ class _KeyEditorState extends ConsumerState<_KeyEditor> {
   String _clientId = '';
   String _clientSecret = '';
   String _tmdbKey = '';
+  String _comicVineKey = '';
 
   // IGDB needs both halves together, so only persist once both are present.
   void _saveIgdb() {
@@ -239,6 +241,37 @@ class _KeyEditorState extends ConsumerState<_KeyEditor> {
             ),
           ],
         );
+      case DataSource.comicVine:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            InlineTextField(
+              label: l.credentialsApiKey,
+              value: _comicVineKey,
+              placeholder: l.credentialsEnterComicVineKey,
+              obscureText: true,
+              compact: compact,
+              onChanged: (String v) {
+                setState(() => _comicVineKey = v);
+                final String key = v.trim();
+                if (key.isNotEmpty) {
+                  ref
+                      .read(settingsNotifierProvider.notifier)
+                      .setComicVineApiKey(key);
+                }
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _GetKeyLink(url: widget.info.url),
+            const SizedBox(height: 6),
+            Text(
+              l.welcomeSourcesKeyOptionalHint,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -287,10 +320,15 @@ class _KeyBadge extends StatelessWidget {
         }
         return (l.welcomeApiRequired, AppColors.brand);
       case SourceKeyRequirement.recommended:
-        if (settings.isTmdbKeyBuiltIn) {
+        // ComicVine has no built-in key; TMDB may use one.
+        if (info.source == DataSource.tmdb && settings.isTmdbKeyBuiltIn) {
           return (l.welcomeApiBuiltInKey, AppColors.success);
         }
-        if (settings.hasTmdbKey) {
+        final bool hasKey = switch (info.source) {
+          DataSource.comicVine => settings.hasComicVineKey,
+          _ => settings.hasTmdbKey,
+        };
+        if (hasKey) {
           return (l.welcomeSourcesKeySaved, AppColors.success);
         }
         return (l.welcomeApiRecommended, AppColors.textTertiary);

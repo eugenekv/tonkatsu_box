@@ -294,9 +294,12 @@ class DiscordRpcService {
       MediaType.movie =>
         'Movie${item.runtime != null ? " · ${item.runtime} min" : ""}$yearSuffix',
       MediaType.visualNovel => 'Visual Novel$yearSuffix',
-      MediaType.book => item.book?.pageCount != null
-          ? 'Book · ${item.book!.pageCount} pages$yearSuffix'
-          : 'Book$yearSuffix',
+      MediaType.book => switch ((item.book?.isComic ?? false, item.book?.pageCount)) {
+          (true, final int count?) => 'Comic · $count issues$yearSuffix',
+          (true, _) => 'Comic$yearSuffix',
+          (false, final int count?) => 'Book · $count pages$yearSuffix',
+          (false, _) => 'Book$yearSuffix',
+        },
       MediaType.custom => 'Custom$yearSuffix',
     };
 

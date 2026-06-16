@@ -1,4 +1,4 @@
-// Reading-progress section for books — pages read.
+// Reading-progress section for books — pages read (issues read for comics).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +31,9 @@ class BookProgressSection extends ConsumerWidget {
 
   final Color accentColor;
 
+  /// Comics track issues read, prose books track pages.
+  String _unitLabel(S l) => (book?.isComic ?? false) ? l.bookIssues : l.bookPages;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final S l = S.of(context);
@@ -51,7 +54,7 @@ class BookProgressSection extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         MediaProgressRow(
-          label: l.bookPages,
+          label: _unitLabel(l),
           current: currentPage,
           total: totalPages,
           accentColor: accentColor,
@@ -104,7 +107,7 @@ class BookProgressSection extends ConsumerWidget {
     final String? result = await showDialog<String>(
       context: context,
       builder: (BuildContext ctx) => AlertDialog(
-        title: Text(l.bookPages),
+        title: Text(_unitLabel(l)),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,

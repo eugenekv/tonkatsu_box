@@ -33,6 +33,10 @@ enum DataSource {
   /// Fantlab — community book catalog with detailed metadata.
   fantlab('Fantlab', Color(0xFFC5302E), AppAssets.iconFantlabColor),
 
+  /// ComicVine — comics / graphic novels catalog (volumes + issues). Feeds the
+  /// `book` media type with `BookKind.comic` records.
+  comicVine('ComicVine', Color(0xFFF26522), AppAssets.iconComicVineColor),
+
   /// Локальный источник (кастомные элементы).
   local('Custom', Color(0xFF26A69A), null);
 

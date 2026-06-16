@@ -1,4 +1,5 @@
 import 'anilist_api.dart';
+import 'comicvine_api.dart';
 import 'igdb_api.dart';
 import 'mangabaka_api.dart';
 import 'openlibrary_api.dart';
@@ -22,6 +23,8 @@ ApiError extractApiError(Exception e) {
     AniListApiException(:final String message, :final String? detail) =>
       (message: message, detail: detail),
     MangaBakaApiException(:final String message, :final String? detail) =>
+      (message: message, detail: detail),
+    ComicVineApiException(:final String message, :final String? detail) =>
       (message: message, detail: detail),
     OpenLibraryApiException(:final String message, :final String? detail) =>
       (message: message, detail: detail),
