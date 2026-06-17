@@ -28,4 +28,6 @@ abstract final class AppAssets {
       'assets/images/open_library_color.png';
   static const String iconFantlabColor =
       'assets/images/icon_fantlab_color.png';
+  static const String iconComicVineColor =
+      'assets/images/comic_vine_color.png';
 }

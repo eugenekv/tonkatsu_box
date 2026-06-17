@@ -1309,6 +1309,18 @@ abstract class S {
   /// **'Enter your TMDB API key (v3)'**
   String get credentialsEnterTmdbKey;
 
+  /// No description provided for @credentialsComicVineSection.
+  ///
+  /// In en, this message translates to:
+  /// **'ComicVine API (Comics)'**
+  String get credentialsComicVineSection;
+
+  /// No description provided for @credentialsEnterComicVineKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your ComicVine API key'**
+  String get credentialsEnterComicVineKey;
+
   /// No description provided for @credentialsContentLanguage.
   ///
   /// In en, this message translates to:
@@ -1428,6 +1440,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'TMDB API key is invalid'**
   String get credentialsTmdbKeyInvalid;
+
+  /// No description provided for @credentialsComicVineKeyValid.
+  ///
+  /// In en, this message translates to:
+  /// **'ComicVine API key is valid'**
+  String get credentialsComicVineKeyValid;
+
+  /// No description provided for @credentialsComicVineKeyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'ComicVine API key is invalid'**
+  String get credentialsComicVineKeyInvalid;
 
   /// No description provided for @credentialsEnterSteamGridDbKeyError.
   ///
@@ -2315,6 +2339,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Book data from Fantlab.'**
   String get creditsFantlabAttribution;
+
+  /// No description provided for @creditsComicVineAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Comic data from ComicVine (non-commercial use).'**
+  String get creditsComicVineAttribution;
 
   /// No description provided for @creditsOpenSource.
   ///
@@ -3270,6 +3300,12 @@ abstract class S {
   /// **'Pages'**
   String get bookPages;
 
+  /// No description provided for @bookIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues'**
+  String get bookIssues;
+
   /// No description provided for @bookMarkCompleted.
   ///
   /// In en, this message translates to:
@@ -3786,6 +3822,12 @@ abstract class S {
   /// **'Books'**
   String get searchSourceBooks;
 
+  /// No description provided for @searchSourceComics.
+  ///
+  /// In en, this message translates to:
+  /// **'Comics'**
+  String get searchSourceComics;
+
   /// No description provided for @searchHintManga.
   ///
   /// In en, this message translates to:
@@ -3797,6 +3839,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Search books...'**
   String get searchHintBooks;
+
+  /// No description provided for @searchHintComics.
+  ///
+  /// In en, this message translates to:
+  /// **'Search comics...'**
+  String get searchHintComics;
 
   /// No description provided for @bookFilterLanguage.
   ///
@@ -4482,6 +4530,12 @@ abstract class S {
   /// **'Movies, TV & Anime'**
   String get welcomeApiTmdbDesc;
 
+  /// No description provided for @welcomeApiComicVineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Comics & graphic novels'**
+  String get welcomeApiComicVineDesc;
+
   /// No description provided for @welcomeApiRecommended.
   ///
   /// In en, this message translates to:
@@ -4763,6 +4817,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'A detailed book catalog with ratings, awards and series.'**
   String get welcomeSourceDescFantlab;
+
+  /// No description provided for @welcomeSourceDescComicVine.
+  ///
+  /// In en, this message translates to:
+  /// **'A vast catalog of comics and graphic novels.'**
+  String get welcomeSourceDescComicVine;
 
   /// No description provided for @welcomeTourTitle.
   ///
@@ -6359,6 +6419,30 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Trending'**
   String get browseSortTrending;
+
+  /// No description provided for @browseSortNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get browseSortNameAsc;
+
+  /// No description provided for @browseSortNameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Z–A)'**
+  String get browseSortNameDesc;
+
+  /// No description provided for @browseSortRecentlyUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently updated'**
+  String get browseSortRecentlyUpdated;
+
+  /// No description provided for @browseSortRecentlyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get browseSortRecentlyAdded;
 
   /// No description provided for @browseAnimeTypeSeries.
   ///

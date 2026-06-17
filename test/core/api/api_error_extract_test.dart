@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tonkatsu_box/core/api/anilist_api.dart';
 import 'package:tonkatsu_box/core/api/api_error_extract.dart';
+import 'package:tonkatsu_box/core/api/comicvine_api.dart';
 import 'package:tonkatsu_box/core/api/igdb_api.dart';
 import 'package:tonkatsu_box/core/api/ra_api.dart';
 import 'package:tonkatsu_box/core/api/steam_api.dart';
@@ -19,6 +20,7 @@ void main() {
         (const SteamGridDbApiException('sgdb', detail: 'd5'), 'sgdb'),
         (const SteamApiException('steam', detail: 'd6'), 'steam'),
         (const RaApiException('ra', detail: 'd7'), 'ra'),
+        (const ComicVineApiException('comicvine', detail: 'd8'), 'comicvine'),
       ];
 
       for (final (Exception e, String msg) in cases) {

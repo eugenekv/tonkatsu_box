@@ -695,6 +695,12 @@ class SRu extends S {
   String get credentialsEnterTmdbKey => 'Введите ваш ключ TMDB API (v3)';
 
   @override
+  String get credentialsComicVineSection => 'ComicVine API (комиксы)';
+
+  @override
+  String get credentialsEnterComicVineKey => 'Введите ваш ключ ComicVine API';
+
+  @override
   String get credentialsContentLanguage => 'Язык контента';
 
   @override
@@ -761,6 +767,13 @@ class SRu extends S {
 
   @override
   String get credentialsTmdbKeyInvalid => 'Ключ TMDB API недействителен';
+
+  @override
+  String get credentialsComicVineKeyValid => 'Ключ ComicVine API действителен';
+
+  @override
+  String get credentialsComicVineKeyInvalid =>
+      'Ключ ComicVine API недействителен';
 
   @override
   String get credentialsEnterSteamGridDbKeyError =>
@@ -1298,6 +1311,10 @@ class SRu extends S {
   String get creditsFantlabAttribution => 'Данные о книгах из Fantlab.';
 
   @override
+  String get creditsComicVineAttribution =>
+      'Данные о комиксах из ComicVine (некоммерческое использование).';
+
+  @override
   String get creditsOpenSource => 'Открытый исходный код';
 
   @override
@@ -1822,6 +1839,9 @@ class SRu extends S {
   String get bookPages => 'Страницы';
 
   @override
+  String get bookIssues => 'Выпуски';
+
+  @override
   String get bookMarkCompleted => 'Отметить как прочитано';
 
   @override
@@ -2113,10 +2133,16 @@ class SRu extends S {
   String get searchSourceBooks => 'Книги';
 
   @override
+  String get searchSourceComics => 'Комиксы';
+
+  @override
   String get searchHintManga => 'Поиск манги...';
 
   @override
   String get searchHintBooks => 'Поиск книг...';
+
+  @override
+  String get searchHintComics => 'Поиск комиксов...';
 
   @override
   String get bookFilterLanguage => 'Язык';
@@ -2538,6 +2564,9 @@ class SRu extends S {
   String get welcomeApiTmdbDesc => 'Фильмы, сериалы и аниме';
 
   @override
+  String get welcomeApiComicVineDesc => 'Комиксы и графические романы';
+
+  @override
   String get welcomeApiRecommended => 'РЕКОМЕНДУЕТСЯ';
 
   @override
@@ -2697,6 +2726,10 @@ class SRu extends S {
   @override
   String get welcomeSourceDescFantlab =>
       'Подробный каталог книг с оценками, наградами и циклами.';
+
+  @override
+  String get welcomeSourceDescComicVine =>
+      'Обширный каталог комиксов и графических романов.';
 
   @override
   String get welcomeTourTitle => 'Знакомство с меню';
@@ -3559,6 +3592,18 @@ class SRu extends S {
 
   @override
   String get browseSortTrending => 'В тренде';
+
+  @override
+  String get browseSortNameAsc => 'Название (А–Я)';
+
+  @override
+  String get browseSortNameDesc => 'Название (Я–А)';
+
+  @override
+  String get browseSortRecentlyUpdated => 'Недавно обновлённые';
+
+  @override
+  String get browseSortRecentlyAdded => 'Недавно добавленные';
 
   @override
   String get browseAnimeTypeSeries => 'Сериалы';

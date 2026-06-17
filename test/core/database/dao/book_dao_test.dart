@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:tonkatsu_box/core/database/dao/book_dao.dart';
+import 'package:tonkatsu_box/core/database/migrations/migration_v49.dart';
 import 'package:tonkatsu_box/core/database/schema.dart';
 import 'package:tonkatsu_box/shared/models/book.dart';
 import 'package:tonkatsu_box/shared/models/data_source.dart';
@@ -23,6 +24,8 @@ void main() {
         version: 1,
         onCreate: (Database d, int _) async {
           await DatabaseSchema.createBooksCacheTable(d);
+          // Bring the v47 table up to the current shape (adds `kind`).
+          await MigrationV49().migrate(d);
         },
       ),
     );

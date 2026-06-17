@@ -54,6 +54,10 @@ class BrowseSortOption {
         'newest' => l.browseSortNewest,
         'most_voted' => l.browseSortMostVoted,
         'trending' => l.browseSortTrending,
+        'name_asc' => l.browseSortNameAsc,
+        'name_desc' => l.browseSortNameDesc,
+        'recently_updated' => l.browseSortRecentlyUpdated,
+        'recently_added' => l.browseSortRecentlyAdded,
         _ => id,
       };
 

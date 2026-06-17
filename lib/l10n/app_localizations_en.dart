@@ -686,6 +686,12 @@ class SEn extends S {
   String get credentialsEnterTmdbKey => 'Enter your TMDB API key (v3)';
 
   @override
+  String get credentialsComicVineSection => 'ComicVine API (Comics)';
+
+  @override
+  String get credentialsEnterComicVineKey => 'Enter your ComicVine API key';
+
+  @override
   String get credentialsContentLanguage => 'Content Language';
 
   @override
@@ -750,6 +756,12 @@ class SEn extends S {
 
   @override
   String get credentialsTmdbKeyInvalid => 'TMDB API key is invalid';
+
+  @override
+  String get credentialsComicVineKeyValid => 'ComicVine API key is valid';
+
+  @override
+  String get credentialsComicVineKeyInvalid => 'ComicVine API key is invalid';
 
   @override
   String get credentialsEnterSteamGridDbKeyError =>
@@ -1278,6 +1290,10 @@ class SEn extends S {
   String get creditsFantlabAttribution => 'Book data from Fantlab.';
 
   @override
+  String get creditsComicVineAttribution =>
+      'Comic data from ComicVine (non-commercial use).';
+
+  @override
   String get creditsOpenSource => 'Open Source';
 
   @override
@@ -1799,6 +1815,9 @@ class SEn extends S {
   String get bookPages => 'Pages';
 
   @override
+  String get bookIssues => 'Issues';
+
+  @override
   String get bookMarkCompleted => 'Mark as completed';
 
   @override
@@ -2089,10 +2108,16 @@ class SEn extends S {
   String get searchSourceBooks => 'Books';
 
   @override
+  String get searchSourceComics => 'Comics';
+
+  @override
   String get searchHintManga => 'Search manga...';
 
   @override
   String get searchHintBooks => 'Search books...';
+
+  @override
+  String get searchHintComics => 'Search comics...';
 
   @override
   String get bookFilterLanguage => 'Language';
@@ -2497,6 +2522,9 @@ class SEn extends S {
   String get welcomeApiTmdbDesc => 'Movies, TV & Anime';
 
   @override
+  String get welcomeApiComicVineDesc => 'Comics & graphic novels';
+
+  @override
   String get welcomeApiRecommended => 'RECOMMENDED';
 
   @override
@@ -2655,6 +2683,10 @@ class SEn extends S {
   @override
   String get welcomeSourceDescFantlab =>
       'A detailed book catalog with ratings, awards and series.';
+
+  @override
+  String get welcomeSourceDescComicVine =>
+      'A vast catalog of comics and graphic novels.';
 
   @override
   String get welcomeTourTitle => 'Get to know the menu';
@@ -3516,6 +3548,18 @@ class SEn extends S {
 
   @override
   String get browseSortTrending => 'Trending';
+
+  @override
+  String get browseSortNameAsc => 'Name (A–Z)';
+
+  @override
+  String get browseSortNameDesc => 'Name (Z–A)';
+
+  @override
+  String get browseSortRecentlyUpdated => 'Recently updated';
+
+  @override
+  String get browseSortRecentlyAdded => 'Recently added';
 
   @override
   String get browseAnimeTypeSeries => 'Series';

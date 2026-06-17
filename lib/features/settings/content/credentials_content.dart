@@ -40,6 +40,7 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
   String _clientSecret = '';
   String _steamGridDbApiKey = '';
   String _tmdbApiKey = '';
+  String _comicVineApiKey = '';
   String _ssSsid = '';
   String _ssSspassword = '';
   bool _ssQuotaLoading = false;
@@ -48,8 +49,10 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
 
   StatusType? _sgdbValidated;
   StatusType? _tmdbValidated;
+  StatusType? _comicVineValidated;
   bool _sgdbValidating = false;
   bool _tmdbValidating = false;
+  bool _comicVineValidating = false;
 
   @override
   void initState() {
@@ -62,6 +65,7 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
         settings.isSteamGridDbKeyBuiltIn ? '' : (settings.steamGridDbApiKey ?? '');
     _tmdbApiKey =
         settings.isTmdbKeyBuiltIn ? '' : (settings.tmdbApiKey ?? '');
+    _comicVineApiKey = settings.comicVineApiKey ?? '';
     _ssSsid = settings.screenScraperSsid ?? '';
     _ssSspassword = settings.screenScraperSspassword ?? '';
   }
@@ -83,6 +87,8 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
         _buildSteamGridDbSection(settings, compact),
         const SizedBox(height: AppSpacing.md),
         _buildTmdbSection(settings, compact),
+        const SizedBox(height: AppSpacing.md),
+        _buildComicVineSection(settings, compact),
         const SizedBox(height: AppSpacing.md),
         _buildScreenScraperSection(settings, compact),
         if (settings.errorMessage != null) ...<Widget>[
@@ -329,12 +335,92 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
     );
   }
 
+  // ==================== ComicVine ====================
+
+  Widget _buildComicVineSection(SettingsState settings, bool compact) {
+    return SettingsGroup(
+      title: S.of(context).credentialsComicVineSection,
+      children: <Widget>[
+        _buildSourceHeader(
+          iconAsset: AppAssets.iconComicVineColor,
+          description: S.of(context).welcomeApiComicVineDesc,
+          sourceName: 'ComicVine',
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Column(
+            children: <Widget>[
+              InlineTextField(
+                label: S.of(context).credentialsApiKey,
+                value: _comicVineApiKey,
+                placeholder: S.of(context).credentialsEnterComicVineKey,
+                obscureText: true,
+                compact: compact,
+                onChanged: (String value) {
+                  setState(() {
+                    _comicVineApiKey = value;
+                    _comicVineValidated = null;
+                  });
+                  if (value.trim().isNotEmpty) {
+                    ref
+                        .read(settingsNotifierProvider.notifier)
+                        .setComicVineApiKey(value.trim());
+                  }
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _buildCredentialStatus(
+                compact: compact,
+                statusType: _keyStatusType(
+                  hasKey: settings.hasComicVineKey,
+                  isBuiltIn: false,
+                  validated: _comicVineValidated,
+                ),
+                statusLabel: _keyStatusLabel(
+                  hasKey: settings.hasComicVineKey,
+                  isBuiltIn: false,
+                  validated: _comicVineValidated,
+                ),
+                actionTooltip: S.of(context).test,
+                isLoading: _comicVineValidating,
+                onAction:
+                    settings.hasComicVineKey ? _validateComicVineKey : null,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _validateComicVineKey() async {
+    setState(() => _comicVineValidating = true);
+    final SettingsNotifier notifier =
+        ref.read(settingsNotifierProvider.notifier);
+    final bool valid = await notifier.validateComicVineKey();
+    if (!mounted) return;
+    setState(() {
+      _comicVineValidating = false;
+      _comicVineValidated = valid ? StatusType.success : StatusType.error;
+    });
+    context.showSnack(
+      valid
+          ? S.of(context).credentialsComicVineKeyValid
+          : S.of(context).credentialsComicVineKeyInvalid,
+      type: valid ? SnackType.success : SnackType.error,
+    );
+  }
+
   // ==================== Hints ====================
 
   Widget _buildSourceHeader({
-    required String iconAsset,
     required String description,
     required String sourceName,
+    String? iconAsset,
+    IconData? icon,
   }) {
     return Padding(
       padding: const EdgeInsets.only(
@@ -344,12 +430,19 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
       ),
       child: Row(
         children: <Widget>[
-          Image.asset(
-            iconAsset,
-            width: 24,
-            height: 24,
-            filterQuality: FilterQuality.medium,
-          ),
+          if (iconAsset != null)
+            Image.asset(
+              iconAsset,
+              width: 24,
+              height: 24,
+              filterQuality: FilterQuality.medium,
+            )
+          else
+            Icon(
+              icon ?? Icons.api,
+              size: 24,
+              color: AppColors.textSecondary,
+            ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(

@@ -96,6 +96,13 @@ class CreditsContent extends StatelessWidget {
         linkLabel: 'fantlab.ru',
         url: 'https://fantlab.ru/',
       ),
+      (
+        source: DataSource.comicVine,
+        name: 'ComicVine',
+        description: l10n.creditsComicVineAttribution,
+        linkLabel: 'comicvine.gamespot.com',
+        url: 'https://comicvine.gamespot.com/',
+      ),
     ];
 
     return Column(

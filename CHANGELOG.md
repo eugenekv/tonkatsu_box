@@ -7,6 +7,46 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Added
+
+- **ComicVine comics source in search**
+
+  Adds ComicVine (comicvine.gamespot.com) as a comics / graphic-novel source
+  under the books tab. Volumes are tagged as comics so they share the book
+  media type while staying separable. Text search is relevance-ranked by
+  default; choosing a sort order (name A–Z / Z–A, recently updated, recently
+  added) switches to a paginated `/volumes` listing. A comic's detail shows
+  the issue count (not a page count), the series' creators, and its characters
+  as tags — comics have no genres on ComicVine, so the character list stands in
+  for them; an empty volume synopsis falls back to the first issue's. Needs a
+  free ComicVine API key, entered in Settings → Credentials.
+
+  * lib/core/api/comicvine_api.dart (ComicVineApi, ComicVineApiException, comicVineApiProvider):
+    ComicVine REST client — searchVolumes (`/search`, relevance), browseVolumes
+    (`/volumes` name-filter, sorted + paginated), getVolume (detail with
+    people / characters, and a first-issue description fallback), validateApiKey.
+    ComicVine ignores `start_year` / `publisher` / `count_of_issues` filters and
+    sorts, so only the working orders are exposed.
+  * lib/features/search/sources/comicvine_source.dart (ComicVineSource):
+    SearchSource backed by ComicVine; relevance routes to `/search`, every other
+    sort to `/volumes`; supportsSortDuringSearch is true.
+  * lib/shared/models/book.dart (Book.fromComicVineVolume, Book.isComic, Book.kind, Book._comicVineNames):
+    Maps a ComicVine volume to a comic-kind Book — `count_of_issues` → pageCount
+    (labelled as issues), `people` → authors, `characters` → subjects, `start_year`
+    → publishYear.
+  * lib/shared/models/book_kind.dart (BookKind): New — prose-vs-comic discriminator persisted in `books_cache.kind`.
+  * lib/core/database/migrations/migration_v49.dart (MigrationV49): New — adds the `books_cache.kind` column.
+  * lib/shared/models/data_source.dart (DataSource.comicVine), lib/shared/theme/app_assets.dart (AppAssets.iconComicVineColor):
+    Brand colour + logo asset (assets/images/comic_vine_color.png), surfaced via SourceLogo / SourceBadge and the credits screen.
+  * lib/features/search/models/search_source.dart (BrowseSortOption.label):
+    Add name_asc / name_desc / recently_updated / recently_added sort labels.
+  * lib/features/settings/content/credentials_content.dart (_CredentialsContentState._buildComicVineSection, _validateComicVineKey):
+    ComicVine API-key entry and validation.
+  * lib/features/search/widgets/item_details_sheet.dart (ItemDetailsSheet.book), lib/features/collections/widgets/book_progress_section.dart (BookProgressSection), lib/core/services/discord_rpc_service.dart (DiscordRpcService):
+    Label comics by issue count instead of page count.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (bookIssues, browseSortNameAsc, browseSortNameDesc, browseSortRecentlyUpdated, browseSortRecentlyAdded, credentialsComicVineSection, searchSourceComics):
+    Comics labels and ComicVine credential strings.
+
 ### Changed
 
 - **Settings cache button now clears only unused covers instead of wiping the whole cache**

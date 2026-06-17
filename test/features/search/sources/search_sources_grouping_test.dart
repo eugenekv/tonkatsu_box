@@ -14,11 +14,12 @@ void main() {
       expect(groupIds, contains('vndb'));
       expect(groupIds, contains('openlibrary'));
       expect(groupIds, contains('fantlab'));
+      expect(groupIds, contains('comicvine'));
     });
 
-    test('preserves order — tmdb first, fantlab last', () {
+    test('preserves order — tmdb first, comicvine last', () {
       expect(groupedSearchSources.first.groupId, 'tmdb');
-      expect(groupedSearchSources.last.groupId, 'fantlab');
+      expect(groupedSearchSources.last.groupId, 'comicvine');
     });
 
     test('tmdb group has 3 sources', () {
@@ -63,6 +64,11 @@ void main() {
           .firstWhere((SourceGroupEntry g) => g.groupId == 'fantlab');
       expect(fantlab.sources.length, 1);
       expect(fantlab.sources.single.id, 'fantlab');
+
+      final SourceGroupEntry comicvine = groupedSearchSources
+          .firstWhere((SourceGroupEntry g) => g.groupId == 'comicvine');
+      expect(comicvine.sources.length, 1);
+      expect(comicvine.sources.single.id, 'comicvine');
     });
 
     test('total sources in groups matches searchSources', () {
