@@ -41,6 +41,7 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
   String _steamGridDbApiKey = '';
   String _tmdbApiKey = '';
   String _comicVineApiKey = '';
+  String _googleBooksApiKey = '';
   String _ssSsid = '';
   String _ssSspassword = '';
   bool _ssQuotaLoading = false;
@@ -50,9 +51,11 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
   StatusType? _sgdbValidated;
   StatusType? _tmdbValidated;
   StatusType? _comicVineValidated;
+  StatusType? _googleBooksValidated;
   bool _sgdbValidating = false;
   bool _tmdbValidating = false;
   bool _comicVineValidating = false;
+  bool _googleBooksValidating = false;
 
   @override
   void initState() {
@@ -66,6 +69,7 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
     _tmdbApiKey =
         settings.isTmdbKeyBuiltIn ? '' : (settings.tmdbApiKey ?? '');
     _comicVineApiKey = settings.comicVineApiKey ?? '';
+    _googleBooksApiKey = settings.googleBooksApiKey ?? '';
     _ssSsid = settings.screenScraperSsid ?? '';
     _ssSspassword = settings.screenScraperSspassword ?? '';
   }
@@ -89,6 +93,8 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
         _buildTmdbSection(settings, compact),
         const SizedBox(height: AppSpacing.md),
         _buildComicVineSection(settings, compact),
+        const SizedBox(height: AppSpacing.md),
+        _buildGoogleBooksSection(settings, compact),
         const SizedBox(height: AppSpacing.md),
         _buildScreenScraperSection(settings, compact),
         if (settings.errorMessage != null) ...<Widget>[
@@ -410,6 +416,87 @@ class _CredentialsContentState extends ConsumerState<CredentialsContent> {
       valid
           ? S.of(context).credentialsComicVineKeyValid
           : S.of(context).credentialsComicVineKeyInvalid,
+      type: valid ? SnackType.success : SnackType.error,
+    );
+  }
+
+  // ==================== Google Books ====================
+
+  Widget _buildGoogleBooksSection(SettingsState settings, bool compact) {
+    return SettingsGroup(
+      title: S.of(context).credentialsGoogleBooksSection,
+      children: <Widget>[
+        _buildSourceHeader(
+          iconAsset: AppAssets.iconGoogleBooksColor,
+          description: S.of(context).welcomeApiGoogleBooksDesc,
+          sourceName: 'Google Books',
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Column(
+            children: <Widget>[
+              InlineTextField(
+                label: S.of(context).credentialsApiKey,
+                value: _googleBooksApiKey,
+                placeholder: S.of(context).credentialsEnterGoogleBooksKey,
+                obscureText: true,
+                compact: compact,
+                onChanged: (String value) {
+                  setState(() {
+                    _googleBooksApiKey = value;
+                    _googleBooksValidated = null;
+                  });
+                  // The key is optional, so an empty value clears it (search
+                  // still works anonymously).
+                  ref
+                      .read(settingsNotifierProvider.notifier)
+                      .setGoogleBooksApiKey(value.trim());
+                },
+              ),
+              _buildOwnKeyHint(),
+              const SizedBox(height: AppSpacing.sm),
+              _buildCredentialStatus(
+                compact: compact,
+                statusType: _keyStatusType(
+                  hasKey: settings.hasGoogleBooksKey,
+                  isBuiltIn: false,
+                  validated: _googleBooksValidated,
+                ),
+                statusLabel: _keyStatusLabel(
+                  hasKey: settings.hasGoogleBooksKey,
+                  isBuiltIn: false,
+                  validated: _googleBooksValidated,
+                ),
+                actionTooltip: S.of(context).test,
+                isLoading: _googleBooksValidating,
+                onAction: settings.hasGoogleBooksKey
+                    ? _validateGoogleBooksKey
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _validateGoogleBooksKey() async {
+    setState(() => _googleBooksValidating = true);
+    final SettingsNotifier notifier =
+        ref.read(settingsNotifierProvider.notifier);
+    final bool valid = await notifier.validateGoogleBooksKey();
+    if (!mounted) return;
+    setState(() {
+      _googleBooksValidating = false;
+      _googleBooksValidated = valid ? StatusType.success : StatusType.error;
+    });
+    context.showSnack(
+      valid
+          ? S.of(context).credentialsGoogleBooksKeyValid
+          : S.of(context).credentialsGoogleBooksKeyInvalid,
       type: valid ? SnackType.success : SnackType.error,
     );
   }

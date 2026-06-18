@@ -9,6 +9,47 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Google Books book source**
+
+  Search Google's catalogue of millions of editions by title, author, or ISBN,
+  with print-type and language filters. Books share the Books tab with
+  OpenLibrary and Fantlab. The API key is optional — search works anonymously,
+  and a personal key (entered in Settings or the first-run wizard) only raises
+  the quota. A volume's search sheet gains a "More by this author" strip (covers
+  + year, hover for the blurb, tap to copy the title); a collected Google book
+  gets a category-based "Similar books" row on its detail page.
+
+  * lib/core/api/google_books_api.dart (GoogleBooksApi, GoogleBooksApiException, googleBooksApiProvider):
+    New — Dio client over `/books/v1`; optional key, paged `searchVolumes`,
+    `getVolume`, `validateApiKey`.
+  * lib/shared/models/book.dart (Book.fromGoogleBooksVolume, fnv1a64): New
+    factory; the alphanumeric `volumeId` is folded into the numeric `id`
+    contract via a deterministic 63-bit FNV-1a hash (real id kept in `nativeId`).
+    A zero `pageCount` from search-list rows is treated as unknown.
+  * lib/shared/models/data_source.dart (DataSource.googleBooks): New value.
+  * lib/shared/theme/app_assets.dart (AppAssets.iconGoogleBooksColor): New asset.
+  * lib/features/search/sources/google_books_source.dart (GoogleBooksSource), lib/features/search/filters/google_books_print_type_filter.dart (GoogleBooksPrintTypeFilter), lib/features/search/filters/google_books_language_filter.dart (GoogleBooksLanguageFilter):
+    New search source plus print-type and language filters.
+  * lib/features/search/widgets/google_books_more_by_author_section.dart (GoogleBooksMoreByAuthorSection):
+    New — lazily-paged, display-only "more by this author" strip.
+  * lib/features/collections/widgets/google_books_similars_section.dart (GoogleBooksSimilarsSection):
+    New — category-based ("subject:") "similar books" row.
+  * lib/shared/widgets/book_carousel.dart (BookCarousel, BookCarouselShimmer), lib/features/collections/widgets/book_similars_carousel.dart (BookSimilarsCarousel):
+    New shared book-strip widgets; lib/features/collections/widgets/book_similars_section.dart (BookSimilarsSection) refactored onto them.
+  * lib/features/search/widgets/item_details_sheet.dart (ItemDetailsSheet.book):
+    Add the opaque `moreByAuthorSection` slot at the bottom of the sheet.
+  * lib/features/search/handlers/media_handlers.dart (MediaHandlers): Wire the
+    author strip for Google volumes and refetch via `getVolume`.
+  * lib/features/collections/helpers/collection_actions.dart, lib/features/collections/screens/item_detail_screen.dart:
+    Refresh and similars wiring for Google books.
+  * lib/features/settings/providers/settings_provider.dart (SettingsKeys.googleBooksApiKey, SettingsNotifier.setGoogleBooksApiKey, SettingsNotifier.validateGoogleBooksKey), lib/core/services/api_key_initializer.dart (ApiKeys.googleBooksApiKey):
+    Optional key storage and wiring.
+  * lib/features/settings/content/credentials_content.dart, lib/features/settings/content/credits_content.dart, lib/features/welcome/widgets/welcome_step_sources.dart, lib/shared/constants/source_catalog.dart:
+    Credentials field, attribution, first-run card, and source-catalogue entry.
+  * lib/features/search/utils/filter_ui.dart (filterAccentForGroup): Map the
+    Google Books and ComicVine groups to the book accent.
+  * docs/GOOGLE_BOOKS.md, README.md: Document the source and key setup.
+
 - **Kinorium CSV import**
 
   Imports a Kinorium list from its emailed CSV export (UTF-16, tab-separated).

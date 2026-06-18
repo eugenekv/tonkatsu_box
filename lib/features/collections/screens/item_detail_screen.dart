@@ -40,6 +40,7 @@ import '../widgets/item_tags_section.dart';
 import '../widgets/anime_progress_section.dart';
 import '../widgets/book_progress_section.dart';
 import '../widgets/book_similars_section.dart';
+import '../widgets/google_books_similars_section.dart';
 import '../widgets/manga_progress_section.dart';
 import '../widgets/dialogs/add_time_dialog.dart';
 import '../providers/tracker_provider.dart';
@@ -719,14 +720,22 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
             tmdbId: item.externalId,
             mediaType: item.mediaType,
           ),
-        // Similar books — Fantlab is the only book provider with a similars
-        // endpoint.
+        // Similar books — Fantlab has a native similars endpoint; Google Books
+        // approximates it by category search.
         if (settings.showRecommendations &&
             item.mediaType == MediaType.book &&
             item.book?.source == DataSource.fantlab &&
             item.book?.nativeId != null)
           BookSimilarsSection(
             workId: item.book!.nativeId,
+            onAddBook: _addBookFromSimilars,
+          ),
+        if (settings.showRecommendations &&
+            item.mediaType == MediaType.book &&
+            item.book?.source == DataSource.googleBooks &&
+            (item.book?.subjects.isNotEmpty ?? false))
+          GoogleBooksSimilarsSection(
+            book: item.book!,
             onAddBook: _addBookFromSimilars,
           ),
       ],

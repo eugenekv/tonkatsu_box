@@ -708,6 +708,13 @@ class SRu extends S {
   String get credentialsEnterComicVineKey => 'Введите ваш ключ ComicVine API';
 
   @override
+  String get credentialsGoogleBooksSection => 'Google Books API (книги)';
+
+  @override
+  String get credentialsEnterGoogleBooksKey =>
+      'Введите ключ Google Books API (необязательно)';
+
+  @override
   String get credentialsContentLanguage => 'Язык контента';
 
   @override
@@ -781,6 +788,14 @@ class SRu extends S {
   @override
   String get credentialsComicVineKeyInvalid =>
       'Ключ ComicVine API недействителен';
+
+  @override
+  String get credentialsGoogleBooksKeyValid =>
+      'Ключ Google Books API действителен';
+
+  @override
+  String get credentialsGoogleBooksKeyInvalid =>
+      'Ключ Google Books API недействителен';
 
   @override
   String get credentialsEnterSteamGridDbKeyError =>
@@ -1378,6 +1393,10 @@ class SRu extends S {
   @override
   String get creditsComicVineAttribution =>
       'Данные о комиксах из ComicVine (некоммерческое использование).';
+
+  @override
+  String get creditsGoogleBooksAttribution =>
+      'Данные о книгах из Google Books.';
 
   @override
   String get creditsOpenSource => 'Открытый исходный код';
@@ -2216,6 +2235,9 @@ class SRu extends S {
   String get bookFilterSearchBy => 'Искать по';
 
   @override
+  String get bookFilterPrintType => 'Тип';
+
+  @override
   String get bookSearchTitle => 'Название';
 
   @override
@@ -2226,6 +2248,12 @@ class SRu extends S {
 
   @override
   String get bookSimilarTitle => 'Похожие книги';
+
+  @override
+  String get bookMoreByAuthorTitle => 'Ещё от автора';
+
+  @override
+  String get bookTitleCopied => 'Название скопировано';
 
   @override
   String get editionPickerTitle => 'Выбрать издание';
@@ -2632,6 +2660,9 @@ class SRu extends S {
   String get welcomeApiComicVineDesc => 'Комиксы и графические романы';
 
   @override
+  String get welcomeApiGoogleBooksDesc => 'Глобальный каталог книг Google';
+
+  @override
   String get welcomeApiRecommended => 'РЕКОМЕНДУЕТСЯ';
 
   @override
@@ -2795,6 +2826,10 @@ class SRu extends S {
   @override
   String get welcomeSourceDescComicVine =>
       'Обширный каталог комиксов и графических романов.';
+
+  @override
+  String get welcomeSourceDescGoogleBooks =>
+      'Миллионы изданий из книжного каталога Google: поиск по названию, автору или ISBN.';
 
   @override
   String get welcomeTourTitle => 'Знакомство с меню';

@@ -14,9 +14,12 @@ Color filterAccentForGroup(String groupId) {
     'anilist' => AppColors.animeAccent,
     'mangabaka' => AppColors.animeAccent,
     'vndb' => AppColors.visualNovelAccent,
-    // Both book providers share the book accent.
+    // All book providers share the book accent — ComicVine volumes are
+    // MediaType.book too, so comics aren't split out by colour.
     'openlibrary' => AppColors.bookAccent,
     'fantlab' => AppColors.bookAccent,
+    'googlebooks' => AppColors.bookAccent,
+    'comicvine' => AppColors.bookAccent,
     _ => AppColors.brand,
   };
 }

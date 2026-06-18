@@ -9,14 +9,15 @@ import 'package:tonkatsu_box/features/search/sources/anilist_anime_source.dart';
 import 'package:tonkatsu_box/features/search/sources/anilist_manga_source.dart';
 import 'package:tonkatsu_box/features/search/sources/comicvine_source.dart';
 import 'package:tonkatsu_box/features/search/sources/fantlab_source.dart';
+import 'package:tonkatsu_box/features/search/sources/google_books_source.dart';
 import 'package:tonkatsu_box/features/search/sources/mangabaka_source.dart';
 import 'package:tonkatsu_box/features/search/sources/openlibrary_source.dart';
 import 'package:tonkatsu_box/features/search/sources/vndb_source.dart';
 
 void main() {
   group('searchSources', () {
-    test('contains 11 sources', () {
-      expect(searchSources, hasLength(11));
+    test('contains 12 sources', () {
+      expect(searchSources, hasLength(12));
     });
 
     test('first source is TmdbMoviesSource', () {
@@ -59,8 +60,12 @@ void main() {
       expect(searchSources[9], isA<FantlabSource>());
     });
 
-    test('eleventh source is ComicVineSource', () {
-      expect(searchSources[10], isA<ComicVineSource>());
+    test('eleventh source is GoogleBooksSource', () {
+      expect(searchSources[10], isA<GoogleBooksSource>());
+    });
+
+    test('twelfth source is ComicVineSource', () {
+      expect(searchSources[11], isA<ComicVineSource>());
     });
 
     test('all sources have unique ids', () {
@@ -83,6 +88,7 @@ void main() {
         'visual_novels',
         'openlibrary',
         'fantlab',
+        'googlebooks',
         'comicvine',
       ]);
     });

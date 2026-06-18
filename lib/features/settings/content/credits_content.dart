@@ -103,6 +103,13 @@ class CreditsContent extends StatelessWidget {
         linkLabel: 'comicvine.gamespot.com',
         url: 'https://comicvine.gamespot.com/',
       ),
+      (
+        source: DataSource.googleBooks,
+        name: 'Google Books',
+        description: l10n.creditsGoogleBooksAttribution,
+        linkLabel: 'books.google.com',
+        url: 'https://books.google.com/',
+      ),
     ];
 
     return Column(

@@ -1333,6 +1333,18 @@ abstract class S {
   /// **'Enter your ComicVine API key'**
   String get credentialsEnterComicVineKey;
 
+  /// No description provided for @credentialsGoogleBooksSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Books API (Books)'**
+  String get credentialsGoogleBooksSection;
+
+  /// No description provided for @credentialsEnterGoogleBooksKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your Google Books API key (optional)'**
+  String get credentialsEnterGoogleBooksKey;
+
   /// No description provided for @credentialsContentLanguage.
   ///
   /// In en, this message translates to:
@@ -1464,6 +1476,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'ComicVine API key is invalid'**
   String get credentialsComicVineKeyInvalid;
+
+  /// No description provided for @credentialsGoogleBooksKeyValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Books API key is valid'**
+  String get credentialsGoogleBooksKeyValid;
+
+  /// No description provided for @credentialsGoogleBooksKeyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Books API key is invalid'**
+  String get credentialsGoogleBooksKeyInvalid;
 
   /// No description provided for @credentialsEnterSteamGridDbKeyError.
   ///
@@ -2465,6 +2489,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Comic data from ComicVine (non-commercial use).'**
   String get creditsComicVineAttribution;
+
+  /// No description provided for @creditsGoogleBooksAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Book data from Google Books.'**
+  String get creditsGoogleBooksAttribution;
 
   /// No description provided for @creditsOpenSource.
   ///
@@ -3978,6 +4008,12 @@ abstract class S {
   /// **'Search by'**
   String get bookFilterSearchBy;
 
+  /// No description provided for @bookFilterPrintType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get bookFilterPrintType;
+
   /// No description provided for @bookSearchTitle.
   ///
   /// In en, this message translates to:
@@ -4001,6 +4037,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Similar books'**
   String get bookSimilarTitle;
+
+  /// No description provided for @bookMoreByAuthorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More by this author'**
+  String get bookMoreByAuthorTitle;
+
+  /// No description provided for @bookTitleCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Title copied'**
+  String get bookTitleCopied;
 
   /// No description provided for @editionPickerTitle.
   ///
@@ -4656,6 +4704,12 @@ abstract class S {
   /// **'Comics & graphic novels'**
   String get welcomeApiComicVineDesc;
 
+  /// No description provided for @welcomeApiGoogleBooksDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Google\'s global book catalog'**
+  String get welcomeApiGoogleBooksDesc;
+
   /// No description provided for @welcomeApiRecommended.
   ///
   /// In en, this message translates to:
@@ -4943,6 +4997,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'A vast catalog of comics and graphic novels.'**
   String get welcomeSourceDescComicVine;
+
+  /// No description provided for @welcomeSourceDescGoogleBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Millions of editions from Google\'s book catalog, searchable by title, author or ISBN.'**
+  String get welcomeSourceDescGoogleBooks;
 
   /// No description provided for @welcomeTourTitle.
   ///

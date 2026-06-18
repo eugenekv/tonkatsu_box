@@ -50,13 +50,14 @@ void main() {
       );
     });
 
-    testWidgets('exposes key fields for IGDB, TMDB and ComicVine',
+    testWidgets('exposes key fields for IGDB, TMDB, ComicVine and Google Books',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidget());
       await tester.pumpAndSettle();
 
-      // IGDB (Client ID + Secret) + TMDB (key) + ComicVine (key) = 4 fields.
-      expect(find.byType(InlineTextField), findsNWidgets(4));
+      // IGDB (Client ID + Secret) + TMDB (key) + ComicVine (key) +
+      // Google Books (key) = 5 fields.
+      expect(find.byType(InlineTextField), findsNWidgets(5));
     });
   });
 }
