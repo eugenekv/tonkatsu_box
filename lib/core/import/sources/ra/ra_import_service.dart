@@ -248,24 +248,24 @@ class RaImportService implements ImportSource {
     );
 
     // tracker_game_data is per (IGDB id, platform) and lives outside the
-    // collection_items table, so it is written after the batch.
-    for (final _MatchedGame m in matched) {
-      await _saveTrackerGameData(m.game.id, m.ra);
-    }
+    // collection_items table, so it is batch-written after the items.
+    await _trackerDao.upsertGameDataBatch(<TrackerGameData>[
+      for (final _MatchedGame m in matched) _trackerGameData(m.game.id, m.ra),
+    ]);
 
     onProgress?.call(ImportProgress(
       stage: ImportStage.completed,
       current: games.length,
       total: games.length,
-      imported: _sum(write.importedByType),
-      updated: _sum(write.updatedByType),
-      wishlisted: _sum(wishlistedByType),
+      imported: sumByType(write.importedByType),
+      updated: sumByType(write.updatedByType),
+      wishlisted: sumByType(wishlistedByType),
     ));
 
     _log.info(
-      'RA import done: ${_sum(write.importedByType)} added, '
-      '${_sum(write.updatedByType)} updated, '
-      '${_sum(wishlistedByType)} newly wishlisted out of ${games.length}',
+      'RA import done: ${sumByType(write.importedByType)} added, '
+      '${sumByType(write.updatedByType)} updated, '
+      '${sumByType(wishlistedByType)} newly wishlisted out of ${games.length}',
     );
 
     return UniversalImportResult(
@@ -453,10 +453,10 @@ class RaImportService implements ImportSource {
       '${raGame.numAwarded}/${raGame.maxPossible} achievements'
       '${raGame.highestAwardKind != null ? ' • ${raGame.highestAwardKind}' : ''}';
 
-  /// Saves the per-platform tracker_game_data row for an RA game. The IGDB
+  /// Builds the per-platform tracker_game_data row for an RA game. The IGDB
   /// platform id is derived from RA's console id so PS2 and GameCube installs
   /// of the same IGDB title don't overwrite each other.
-  Future<void> _saveTrackerGameData(int igdbId, RaGameProgress raGame) async {
+  TrackerGameData _trackerGameData(int igdbId, RaGameProgress raGame) {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final int? awardTimestamp = raGame.highestAwardDate != null
         ? raGame.highestAwardDate!.millisecondsSinceEpoch ~/ 1000
@@ -467,7 +467,7 @@ class RaImportService implements ImportSource {
     final int? platformId =
         RaToIgdbMapper.primaryIgdbPlatformId(raGame.consoleId);
 
-    await _trackerDao.upsertGameData(TrackerGameData(
+    return TrackerGameData(
       id: 0,
       trackerType: TrackerType.ra,
       gameId: igdbId,
@@ -481,14 +481,6 @@ class RaImportService implements ImportSource {
       awardDate: awardTimestamp,
       lastPlayedAt: lastPlayedTimestamp,
       lastSyncedAt: now,
-    ));
-  }
-
-  static int _sum(Map<MediaType, int> map) {
-    int total = 0;
-    for (final int v in map.values) {
-      total += v;
-    }
-    return total;
+    );
   }
 }

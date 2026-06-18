@@ -142,9 +142,10 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
     `ImportCandidate` carries an optional progress `label`; `writeItems` takes an
     `onItem` callback that fires per candidate with the running imported / updated
     tallies.
-  * lib/core/import/import_columns.dart (epochSeconds, statusDateColumns): New.
-    Shared helpers that turn a status transition into collection_items columns,
-    used by the adapters that merge an external status into a local item.
+  * lib/core/import/import_columns.dart (epochSeconds, statusDateColumns, sumByType):
+    New. Shared helpers: a status transition turned into collection_items columns
+    (used by the adapters that merge an external status into a local item) and a
+    per-media-type tally sum.
   * lib/core/import/sources/steam/steam_import_service.dart (SteamImportService, SteamImportOptions),
     lib/core/import/sources/anilist/anilist_import_service.dart (AniListImportService, AniListImportOptions),
     lib/core/import/sources/mal/mal_import_service.dart (MalImportService, MalImportOptions),
@@ -152,8 +153,8 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
     Reimplemented on `ImportSource` / `ImportWriter`; removed the bespoke
     `SteamImportResult` / `AniListImportResult` / `MalImportResult` /
     `RaImportResult`, their `*ImportProgress` / `*ImportStage` types and the
-    `toUniversal()` extensions. RaImportService still writes its `tracker_game_data`
-    side-table in a post-write pass.
+    `toUniversal()` extensions. RaImportService writes its `tracker_game_data`
+    side-table in one batch (TrackerDao.upsertGameDataBatch) after the items.
   * lib/features/settings/content/steam_import_content.dart,
     lib/features/settings/content/anilist_import_content.dart,
     lib/features/settings/content/mal_import_content.dart,

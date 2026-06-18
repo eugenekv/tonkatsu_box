@@ -521,9 +521,9 @@ class MalImportService implements ImportSource {
       tag: importTag,
     );
 
-    final int imported = _sum(write.importedByType);
-    final int updated = _sum(write.updatedByType);
-    final int wishlisted = _sum(wishlistedByType);
+    final int imported = sumByType(write.importedByType);
+    final int updated = sumByType(write.updatedByType);
+    final int wishlisted = sumByType(wishlistedByType);
     final int skipped =
         (totalEntries - imported - updated - wishlisted).clamp(0, totalEntries);
 
@@ -785,14 +785,6 @@ class MalImportService implements ImportSource {
     }
 
     return lines.join('\n');
-  }
-
-  static int _sum(Map<MediaType, int> map) {
-    int total = 0;
-    for (final int v in map.values) {
-      total += v;
-    }
-    return total;
   }
 
   static String _statusLabel(ItemStatus status) {

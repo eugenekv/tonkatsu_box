@@ -20,6 +20,7 @@ void main() {
     registerAllFallbacks();
     registerFallbackValue(<Map<String, dynamic>>[]);
     registerFallbackValue(<(int, Map<String, dynamic>)>[]);
+    registerFallbackValue(<TrackerGameData>[]);
   });
 
   late RaImportService sut;
@@ -63,7 +64,8 @@ void main() {
     progressCalls = <ImportProgress>[];
     igdbGamesByTitle.clear();
 
-    when(() => mockTrackerDao.upsertGameData(any())).thenAnswer((_) async {});
+    when(() => mockTrackerDao.upsertGameDataBatch(any()))
+        .thenAnswer((_) async {});
     when(() => mockTrackerDao.getAllGameData(any()))
         .thenAnswer((_) async => <TrackerGameData>[]);
 
@@ -488,7 +490,7 @@ void main() {
 
       await sut.import(opts(), onProgress: onProgress);
 
-      verify(() => mockTrackerDao.upsertGameData(any())).called(1);
+      verify(() => mockTrackerDao.upsertGameDataBatch(any())).called(1);
     });
 
     test('should skip an existing item with no RA progress', () async {

@@ -206,8 +206,8 @@ class AniListImportService implements ImportSource {
       stage: ImportStage.completed,
       current: 1,
       total: 1,
-      imported: _sum(write.importedByType),
-      updated: _sum(write.updatedByType),
+      imported: sumByType(write.importedByType),
+      updated: sumByType(write.updatedByType),
     ));
 
     _log.info(
@@ -398,14 +398,6 @@ class AniListImportService implements ImportSource {
     }
 
     return lines.join('\n');
-  }
-
-  static int _sum(Map<MediaType, int> map) {
-    int total = 0;
-    for (final int v in map.values) {
-      total += v;
-    }
-    return total;
   }
 
   static ItemStatus _mapStatus(String raw) {
