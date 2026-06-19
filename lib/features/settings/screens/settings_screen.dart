@@ -1,4 +1,4 @@
-// Экран-хаб настроек приложения с единым grouped-list лейаутом.
+// Settings hub screen with a single grouped-list layout.
 
 import 'dart:async';
 
@@ -50,25 +50,25 @@ import 'profiles_screen.dart';
 import '../../../shared/models/profile.dart';
 import '../providers/profile_provider.dart';
 
-/// Breakpoint для переключения ширины контента.
+/// Breakpoint for switching content width.
 const double _desktopBreakpoint = 800;
 
-// iOS-style цветовая палитра для capsule-иконок в настройках.
-const Color _kProfileColor = Color(0xFF4A90E2); // синий
-const Color _kBackupColor = Color(0xFF42A5F5); // голубой
-const Color _kStorageColor = Color(0xFF8E8E93); // серый
-const Color _kAppearanceColor = Color(0xFFA86ED4); // фиолетовый
-const Color _kApiKeysColor = Color(0xFFEF5350); // красный
+// iOS-style colour palette for the settings capsule icons.
+const Color _kProfileColor = Color(0xFF4A90E2);
+const Color _kBackupColor = Color(0xFF42A5F5);
+const Color _kStorageColor = Color(0xFF8E8E93);
+const Color _kAppearanceColor = Color(0xFFA86ED4);
+const Color _kApiKeysColor = Color(0xFFEF5350);
 const Color _kDiscordColor = Color(0xFF5865F2); // Discord blurple (used for RA-sync Icons.sync tile)
-const Color _kAboutColor = Color(0xFF8E8E93); // серый
-const Color _kDebugColor = Color(0xFFAB47BC); // пурпурный
+const Color _kAboutColor = Color(0xFF8E8E93);
+const Color _kDebugColor = Color(0xFFAB47BC);
 
-/// Хаб настроек приложения.
+/// Settings hub screen.
 ///
-/// Единый grouped-list лейаут для всех платформ.
-/// На десктопе (>= 800px) — контент центрирован с maxWidth: 600.
+/// One grouped-list layout for all platforms; on desktop (>= 800px) the
+/// content is centred at maxWidth 600.
 class SettingsScreen extends ConsumerStatefulWidget {
-  /// Создаёт [SettingsScreen].
+  /// Creates a [SettingsScreen].
   const SettingsScreen({super.key});
 
   @override
@@ -124,10 +124,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  /// Фильтрует секции настроек по поисковому запросу.
+  /// Filters the settings sections by the search query.
   ///
-  /// Оставляет только [SettingsGroup], у которых title или любой дочерний
-  /// [SettingsTile] содержит query.
+  /// Keeps only [SettingsGroup]s whose title or any child [SettingsTile]
+  /// contains the query.
   static List<Widget> _filterSections(List<Widget> sections, String query) {
     final List<Widget> result = <Widget>[];
     for (final Widget section in sections) {
@@ -163,7 +163,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     const Widget gap = SizedBox(height: AppSpacing.md);
 
     return <Widget>[
-      // ============ ПРОФИЛЬ ============
       SettingsGroup(
         title: l.profiles,
         titleIcon: Icons.person_outline,
@@ -222,7 +221,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       gap,
 
-      // ============ ДАННЫЕ (поднято выше по фидбеку) ============
+      // Data group sits above Appearance per user feedback.
       SettingsGroup(
         title: l.settingsBackup,
         subtitle: l.settingsBackupSubtitle,
@@ -325,7 +324,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       gap,
 
-      // ============ ОФОРМЛЕНИЕ ============
       SettingsGroup(
         title: l.settingsAppearance,
         subtitle: l.settingsAppearanceSubtitle,
@@ -442,7 +440,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       gap,
 
-      // ============ СЕРВИСЫ ============
       SettingsGroup(
         title: l.settingsDataSources,
         subtitle: l.settingsDataSourcesSubtitle,
@@ -542,7 +539,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       gap,
 
-      // ============ О ПРИЛОЖЕНИИ ============
       SettingsGroup(
         title: l.settingsAbout,
         titleIcon: Icons.info_outline,
@@ -598,18 +594,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// Key-source states in the same order as the credentials screen sections.
+  List<bool> _apiKeyStates(SettingsState settings) => <bool>[
+        settings.hasCredentials,
+        settings.hasSteamGridDbKey,
+        settings.hasTmdbKey,
+        settings.hasComicVineKey,
+        settings.hasGoogleBooksKey,
+        settings.hasScreenScraperCreds,
+      ];
+
   String _apiKeysValue(SettingsState settings) {
-    int count = 0;
-    if (settings.hasCredentials) count++;
-    if (settings.hasSteamGridDbKey) count++;
-    if (settings.hasTmdbKey) count++;
-    return S.of(context).settingsApiKeysValue(count);
+    final List<bool> states = _apiKeyStates(settings);
+    final int active = states.where((bool isSet) => isSet).length;
+    return S.of(context).settingsApiKeysValue(active, states.length);
   }
 
   bool _apiKeysAllSet(SettingsState settings) =>
-      settings.hasCredentials &&
-      settings.hasSteamGridDbKey &&
-      settings.hasTmdbKey;
+      _apiKeyStates(settings).every((bool isSet) => isSet);
 
   void _showLanguagePicker(SettingsState settings) {
     showDialog<void>(
@@ -875,7 +877,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     WidgetRef ref,
     S l,
   ) async {
-    // 1. Выбор файла
+    // 1. Pick the file.
     final bool useAny = defaultTargetPlatform == TargetPlatform.android;
     final FilePickerResult? picked = await FilePicker.platform.pickFiles(
       dialogTitle: l.settingsRestoreBackup,
@@ -888,7 +890,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final String? zipPath = picked.files.first.path;
     if (zipPath == null) return;
 
-    // 2. Читаем манифест
+    // 2. Read the manifest.
     final BackupService service = ref.read(backupServiceProvider);
     final BackupManifest? manifest = await service.readManifest(zipPath);
 
@@ -899,7 +901,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       return;
     }
 
-    // 3. Диалог подтверждения
+    // 3. Confirmation dialog.
     if (!context.mounted) return;
     final _RestoreOptions? options = await showDialog<_RestoreOptions>(
       context: context,
@@ -968,7 +970,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     if (options == null) return;
 
-    // 4. Выполнение восстановления
+    // 4. Run the restore.
     if (!context.mounted) return;
 
     final ValueNotifier<BackupProgress?> progressNotifier =
@@ -1092,7 +1094,7 @@ class _RestoreProgressDialog extends StatelessWidget {
   }
 }
 
-/// Опции восстановления из диалога подтверждения.
+/// Restore options chosen in the confirmation dialog.
 class _RestoreOptions {
   const _RestoreOptions({
     required this.restoreWishlist,

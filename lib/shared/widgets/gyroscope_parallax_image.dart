@@ -1,4 +1,4 @@
-// Изображение с параллакс-эффектом на основе гироскопа (только Android).
+// Image with a gyroscope-driven parallax effect (Android only).
 
 import 'dart:async';
 import 'dart:io' show Platform;
@@ -7,38 +7,43 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
-/// Максимальное смещение параллакса в пикселях.
+/// Max parallax offset in pixels.
 const double _kMaxOffset = 20.0;
 
-/// Коэффициент сглаживания (lerp) — чем меньше, тем плавнее.
+/// Lerp smoothing factor — lower is smoother.
 const double _kSmoothing = 0.08;
 
-/// Изображение с параллакс-эффектом при наклоне устройства.
+/// Image that shifts slightly with device tilt to fake depth.
 ///
-/// На Android подписывается на гироскоп и слегка сдвигает изображение
-/// в противоположную сторону наклона, создавая иллюзию глубины.
-/// На других платформах рендерит обычное [CachedNetworkImage].
+/// Subscribes to the gyroscope where available; otherwise (no sensor, or a
+/// non-Android platform) it renders a plain [CachedNetworkImage].
 class GyroscopeParallaxImage extends StatefulWidget {
-  /// Создаёт [GyroscopeParallaxImage].
+  /// Creates a [GyroscopeParallaxImage].
   const GyroscopeParallaxImage({
     required this.imageUrl,
     this.fit = BoxFit.cover,
     this.alignment = Alignment.center,
     this.errorWidget,
+    this.gyroscopeStream,
     super.key,
   });
 
-  /// URL изображения.
+  /// Image URL.
   final String imageUrl;
 
-  /// Как изображение вписывается в доступное пространство.
+  /// How the image fits the available space.
   final BoxFit fit;
 
-  /// Выравнивание изображения.
+  /// Image alignment.
   final Alignment alignment;
 
-  /// Виджет при ошибке загрузки.
+  /// Widget shown on load error.
   final Widget Function(BuildContext, String, Object)? errorWidget;
+
+  /// Gyroscope event source. Defaults to the system gyroscope (Android only);
+  /// overridden in tests.
+  @visibleForTesting
+  final Stream<GyroscopeEvent>? gyroscopeStream;
 
   @override
   State<GyroscopeParallaxImage> createState() =>
@@ -48,52 +53,74 @@ class GyroscopeParallaxImage extends StatefulWidget {
 class _GyroscopeParallaxImageState extends State<GyroscopeParallaxImage>
     with SingleTickerProviderStateMixin {
   StreamSubscription<GyroscopeEvent>? _subscription;
-  late final AnimationController _ticker;
+  AnimationController? _ticker;
 
-  // Целевое смещение (из гироскопа)
+  // Target offset (raw from gyroscope).
   double _targetX = 0;
   double _targetY = 0;
 
-  // Текущее смещение (сглаженное)
+  // Current offset (smoothed toward target).
   double _currentX = 0;
   double _currentY = 0;
 
   @override
   void initState() {
     super.initState();
-    if (!Platform.isAndroid) return;
+    final Stream<GyroscopeEvent>? stream = widget.gyroscopeStream ??
+        (Platform.isAndroid
+            ? gyroscopeEventStream(
+                samplingPeriod: const Duration(milliseconds: 16),
+              )
+            : null);
+    if (stream == null) return;
 
-    _ticker = AnimationController.unbounded(vsync: this)
-      ..addListener(_onTick);
-    _ticker.animateTo(1, duration: Duration.zero);
+    final AnimationController ticker =
+        AnimationController.unbounded(vsync: this)..addListener(_onTick);
+    ticker.animateTo(1, duration: Duration.zero);
+    _ticker = ticker;
 
-    _subscription = gyroscopeEventStream(
-      samplingPeriod: const Duration(milliseconds: 16),
-    ).listen(_onGyroscope);
+    _subscription = stream.listen(
+      _onGyroscope,
+      onError: _onGyroscopeError,
+      cancelOnError: true,
+    );
+  }
+
+  void _onGyroscopeError(Object error) {
+    // No gyroscope (PlatformException NO_SENSOR) — drop the parallax and fall
+    // back to a plain static image instead of letting the error surface.
+    _subscription?.cancel();
+    _subscription = null;
+    _ticker?.dispose();
+    _ticker = null;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _onGyroscope(GyroscopeEvent event) {
-    // Гироскоп отдаёт угловую скорость (рад/с).
-    // Интегрируем в смещение и кламплим.
+    final AnimationController? ticker = _ticker;
+    if (ticker == null) return;
+
+    // Gyroscope reports angular velocity (rad/s) — integrate into an offset
+    // and clamp.
     _targetX = (_targetX + event.y).clamp(-_kMaxOffset, _kMaxOffset);
     _targetY = (_targetY - event.x).clamp(-_kMaxOffset, _kMaxOffset);
 
-    // Запускаем тикер если остановлен
-    if (!_ticker.isAnimating) {
-      _ticker.animateTo(
-        _ticker.value + 1,
+    if (!ticker.isAnimating) {
+      ticker.animateTo(
+        ticker.value + 1,
         duration: const Duration(seconds: 10),
       );
     }
   }
 
   void _onTick() {
-    // Плавное сглаживание через lerp
     final double newX = _currentX + (_targetX - _currentX) * _kSmoothing;
     final double newY = _currentY + (_targetY - _currentY) * _kSmoothing;
 
+    // Close enough to the target — skip the rebuild.
     if ((newX - _currentX).abs() < 0.01 && (newY - _currentY).abs() < 0.01) {
-      // Достаточно близко — остановить тикер
       return;
     }
 
@@ -106,9 +133,7 @@ class _GyroscopeParallaxImageState extends State<GyroscopeParallaxImage>
   @override
   void dispose() {
     _subscription?.cancel();
-    if (Platform.isAndroid) {
-      _ticker.dispose();
-    }
+    _ticker?.dispose();
     super.dispose();
   }
 
@@ -123,9 +148,10 @@ class _GyroscopeParallaxImageState extends State<GyroscopeParallaxImage>
               const SizedBox.shrink(),
     );
 
-    if (!Platform.isAndroid) return image;
+    // No active gyroscope (no sensor / not Android) — render the static image.
+    if (_ticker == null) return image;
 
-    // Масштабируем чуть больше чтобы при смещении не было видно краёв
+    // Scale up slightly so the edges stay hidden as the image shifts.
     return ClipRect(
       child: Transform.translate(
         offset: Offset(_currentX, _currentY),

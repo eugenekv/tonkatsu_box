@@ -976,8 +976,8 @@ abstract class S {
   /// No description provided for @settingsApiKeysValue.
   ///
   /// In en, this message translates to:
-  /// **'{count} keys'**
-  String settingsApiKeysValue(int count);
+  /// **'{active}/{total}'**
+  String settingsApiKeysValue(int active, int total);
 
   /// No description provided for @settingsAppearance.
   ///

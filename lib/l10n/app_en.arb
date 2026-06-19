@@ -204,10 +204,11 @@
   "settingsAppLanguage": "App Language",
   "settingsConnections": "Connections",
   "settingsApiKeys": "API Keys",
-  "settingsApiKeysValue": "{count} keys",
+  "settingsApiKeysValue": "{active}/{total}",
   "@settingsApiKeysValue": {
     "placeholders": {
-      "count": {"type": "int"}
+      "active": {"type": "int"},
+      "total": {"type": "int"}
     }
   },
   "settingsAppearance": "Appearance",

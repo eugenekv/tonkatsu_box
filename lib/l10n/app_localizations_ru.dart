@@ -510,8 +510,8 @@ class SRu extends S {
   String get settingsApiKeys => 'API ключи';
 
   @override
-  String settingsApiKeysValue(int count) {
-    return '$count ключей';
+  String settingsApiKeysValue(int active, int total) {
+    return '$active/$total';
   }
 
   @override

@@ -500,8 +500,8 @@ class SEn extends S {
   String get settingsApiKeys => 'API Keys';
 
   @override
-  String settingsApiKeysValue(int count) {
-    return '$count keys';
+  String settingsApiKeysValue(int active, int total) {
+    return '$active/$total';
   }
 
   @override
