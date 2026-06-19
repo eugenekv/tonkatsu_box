@@ -55,9 +55,12 @@ class _GoogleBooksMoreByAuthorSectionState
     if (_loading || !_hasMore) return;
     setState(() => _loading = true);
     try {
+      // Strip embedded quotes — they would close the `inauthor:"…"` term early
+      // and corrupt the query.
+      final String author = widget.author.replaceAll('"', '');
       final (List<Book> books, bool hasMore) =
           await ref.read(googleBooksApiProvider).searchVolumes(
-                'inauthor:"${widget.author}"',
+                'inauthor:"$author"',
                 startIndex: _startIndex,
                 maxResults: _pageSize,
               );

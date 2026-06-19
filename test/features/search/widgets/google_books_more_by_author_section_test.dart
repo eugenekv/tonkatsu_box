@@ -44,19 +44,19 @@ void main() {
         )).thenAnswer((_) async => (result, false));
   }
 
-  Widget build() {
+  Widget build({String author = 'Frank Herbert'}) {
     return ProviderScope(
       overrides: <Override>[
         googleBooksApiProvider.overrideWithValue(mockApi),
       ],
-      child: const MaterialApp(
-        locale: Locale('en'),
+      child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: S.localizationsDelegates,
         supportedLocales: S.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
             child: GoogleBooksMoreByAuthorSection(
-              author: 'Frank Herbert',
+              author: author,
               excludeNativeId: 'gb_self',
             ),
           ),
@@ -116,6 +116,23 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Title copied'), findsOneWidget);
+    });
+
+    testWidgets('strips embedded quotes from the author query',
+        (WidgetTester tester) async {
+      stub(<Book>[gbook(id: '1', title: 'Dune')]);
+
+      await tester.pumpWidget(build(author: 'Ann "Tiptree" Sheldon'));
+      await pumpUntilResolved(tester);
+
+      final List<String> queries = verify(
+        () => mockApi.searchVolumes(
+          captureAny(),
+          startIndex: any(named: 'startIndex'),
+          maxResults: any(named: 'maxResults'),
+        ),
+      ).captured.cast<String>();
+      expect(queries.first, 'inauthor:"Ann Tiptree Sheldon"');
     });
   });
 }

@@ -51,6 +51,7 @@ void main() {
   Widget build({
     Map<int, List<CollectedItemInfo>> ownedIds =
         const <int, List<CollectedItemInfo>>{},
+    Book? book,
   }) {
     return ProviderScope(
       overrides: <Override>[
@@ -63,7 +64,7 @@ void main() {
         supportedLocales: S.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: GoogleBooksSimilarsSection(book: _main),
+            child: GoogleBooksSimilarsSection(book: book ?? _main),
           ),
         ),
       ),
@@ -108,6 +109,29 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.byType(ListView), findsNothing);
+    });
+
+    testWidgets('strips embedded quotes from the category query',
+        (WidgetTester tester) async {
+      final Book quoted = createTestBook(
+        id: 'q',
+        source: DataSource.googleBooks,
+        nativeId: 'gb_quoted',
+        title: 'Quoted',
+        subjects: const <String>['Sci-"Fi"'],
+      );
+      stubSearch(<Book>[]);
+
+      await tester.pumpWidget(build(book: quoted));
+      await pumpUntilResolved(tester);
+
+      final List<String> queries = verify(
+        () => mockApi.searchVolumes(
+          captureAny(),
+          maxResults: any(named: 'maxResults'),
+        ),
+      ).captured.cast<String>();
+      expect(queries.first, 'subject:"Sci-Fi"');
     });
 
     testWidgets('marks a similar book already in a collection as owned',

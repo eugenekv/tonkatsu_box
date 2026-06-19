@@ -20,9 +20,10 @@ FutureProvider<List<Book>> _getSimilarProvider(Book book) {
   return _similarProviders.putIfAbsent(
     book.nativeId,
     () => FutureProvider<List<Book>>((Ref ref) async {
-      final String? category =
-          book.subjects.isNotEmpty ? book.subjects.first : null;
-      if (category == null) return const <Book>[];
+      if (book.subjects.isEmpty) return const <Book>[];
+      // Strip embedded quotes — they would close the `subject:"…"` term early
+      // and corrupt the query.
+      final String category = book.subjects.first.replaceAll('"', '');
       final (List<Book> books, _) = await ref
           .watch(googleBooksApiProvider)
           .searchVolumes('subject:"$category"', maxResults: 20);
