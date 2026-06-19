@@ -27,7 +27,7 @@ void main() {
       test('parses a valid announcement', () {
         final LanPeer? peer = LanSyncService.parseAnnouncement(
           packet(<String, Object?>{
-            'app': 'xerabora-sync',
+            'app': 'tonkatsubox-sync',
             'id': 'abc',
             'name': 'DESKTOP-X',
             'port': 4242,
@@ -62,7 +62,7 @@ void main() {
         );
         expect(
           LanSyncService.parseAnnouncement(
-            packet(<String, Object?>{'app': 'xerabora-sync'}),
+            packet(<String, Object?>{'app': 'tonkatsubox-sync'}),
             sender,
           ),
           isNull,
@@ -70,7 +70,7 @@ void main() {
         expect(
           LanSyncService.parseAnnouncement(
             packet(<String, Object?>{
-              'app': 'xerabora-sync',
+              'app': 'tonkatsubox-sync',
               'id': 'a',
               'name': 'b',
               'port': 99999,

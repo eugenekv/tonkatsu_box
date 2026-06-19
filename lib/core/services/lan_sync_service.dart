@@ -59,7 +59,7 @@ class LanSyncService {
   /// UDP port used for discovery announcements.
   static const int discoveryPort = 47813;
 
-  static const String _announceApp = 'xerabora-sync';
+  static const String _announceApp = 'tonkatsubox-sync';
   static const Duration _announceEvery = Duration(seconds: 1);
   static const Duration _peerTtl = Duration(seconds: 5);
 
@@ -343,7 +343,7 @@ class LanSyncService {
     }
 
     final Directory tmpDir =
-        await Directory.systemTemp.createTemp('xerabora_lan_out');
+        await Directory.systemTemp.createTemp('tonkatsu_box_lan_out');
     try {
       await _sync.sendSnapshot(tmpDir.path);
       final File snapshot =

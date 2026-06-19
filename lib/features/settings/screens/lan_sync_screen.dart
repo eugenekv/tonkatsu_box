@@ -193,7 +193,7 @@ class _LanSyncScreenState extends ConsumerState<LanSyncScreen> {
       bool imagesFailed = false;
       _showProgress(l10n.lanSyncWaiting(peer.name));
       final Directory tmpDir =
-          await Directory.systemTemp.createTemp('xerabora_lan_in');
+          await Directory.systemTemp.createTemp('tonkatsu_box_lan_in');
       try {
         await lan.downloadSnapshot(
           peer,
