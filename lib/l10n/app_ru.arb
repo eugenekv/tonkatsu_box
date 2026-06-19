@@ -204,10 +204,11 @@
   "settingsAppLanguage": "Язык приложения",
   "settingsConnections": "Подключения",
   "settingsApiKeys": "API ключи",
-  "settingsApiKeysValue": "{count} ключей",
+  "settingsApiKeysValue": "{active}/{total}",
   "@settingsApiKeysValue": {
     "placeholders": {
-      "count": {"type": "int"}
+      "active": {"type": "int"},
+      "total": {"type": "int"}
     }
   },
   "settingsAppearance": "Оформление",

@@ -156,6 +156,19 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Changed
 
+- **API Keys settings row now shows active/total instead of a single count**
+
+  The Data Sources → API Keys row counted only IGDB, SteamGridDB and TMDB, so
+  it capped at "3" even though the credentials screen has six sources. It now
+  reads `active/total` (e.g. `3/6`) across all six — IGDB, SteamGridDB, TMDB,
+  ComicVine, Google Books and ScreenScraper — and only turns green when every
+  source is configured.
+
+  * lib/features/settings/screens/settings_screen.dart (_SettingsScreenState._apiKeyStates, _apiKeysValue, _apiKeysAllSet):
+    Derive both the count and the all-set state from one six-source list.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (settingsApiKeysValue): Change the
+    string from `{count} keys` to `{active}/{total}`.
+
 - **Moved the Steam, RetroAchievements, MyAnimeList and AniList importers onto the shared import layer**
 
   The four source importers now live under `lib/core/import/sources/<name>/` next
@@ -240,6 +253,23 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
     `{count}` placeholder; drop the now-unused cacheCleared toast string.
 
 ### Fixed
+
+- **Search crashing on Android devices without a gyroscope**
+
+  Opening an item's detail sheet in search threw `PlatformException(NO_SENSOR,
+  ... no Gyroscope sensor)` on devices that lack a hardware gyroscope (e.g.
+  Honor "Lite" models, many tablets and emulators), because the poster
+  parallax subscribed to the gyroscope without handling the sensor-missing
+  error. The parallax now degrades to a plain static image instead of letting
+  the error surface, fixing every place the effect is used (the search detail
+  sheet and the shared media detail view).
+
+  * lib/shared/widgets/gyroscope_parallax_image.dart (GyroscopeParallaxImage, _GyroscopeParallaxImageState._onGyroscopeError):
+    Add an `onError` handler (with `cancelOnError`) that cancels the
+    subscription and falls back to a static image; `_ticker` becomes nullable
+    and is the single "parallax active" flag, replacing the scattered
+    `Platform.isAndroid` checks. Add a `@visibleForTesting` `gyroscopeStream`
+    seam so the sensor path is testable off-device.
 
 - **Folder picker crashing with "Permission denied" on some newer Android builds**
 
