@@ -7,6 +7,8 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-06-19
+
 ### Added
 
 - **Google Books book source**
