@@ -877,6 +877,18 @@ abstract class S {
   /// **'Watch history, ratings, watchlist'**
   String get settingsTraktImportSubtitle;
 
+  /// No description provided for @settingsKinoriumImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Kinorium Import'**
+  String get settingsKinoriumImport;
+
+  /// No description provided for @settingsKinoriumImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Movies & shows from a CSV export'**
+  String get settingsKinoriumImportSubtitle;
+
   /// No description provided for @settingsDebug.
   ///
   /// In en, this message translates to:
@@ -964,8 +976,8 @@ abstract class S {
   /// No description provided for @settingsApiKeysValue.
   ///
   /// In en, this message translates to:
-  /// **'{count} keys'**
-  String settingsApiKeysValue(int count);
+  /// **'{active}/{total}'**
+  String settingsApiKeysValue(int active, int total);
 
   /// No description provided for @settingsAppearance.
   ///
@@ -1309,6 +1321,30 @@ abstract class S {
   /// **'Enter your TMDB API key (v3)'**
   String get credentialsEnterTmdbKey;
 
+  /// No description provided for @credentialsComicVineSection.
+  ///
+  /// In en, this message translates to:
+  /// **'ComicVine API (Comics)'**
+  String get credentialsComicVineSection;
+
+  /// No description provided for @credentialsEnterComicVineKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your ComicVine API key'**
+  String get credentialsEnterComicVineKey;
+
+  /// No description provided for @credentialsGoogleBooksSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Books API (Books)'**
+  String get credentialsGoogleBooksSection;
+
+  /// No description provided for @credentialsEnterGoogleBooksKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your Google Books API key (optional)'**
+  String get credentialsEnterGoogleBooksKey;
+
   /// No description provided for @credentialsContentLanguage.
   ///
   /// In en, this message translates to:
@@ -1429,6 +1465,30 @@ abstract class S {
   /// **'TMDB API key is invalid'**
   String get credentialsTmdbKeyInvalid;
 
+  /// No description provided for @credentialsComicVineKeyValid.
+  ///
+  /// In en, this message translates to:
+  /// **'ComicVine API key is valid'**
+  String get credentialsComicVineKeyValid;
+
+  /// No description provided for @credentialsComicVineKeyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'ComicVine API key is invalid'**
+  String get credentialsComicVineKeyInvalid;
+
+  /// No description provided for @credentialsGoogleBooksKeyValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Books API key is valid'**
+  String get credentialsGoogleBooksKeyValid;
+
+  /// No description provided for @credentialsGoogleBooksKeyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Books API key is invalid'**
+  String get credentialsGoogleBooksKeyInvalid;
+
   /// No description provided for @credentialsEnterSteamGridDbKeyError.
   ///
   /// In en, this message translates to:
@@ -1522,19 +1582,19 @@ abstract class S {
   /// No description provided for @cacheClearCache.
   ///
   /// In en, this message translates to:
-  /// **'Clear cache'**
+  /// **'Remove unused images'**
   String get cacheClearCache;
 
   /// No description provided for @cacheClearCacheTitle.
   ///
   /// In en, this message translates to:
-  /// **'Clear cache?'**
+  /// **'Remove unused images?'**
   String get cacheClearCacheTitle;
 
   /// No description provided for @cacheClearCacheMessage.
   ///
   /// In en, this message translates to:
-  /// **'This will delete all locally saved images. They will be downloaded again during the next sync.'**
+  /// **'Deletes downloaded covers for media that is no longer in any collection. Your custom covers and board images are kept.'**
   String get cacheClearCacheMessage;
 
   /// No description provided for @cacheFolderUpdated.
@@ -1543,11 +1603,11 @@ abstract class S {
   /// **'Cache folder updated'**
   String get cacheFolderUpdated;
 
-  /// No description provided for @cacheCleared.
+  /// No description provided for @cacheOrphansRemoved.
   ///
   /// In en, this message translates to:
-  /// **'Cache cleared'**
-  String get cacheCleared;
+  /// **'Removed unused images: {count}'**
+  String cacheOrphansRemoved(int count);
 
   /// No description provided for @cacheSelectFolderDialog.
   ///
@@ -1765,6 +1825,18 @@ abstract class S {
   /// **'Copy'**
   String get storageLocationCopyConfirm;
 
+  /// No description provided for @storageLocationCopyImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the image cache too'**
+  String get storageLocationCopyImages;
+
+  /// No description provided for @storageLocationCopyImagesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hero banners and saved covers — larger, but the new folder works offline without re-downloading'**
+  String get storageLocationCopyImagesHint;
+
   /// No description provided for @storageLocationCopyError.
   ///
   /// In en, this message translates to:
@@ -1979,6 +2051,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Data received'**
   String get lanSyncReceived;
+
+  /// No description provided for @lanSyncReceivingImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferring images...'**
+  String get lanSyncReceivingImages;
+
+  /// No description provided for @lanSyncImagesWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Database received, but the images could not be transferred'**
+  String get lanSyncImagesWarning;
 
   /// No description provided for @lanSyncRestartMessage.
   ///
@@ -2220,6 +2304,114 @@ abstract class S {
   /// **'Invalid Trakt export'**
   String get traktInvalidExport;
 
+  /// No description provided for @kinoriumImportFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Kinorium'**
+  String get kinoriumImportFrom;
+
+  /// No description provided for @kinoriumImportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Export your list from Kinorium (it arrives by email as a CSV) and select the file below.'**
+  String get kinoriumImportDescription;
+
+  /// No description provided for @kinoriumSelectCsvFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select CSV File'**
+  String get kinoriumSelectCsvFile;
+
+  /// No description provided for @kinoriumSelectCsvExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Kinorium CSV Export'**
+  String get kinoriumSelectCsvExport;
+
+  /// No description provided for @kinoriumOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get kinoriumOptions;
+
+  /// No description provided for @kinoriumIsWatchlist.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a \"Watchlist\" file'**
+  String get kinoriumIsWatchlist;
+
+  /// No description provided for @kinoriumIsWatchlistDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Import every title as planned instead of watched'**
+  String get kinoriumIsWatchlistDesc;
+
+  /// No description provided for @kinoriumImportNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Import cast & crew'**
+  String get kinoriumImportNotes;
+
+  /// No description provided for @kinoriumImportNotesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add directors and actors to the item note'**
+  String get kinoriumImportNotesDesc;
+
+  /// No description provided for @kinoriumTargetCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Target collection'**
+  String get kinoriumTargetCollection;
+
+  /// No description provided for @kinoriumCreateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new collection'**
+  String get kinoriumCreateNew;
+
+  /// No description provided for @kinoriumUseExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Use existing collection'**
+  String get kinoriumUseExisting;
+
+  /// No description provided for @kinoriumNoCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'No collections available'**
+  String get kinoriumNoCollections;
+
+  /// No description provided for @kinoriumSelectCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Select collection'**
+  String get kinoriumSelectCollection;
+
+  /// No description provided for @kinoriumErrorLoadingCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading collections'**
+  String get kinoriumErrorLoadingCollections;
+
+  /// No description provided for @kinoriumStartImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Import'**
+  String get kinoriumStartImport;
+
+  /// No description provided for @kinoriumImporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing from Kinorium...'**
+  String get kinoriumImporting;
+
+  /// No description provided for @kinoriumRecommendOwnTmdbKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: a personal TMDB API key is recommended for large imports (Settings → API Keys), but it\'s optional — the built-in key works too.'**
+  String get kinoriumRecommendOwnTmdbKey;
+
   /// No description provided for @traktImportedItems.
   ///
   /// In en, this message translates to:
@@ -2291,6 +2483,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Book data from Fantlab.'**
   String get creditsFantlabAttribution;
+
+  /// No description provided for @creditsComicVineAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Comic data from ComicVine (non-commercial use).'**
+  String get creditsComicVineAttribution;
+
+  /// No description provided for @creditsGoogleBooksAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Book data from Google Books.'**
+  String get creditsGoogleBooksAttribution;
 
   /// No description provided for @creditsOpenSource.
   ///
@@ -3246,6 +3450,12 @@ abstract class S {
   /// **'Pages'**
   String get bookPages;
 
+  /// No description provided for @bookIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues'**
+  String get bookIssues;
+
   /// No description provided for @bookMarkCompleted.
   ///
   /// In en, this message translates to:
@@ -3762,6 +3972,12 @@ abstract class S {
   /// **'Books'**
   String get searchSourceBooks;
 
+  /// No description provided for @searchSourceComics.
+  ///
+  /// In en, this message translates to:
+  /// **'Comics'**
+  String get searchSourceComics;
+
   /// No description provided for @searchHintManga.
   ///
   /// In en, this message translates to:
@@ -3774,6 +3990,12 @@ abstract class S {
   /// **'Search books...'**
   String get searchHintBooks;
 
+  /// No description provided for @searchHintComics.
+  ///
+  /// In en, this message translates to:
+  /// **'Search comics...'**
+  String get searchHintComics;
+
   /// No description provided for @bookFilterLanguage.
   ///
   /// In en, this message translates to:
@@ -3785,6 +4007,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Search by'**
   String get bookFilterSearchBy;
+
+  /// No description provided for @bookFilterPrintType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get bookFilterPrintType;
 
   /// No description provided for @bookSearchTitle.
   ///
@@ -3809,6 +4037,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Similar books'**
   String get bookSimilarTitle;
+
+  /// No description provided for @bookMoreByAuthorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More by this author'**
+  String get bookMoreByAuthorTitle;
+
+  /// No description provided for @bookTitleCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Title copied'**
+  String get bookTitleCopied;
 
   /// No description provided for @editionPickerTitle.
   ///
@@ -4458,6 +4698,18 @@ abstract class S {
   /// **'Movies, TV & Anime'**
   String get welcomeApiTmdbDesc;
 
+  /// No description provided for @welcomeApiComicVineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Comics & graphic novels'**
+  String get welcomeApiComicVineDesc;
+
+  /// No description provided for @welcomeApiGoogleBooksDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Google\'s global book catalog'**
+  String get welcomeApiGoogleBooksDesc;
+
   /// No description provided for @welcomeApiRecommended.
   ///
   /// In en, this message translates to:
@@ -4739,6 +4991,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'A detailed book catalog with ratings, awards and series.'**
   String get welcomeSourceDescFantlab;
+
+  /// No description provided for @welcomeSourceDescComicVine.
+  ///
+  /// In en, this message translates to:
+  /// **'A vast catalog of comics and graphic novels.'**
+  String get welcomeSourceDescComicVine;
+
+  /// No description provided for @welcomeSourceDescGoogleBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Millions of editions from Google\'s book catalog, searchable by title, author or ISBN.'**
+  String get welcomeSourceDescGoogleBooks;
 
   /// No description provided for @welcomeTourTitle.
   ///
@@ -6335,6 +6599,30 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Trending'**
   String get browseSortTrending;
+
+  /// No description provided for @browseSortNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get browseSortNameAsc;
+
+  /// No description provided for @browseSortNameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Z–A)'**
+  String get browseSortNameDesc;
+
+  /// No description provided for @browseSortRecentlyUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently updated'**
+  String get browseSortRecentlyUpdated;
+
+  /// No description provided for @browseSortRecentlyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get browseSortRecentlyAdded;
 
   /// No description provided for @browseAnimeTypeSeries.
   ///

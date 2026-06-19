@@ -39,14 +39,22 @@ void main() {
       }
     });
 
-    test('only IGDB and TMDB require a key', () {
+    test('only IGDB, TMDB, ComicVine and Google Books prompt for a key', () {
       final Set<DataSource> needKey = kDataSourceCatalog
           .where((SourceInfo i) =>
               i.keyRequirement != SourceKeyRequirement.none)
           .map((SourceInfo i) => i.source)
           .toSet();
 
-      expect(needKey, <DataSource>{DataSource.igdb, DataSource.tmdb});
+      expect(
+        needKey,
+        <DataSource>{
+          DataSource.igdb,
+          DataSource.tmdb,
+          DataSource.comicVine,
+          DataSource.googleBooks,
+        },
+      );
     });
 
     test('excludes the non-searchable SteamGridDB and VGMaps', () {

@@ -55,6 +55,7 @@ class ItemDetailsSheet extends StatelessWidget {
     this.screenScraperGameName,
     this.screenScraperPlatformId,
     this.editionsSection,
+    this.moreByAuthorSection,
     super.key,
   });
 
@@ -257,9 +258,11 @@ class ItemDetailsSheet extends StatelessWidget {
     required VoidCallback onAddToCollection,
     Future<String?> Function()? overviewLoader,
     Widget? editionsSection,
+    Widget? moreByAuthorSection,
   }) {
     return ItemDetailsSheet(
       editionsSection: editionsSection,
+      moreByAuthorSection: moreByAuthorSection,
       title: book.title,
       icon: Icons.menu_book,
       overview: book.description,
@@ -276,7 +279,9 @@ class ItemDetailsSheet extends StatelessWidget {
         if (book.authorsString != null)
           (Icons.person_outline, book.authorsString!),
         if (book.pageCount != null)
-          (Icons.menu_book, '${book.pageCount} pages'),
+          book.isComic
+              ? (Icons.auto_stories, '${book.pageCount} issues')
+              : (Icons.menu_book, '${book.pageCount} pages'),
         if (book.series != null) (Icons.collections_bookmark, book.series!),
       ],
       posterUrl: book.coverUrl,
@@ -337,6 +342,10 @@ class ItemDetailsSheet extends StatelessWidget {
   /// Inline section rendered below the overview (book editions strip). Kept as
   /// an opaque widget so this generic sheet stays decoupled from Fantlab.
   final Widget? editionsSection;
+
+  /// Opaque section rendered at the very bottom (Google Books "more by this
+  /// author" strip). Kept opaque so this generic sheet stays decoupled.
+  final Widget? moreByAuthorSection;
 
   @override
   Widget build(BuildContext context) {
@@ -439,6 +448,13 @@ class ItemDetailsSheet extends StatelessWidget {
                           gameName: screenScraperGameName!,
                           igdbPlatformId: screenScraperPlatformId,
                           mode: ScreenScraperGalleryMode.screenshotsOnly,
+                        ),
+                      if (moreByAuthorSection != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg,
+                          ),
+                          child: moreByAuthorSection,
                         ),
                     ],
                   ),

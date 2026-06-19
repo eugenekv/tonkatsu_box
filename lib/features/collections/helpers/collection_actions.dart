@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/anilist_api.dart';
+import '../../../core/api/comicvine_api.dart';
+import '../../../core/api/google_books_api.dart';
 import '../../../core/api/fantlab_api.dart';
 import '../../../core/api/igdb_api.dart';
 import '../../../core/api/mangabaka_api.dart';
@@ -652,6 +654,18 @@ class CollectionActions {
           } else if (item.source == DataSource.fantlab) {
             final Book? full =
                 await ref.read(fantlabApiProvider).getWork(cached.nativeId);
+            if (full == null) return _RefreshOutcome.notFound();
+            await db.bookDao.upsertBook(full);
+          } else if (item.source == DataSource.comicVine) {
+            final Book? full = await ref
+                .read(comicVineApiProvider)
+                .getVolume(cached.nativeId);
+            if (full == null) return _RefreshOutcome.notFound();
+            await db.bookDao.upsertBook(full);
+          } else if (item.source == DataSource.googleBooks) {
+            final Book? full = await ref
+                .read(googleBooksApiProvider)
+                .getVolume(cached.nativeId);
             if (full == null) return _RefreshOutcome.notFound();
             await db.bookDao.upsertBook(full);
           } else {

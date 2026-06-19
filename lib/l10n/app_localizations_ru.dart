@@ -460,6 +460,13 @@ class SRu extends S {
       'История просмотров, оценки, вишлист';
 
   @override
+  String get settingsKinoriumImport => 'Импорт Kinorium';
+
+  @override
+  String get settingsKinoriumImportSubtitle =>
+      'Фильмы и сериалы из CSV-выгрузки';
+
+  @override
   String get settingsDebug => 'Отладка';
 
   @override
@@ -503,8 +510,8 @@ class SRu extends S {
   String get settingsApiKeys => 'API ключи';
 
   @override
-  String settingsApiKeysValue(int count) {
-    return '$count ключей';
+  String settingsApiKeysValue(int active, int total) {
+    return '$active/$total';
   }
 
   @override
@@ -695,6 +702,19 @@ class SRu extends S {
   String get credentialsEnterTmdbKey => 'Введите ваш ключ TMDB API (v3)';
 
   @override
+  String get credentialsComicVineSection => 'ComicVine API (комиксы)';
+
+  @override
+  String get credentialsEnterComicVineKey => 'Введите ваш ключ ComicVine API';
+
+  @override
+  String get credentialsGoogleBooksSection => 'Google Books API (книги)';
+
+  @override
+  String get credentialsEnterGoogleBooksKey =>
+      'Введите ключ Google Books API (необязательно)';
+
+  @override
   String get credentialsContentLanguage => 'Язык контента';
 
   @override
@@ -761,6 +781,21 @@ class SRu extends S {
 
   @override
   String get credentialsTmdbKeyInvalid => 'Ключ TMDB API недействителен';
+
+  @override
+  String get credentialsComicVineKeyValid => 'Ключ ComicVine API действителен';
+
+  @override
+  String get credentialsComicVineKeyInvalid =>
+      'Ключ ComicVine API недействителен';
+
+  @override
+  String get credentialsGoogleBooksKeyValid =>
+      'Ключ Google Books API действителен';
+
+  @override
+  String get credentialsGoogleBooksKeyInvalid =>
+      'Ключ Google Books API недействителен';
 
   @override
   String get credentialsEnterSteamGridDbKeyError =>
@@ -839,20 +874,22 @@ class SRu extends S {
   String get cacheCacheSize => 'Размер кэша';
 
   @override
-  String get cacheClearCache => 'Очистить кэш';
+  String get cacheClearCache => 'Удалить неиспользуемые';
 
   @override
-  String get cacheClearCacheTitle => 'Очистить кэш?';
+  String get cacheClearCacheTitle => 'Удалить неиспользуемые картинки?';
 
   @override
   String get cacheClearCacheMessage =>
-      'Все локально сохранённые изображения будут удалены. Они загрузятся снова при следующей синхронизации.';
+      'Удалит загруженные обложки для медиа, которых больше нет ни в одной коллекции. Ваши собственные обложки и картинки досок не трогаются.';
 
   @override
   String get cacheFolderUpdated => 'Папка кэша обновлена';
 
   @override
-  String get cacheCleared => 'Кэш очищен';
+  String cacheOrphansRemoved(int count) {
+    return 'Удалено неиспользуемых картинок: $count';
+  }
 
   @override
   String get cacheSelectFolderDialog => 'Выберите папку для кэша изображений';
@@ -979,6 +1016,13 @@ class SRu extends S {
 
   @override
   String get storageLocationCopyConfirm => 'Копировать';
+
+  @override
+  String get storageLocationCopyImages => 'Перенести и кэш картинок';
+
+  @override
+  String get storageLocationCopyImagesHint =>
+      'Hero-баннеры и сохранённые обложки — больше по размеру, зато новая папка работает офлайн без перекачки';
 
   @override
   String get storageLocationCopyError =>
@@ -1110,6 +1154,13 @@ class SRu extends S {
   String get lanSyncReceived => 'Данные получены';
 
   @override
+  String get lanSyncReceivingImages => 'Перенос картинок...';
+
+  @override
+  String get lanSyncImagesWarning =>
+      'База перенесена, но картинки не удалось перенести';
+
+  @override
   String get lanSyncRestartMessage =>
       'Полученные данные начнут использоваться после перезапуска. Перезапустить сейчас?';
 
@@ -1238,6 +1289,64 @@ class SRu extends S {
   String get traktInvalidExport => 'Некорректный экспорт Trakt';
 
   @override
+  String get kinoriumImportFrom => 'Импорт из Kinorium';
+
+  @override
+  String get kinoriumImportDescription =>
+      'Выгрузите список из Kinorium (приходит на почту в виде CSV) и выберите файл ниже.';
+
+  @override
+  String get kinoriumSelectCsvFile => 'Выбрать CSV-файл';
+
+  @override
+  String get kinoriumSelectCsvExport => 'Выберите CSV-выгрузку Kinorium';
+
+  @override
+  String get kinoriumOptions => 'Параметры';
+
+  @override
+  String get kinoriumIsWatchlist => 'Это список «Буду смотреть»';
+
+  @override
+  String get kinoriumIsWatchlistDesc =>
+      'Импортировать все тайтлы как запланированные, а не просмотренные';
+
+  @override
+  String get kinoriumImportNotes => 'Импортировать актёров и режиссёров';
+
+  @override
+  String get kinoriumImportNotesDesc =>
+      'Добавить режиссёров и актёров в заметку элемента';
+
+  @override
+  String get kinoriumTargetCollection => 'Целевая коллекция';
+
+  @override
+  String get kinoriumCreateNew => 'Создать новую коллекцию';
+
+  @override
+  String get kinoriumUseExisting => 'Использовать существующую';
+
+  @override
+  String get kinoriumNoCollections => 'Нет доступных коллекций';
+
+  @override
+  String get kinoriumSelectCollection => 'Выберите коллекцию';
+
+  @override
+  String get kinoriumErrorLoadingCollections => 'Ошибка загрузки коллекций';
+
+  @override
+  String get kinoriumStartImport => 'Начать импорт';
+
+  @override
+  String get kinoriumImporting => 'Импорт из Kinorium...';
+
+  @override
+  String get kinoriumRecommendOwnTmdbKey =>
+      'Совет: для больших импортов рекомендуется свой ключ TMDB (Настройки → API ключи), но это не обязательно — встроенный ключ тоже работает.';
+
+  @override
   String traktImportedItems(int count) {
     return 'Импортировано тайтлов: $count';
   }
@@ -1280,6 +1389,14 @@ class SRu extends S {
 
   @override
   String get creditsFantlabAttribution => 'Данные о книгах из Fantlab.';
+
+  @override
+  String get creditsComicVineAttribution =>
+      'Данные о комиксах из ComicVine (некоммерческое использование).';
+
+  @override
+  String get creditsGoogleBooksAttribution =>
+      'Данные о книгах из Google Books.';
 
   @override
   String get creditsOpenSource => 'Открытый исходный код';
@@ -1806,6 +1923,9 @@ class SRu extends S {
   String get bookPages => 'Страницы';
 
   @override
+  String get bookIssues => 'Выпуски';
+
+  @override
   String get bookMarkCompleted => 'Отметить как прочитано';
 
   @override
@@ -2097,16 +2217,25 @@ class SRu extends S {
   String get searchSourceBooks => 'Книги';
 
   @override
+  String get searchSourceComics => 'Комиксы';
+
+  @override
   String get searchHintManga => 'Поиск манги...';
 
   @override
   String get searchHintBooks => 'Поиск книг...';
 
   @override
+  String get searchHintComics => 'Поиск комиксов...';
+
+  @override
   String get bookFilterLanguage => 'Язык';
 
   @override
   String get bookFilterSearchBy => 'Искать по';
+
+  @override
+  String get bookFilterPrintType => 'Тип';
 
   @override
   String get bookSearchTitle => 'Название';
@@ -2119,6 +2248,12 @@ class SRu extends S {
 
   @override
   String get bookSimilarTitle => 'Похожие книги';
+
+  @override
+  String get bookMoreByAuthorTitle => 'Ещё от автора';
+
+  @override
+  String get bookTitleCopied => 'Название скопировано';
 
   @override
   String get editionPickerTitle => 'Выбрать издание';
@@ -2522,6 +2657,12 @@ class SRu extends S {
   String get welcomeApiTmdbDesc => 'Фильмы, сериалы и аниме';
 
   @override
+  String get welcomeApiComicVineDesc => 'Комиксы и графические романы';
+
+  @override
+  String get welcomeApiGoogleBooksDesc => 'Глобальный каталог книг Google';
+
+  @override
   String get welcomeApiRecommended => 'РЕКОМЕНДУЕТСЯ';
 
   @override
@@ -2681,6 +2822,14 @@ class SRu extends S {
   @override
   String get welcomeSourceDescFantlab =>
       'Подробный каталог книг с оценками, наградами и циклами.';
+
+  @override
+  String get welcomeSourceDescComicVine =>
+      'Обширный каталог комиксов и графических романов.';
+
+  @override
+  String get welcomeSourceDescGoogleBooks =>
+      'Миллионы изданий из книжного каталога Google: поиск по названию, автору или ISBN.';
 
   @override
   String get welcomeTourTitle => 'Знакомство с меню';
@@ -3543,6 +3692,18 @@ class SRu extends S {
 
   @override
   String get browseSortTrending => 'В тренде';
+
+  @override
+  String get browseSortNameAsc => 'Название (А–Я)';
+
+  @override
+  String get browseSortNameDesc => 'Название (Я–А)';
+
+  @override
+  String get browseSortRecentlyUpdated => 'Недавно обновлённые';
+
+  @override
+  String get browseSortRecentlyAdded => 'Недавно добавленные';
 
   @override
   String get browseAnimeTypeSeries => 'Сериалы';

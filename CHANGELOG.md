@@ -7,6 +7,344 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+### Added
+
+- **Google Books book source**
+
+  Search Google's catalogue of millions of editions by title, author, or ISBN,
+  with print-type and language filters. Books share the Books tab with
+  OpenLibrary and Fantlab. The API key is optional — search works anonymously,
+  and a personal key (entered in Settings or the first-run wizard) only raises
+  the quota. A volume's search sheet gains a "More by this author" strip (covers
+  + year, hover for the blurb, tap to copy the title); a collected Google book
+  gets a category-based "Similar books" row on its detail page.
+
+  * lib/core/api/google_books_api.dart (GoogleBooksApi, GoogleBooksApiException, googleBooksApiProvider):
+    New — Dio client over `/books/v1`; optional key, paged `searchVolumes`,
+    `getVolume`, `validateApiKey`.
+  * lib/shared/models/book.dart (Book.fromGoogleBooksVolume, fnv1a64): New
+    factory; the alphanumeric `volumeId` is folded into the numeric `id`
+    contract via a deterministic 63-bit FNV-1a hash (real id kept in `nativeId`).
+    A zero `pageCount` from search-list rows is treated as unknown.
+  * lib/shared/models/data_source.dart (DataSource.googleBooks): New value.
+  * lib/shared/theme/app_assets.dart (AppAssets.iconGoogleBooksColor): New asset.
+  * lib/features/search/sources/google_books_source.dart (GoogleBooksSource), lib/features/search/filters/google_books_print_type_filter.dart (GoogleBooksPrintTypeFilter), lib/features/search/filters/google_books_language_filter.dart (GoogleBooksLanguageFilter):
+    New search source plus print-type and language filters.
+  * lib/features/search/widgets/google_books_more_by_author_section.dart (GoogleBooksMoreByAuthorSection):
+    New — lazily-paged, display-only "more by this author" strip.
+  * lib/features/collections/widgets/google_books_similars_section.dart (GoogleBooksSimilarsSection):
+    New — category-based ("subject:") "similar books" row.
+  * lib/shared/widgets/book_carousel.dart (BookCarousel, BookCarouselShimmer), lib/features/collections/widgets/book_similars_carousel.dart (BookSimilarsCarousel):
+    New shared book-strip widgets; lib/features/collections/widgets/book_similars_section.dart (BookSimilarsSection) refactored onto them.
+  * lib/features/search/widgets/item_details_sheet.dart (ItemDetailsSheet.book):
+    Add the opaque `moreByAuthorSection` slot at the bottom of the sheet.
+  * lib/features/search/handlers/media_handlers.dart (MediaHandlers): Wire the
+    author strip for Google volumes and refetch via `getVolume`.
+  * lib/features/collections/helpers/collection_actions.dart, lib/features/collections/screens/item_detail_screen.dart:
+    Refresh and similars wiring for Google books.
+  * lib/features/settings/providers/settings_provider.dart (SettingsKeys.googleBooksApiKey, SettingsNotifier.setGoogleBooksApiKey, SettingsNotifier.validateGoogleBooksKey), lib/core/services/api_key_initializer.dart (ApiKeys.googleBooksApiKey):
+    Optional key storage and wiring.
+  * lib/features/settings/content/credentials_content.dart, lib/features/settings/content/credits_content.dart, lib/features/welcome/widgets/welcome_step_sources.dart, lib/shared/constants/source_catalog.dart:
+    Credentials field, attribution, first-run card, and source-catalogue entry.
+  * lib/features/search/utils/filter_ui.dart (filterAccentForGroup): Map the
+    Google Books and ComicVine groups to the book accent.
+  * docs/GOOGLE_BOOKS.md, README.md: Document the source and key setup.
+
+- **Kinorium CSV import**
+
+  Imports a Kinorium list from its emailed CSV export (UTF-16, tab-separated).
+  Every title is matched against TMDB by its original or localized name, with a
+  year filter that is dropped on retry so older or alternate editions still
+  match. Watched titles are imported as completed with their Kinorium rating
+  and watch date; a "Watchlist" toggle imports everything as planned instead.
+  Animated films and series land under the animation media type. Titles TMDB
+  can't resolve are dropped into the text wishlist under a single import tag,
+  and an optional toggle appends directors and actors to each item's note.
+  Re-importing the same list into an existing collection refreshes only the
+  rating and note when they changed. A personal TMDB key is recommended for
+  large imports but not required.
+
+  Built on a new shared import layer (`lib/core/import/`, ports & adapters) so
+  future importers can shed their duplicated matching / writing / backoff logic;
+  Kinorium is its first adapter and the existing importers will migrate onto it
+  one at a time.
+
+  * lib/core/import/import_source.dart (ImportSource, ImportOptions): New — the
+    import port: `import(options) → UniversalImportResult`, one adapter per
+    source.
+  * lib/core/import/import_writer.dart (ImportWriter, ImportCandidate, WishlistCandidate, ImportWriteResult):
+    New — shared write-side: resolve-or-create the collection, batch-insert new
+    items, selectively update existing ones (per-source merge via a closure),
+    batch-write wishlist fallbacks. Goes through the repositories, never the DAOs.
+  * lib/core/import/tmdb_matcher.dart (TmdbMatcher, TmdbMatch): New — match a
+    title against TMDB by name (original + localized query, year-then-no-year,
+    pick-best, animation-by-genre).
+  * lib/core/import/rate_limited_retry.dart (RateLimitedRetry): New —
+    source-agnostic exponential backoff for 429s.
+  * lib/core/import/sources/kinorium/kinorium_import_service.dart (KinoriumImportService, KinoriumImportOptions, kinoriumImportServiceProvider):
+    New — the Kinorium adapter: match every row against TMDB (throttled, 429
+    backoff), then write the whole scope through ImportWriter.
+  * lib/core/import/sources/kinorium/kinorium_csv_parser.dart (KinoriumCsvParser, KinoriumParseException):
+    New — decodes UTF-16 LE (with BOM) and parses the quoted, tab-separated body,
+    addressing columns by header name so the watched and watchlist layouts (which
+    order columns differently) both parse.
+  * lib/core/import/sources/kinorium/kinorium_entry.dart (KinoriumEntry, KinoriumType):
+    New — one parsed CSV row plus the Russian `Type` mapping and its
+    movie / TV / animation search hints.
+  * lib/core/database/dao/collection_dao.dart (CollectionDao.addItemsBatch, CollectionDao.updateItemFieldsBatch):
+    New — transactional bulk insert (sort_order filled, unique conflicts ignored,
+    inserted count returned) and selective field update.
+  * lib/core/database/dao/wishlist_dao.dart (WishlistDao.addWishlistItemsBatch):
+    New — transactional bulk insert of unresolved wishlist entries.
+  * lib/data/repositories/collection_repository.dart (CollectionRepository.addItemsBatch, CollectionRepository.updateItemFieldsBatch),
+    lib/data/repositories/wishlist_repository.dart (WishlistRepository.addWishlistItemsBatch):
+    New — repository pass-throughs so the import layer writes via repositories.
+  * lib/features/settings/content/kinorium_import_content.dart (KinoriumImportContent),
+    lib/features/settings/screens/kinorium_import_screen.dart (KinoriumImportScreen):
+    New — file pick → options (watchlist toggle, cast/crew note, target
+    collection) → progress dialog.
+  * lib/features/settings/screens/settings_screen.dart: Add the Kinorium import tile.
+  * lib/features/settings/screens/import_result_screen.dart (ImportResultScreen):
+    "Open collection" now uses `push` instead of `pushReplacement`, so an
+    importer that auto-pops its screen on completion no longer immediately
+    closes the collection it just opened (also fixes the existing Trakt flow).
+  * lib/shared/theme/app_assets.dart (AppAssets.iconKinoriumColor),
+    assets/images/icon_kinorium_color.png: Brand icon.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (settingsKinoriumImport, settingsKinoriumImportSubtitle, kinoriumImportFrom, kinoriumImportDescription, kinoriumSelectCsvFile, kinoriumSelectCsvExport, kinoriumOptions, kinoriumIsWatchlist, kinoriumIsWatchlistDesc, kinoriumImportNotes, kinoriumImportNotesDesc, kinoriumTargetCollection, kinoriumCreateNew, kinoriumUseExisting, kinoriumNoCollections, kinoriumSelectCollection, kinoriumErrorLoadingCollections, kinoriumStartImport, kinoriumImporting, kinoriumRecommendOwnTmdbKey):
+    Import screen strings.
+  * docs/ARCHITECTURE.md, lib/core/import/README.md, lib/core/import/sources/kinorium/README.md:
+    Document the import layer (ports & adapters) and the Kinorium adapter.
+  * README.md: List Kinorium among the supported imports.
+
+- **ComicVine comics source in search**
+
+  Adds ComicVine (comicvine.gamespot.com) as a comics / graphic-novel source
+  under the books tab. Volumes are tagged as comics so they share the book
+  media type while staying separable. Text search is relevance-ranked by
+  default; choosing a sort order (name A–Z / Z–A, recently updated, recently
+  added) switches to a paginated `/volumes` listing. A comic's detail shows
+  the issue count (not a page count), the series' creators, and its characters
+  as tags — comics have no genres on ComicVine, so the character list stands in
+  for them; an empty volume synopsis falls back to the first issue's. Needs a
+  free ComicVine API key, entered in Settings → Credentials.
+
+  * lib/core/api/comicvine_api.dart (ComicVineApi, ComicVineApiException, comicVineApiProvider):
+    ComicVine REST client — searchVolumes (`/search`, relevance), browseVolumes
+    (`/volumes` name-filter, sorted + paginated), getVolume (detail with
+    people / characters, and a first-issue description fallback), validateApiKey.
+    ComicVine ignores `start_year` / `publisher` / `count_of_issues` filters and
+    sorts, so only the working orders are exposed.
+  * lib/features/search/sources/comicvine_source.dart (ComicVineSource):
+    SearchSource backed by ComicVine; relevance routes to `/search`, every other
+    sort to `/volumes`; supportsSortDuringSearch is true.
+  * lib/shared/models/book.dart (Book.fromComicVineVolume, Book.isComic, Book.kind, Book._comicVineNames):
+    Maps a ComicVine volume to a comic-kind Book — `count_of_issues` → pageCount
+    (labelled as issues), `people` → authors, `characters` → subjects, `start_year`
+    → publishYear.
+  * lib/shared/models/book_kind.dart (BookKind): New — prose-vs-comic discriminator persisted in `books_cache.kind`.
+  * lib/core/database/migrations/migration_v49.dart (MigrationV49): New — adds the `books_cache.kind` column.
+  * lib/shared/models/data_source.dart (DataSource.comicVine), lib/shared/theme/app_assets.dart (AppAssets.iconComicVineColor):
+    Brand colour + logo asset (assets/images/comic_vine_color.png), surfaced via SourceLogo / SourceBadge and the credits screen.
+  * lib/features/search/models/search_source.dart (BrowseSortOption.label):
+    Add name_asc / name_desc / recently_updated / recently_added sort labels.
+  * lib/features/settings/content/credentials_content.dart (_CredentialsContentState._buildComicVineSection, _validateComicVineKey):
+    ComicVine API-key entry and validation.
+  * lib/features/search/widgets/item_details_sheet.dart (ItemDetailsSheet.book), lib/features/collections/widgets/book_progress_section.dart (BookProgressSection), lib/core/services/discord_rpc_service.dart (DiscordRpcService):
+    Label comics by issue count instead of page count.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (bookIssues, browseSortNameAsc, browseSortNameDesc, browseSortRecentlyUpdated, browseSortRecentlyAdded, credentialsComicVineSection, searchSourceComics):
+    Comics labels and ComicVine credential strings.
+
+### Changed
+
+- **API Keys settings row now shows active/total instead of a single count**
+
+  The Data Sources → API Keys row counted only IGDB, SteamGridDB and TMDB, so
+  it capped at "3" even though the credentials screen has six sources. It now
+  reads `active/total` (e.g. `3/6`) across all six — IGDB, SteamGridDB, TMDB,
+  ComicVine, Google Books and ScreenScraper — and only turns green when every
+  source is configured.
+
+  * lib/features/settings/screens/settings_screen.dart (_SettingsScreenState._apiKeyStates, _apiKeysValue, _apiKeysAllSet):
+    Derive both the count and the all-set state from one six-source list.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (settingsApiKeysValue): Change the
+    string from `{count} keys` to `{active}/{total}`.
+
+- **Moved the Steam, RetroAchievements, MyAnimeList and AniList importers onto the shared import layer**
+
+  The four source importers now live under `lib/core/import/sources/<name>/` next
+  to Kinorium and are built on the same ports-and-adapters layer: each implements
+  `ImportSource`, returns a `UniversalImportResult`, and writes through
+  `ImportWriter` instead of its own per-row collection / wishlist code. Writes are
+  batched now (one bulk item insert, one bulk wishlist insert, one media-cache
+  upsert) instead of a row at a time, and the duplicated resolve-or-create, merge,
+  tally and wishlist-dedup logic is gone. Behaviour is preserved, with two
+  deliberate changes: a re-seen item that needs no change is reported as "skipped"
+  rather than "updated", and the import tag is no longer stamped onto pre-existing
+  untagged wishlist rows.
+
+  The import progress screens are unchanged for the user: the live per-item
+  counters, the current-title line and the MyAnimeList rate-limit countdown all
+  stay. They now read these off the shared `ImportProgress`, and the running
+  tallies come from a per-item callback on `ImportWriter.writeItems` so the
+  classification stays in one place.
+
+  * lib/core/services/import_service.dart (ImportProgress): Added optional
+    `currentItem`, `imported` / `updated` / `wishlisted` tallies and
+    `retryWaitSeconds` / `retryAttempt` / `retryMaxAttempts` so source adapters
+    can report the same rich progress through the shared type.
+  * lib/core/import/import_writer.dart (ImportCandidate.label, ImportWriter.writeItems, ImportItemProgress):
+    `ImportCandidate` carries an optional progress `label`; `writeItems` takes an
+    `onItem` callback that fires per candidate with the running imported / updated
+    tallies.
+  * lib/core/import/import_columns.dart (epochSeconds, statusDateColumns, sumByType):
+    New. Shared helpers: a status transition turned into collection_items columns
+    (used by the adapters that merge an external status into a local item) and a
+    per-media-type tally sum.
+  * lib/core/import/sources/steam/steam_import_service.dart (SteamImportService, SteamImportOptions),
+    lib/core/import/sources/anilist/anilist_import_service.dart (AniListImportService, AniListImportOptions),
+    lib/core/import/sources/mal/mal_import_service.dart (MalImportService, MalImportOptions),
+    lib/core/import/sources/ra/ra_import_service.dart (RaImportService, RaImportOptions):
+    Reimplemented on `ImportSource` / `ImportWriter`; removed the bespoke
+    `SteamImportResult` / `AniListImportResult` / `MalImportResult` /
+    `RaImportResult`, their `*ImportProgress` / `*ImportStage` types and the
+    `toUniversal()` extensions. RaImportService writes its `tracker_game_data`
+    side-table in one batch (TrackerDao.upsertGameDataBatch) after the items.
+  * lib/features/settings/content/steam_import_content.dart,
+    lib/features/settings/content/anilist_import_content.dart,
+    lib/features/settings/content/mal_import_content.dart,
+    lib/features/settings/content/ra_import_content.dart:
+    Call `import(options)` and consume `UniversalImportResult`; map the shared
+    `ImportStage` to the existing localized stage labels.
+  * lib/core/import/sources/steam/README.md, lib/core/import/sources/anilist/README.md,
+    lib/core/import/sources/mal/README.md, lib/core/import/sources/ra/README.md:
+    New per-source docs.
+  * lib/core/import/README.md, docs/ARCHITECTURE.md:
+    Import-layer status now lists the five adapters on the layer; only Trakt
+    remains unmigrated.
+  * test/core/import/sources/steam/steam_import_service_test.dart,
+    test/core/import/sources/anilist/anilist_import_service_test.dart,
+    test/core/import/sources/mal/mal_import_service_test.dart,
+    test/core/import/sources/ra/ra_import_service_test.dart:
+    Rewritten to verify repository-routed batch writes.
+  * test/core/services/import_result_extensions_test.dart:
+    Dropped the removed `SteamImportResult.toUniversal()` group.
+
+- **Settings cache button now clears only unused covers instead of wiping the whole cache**
+
+  The image-cache action no longer deletes the entire cache folder. It now
+  removes only downloaded covers whose media is no longer in any collection
+  (the metadata cache tables only ever grow and are never pruned, so covers
+  pile up after an item or collection is deleted). Custom covers and canvas
+  board images are never touched, and the success toast reports how many
+  files were removed.
+
+  * lib/core/services/cache_cleanup_service.dart (CacheCleanupService, cacheCleanupServiceProvider):
+    New. Builds the keep-set from CollectionRepository.getAllItemsWithData()
+    using CollectionItem.imageType and CollectionItem.coverImageId, limited to
+    the re-downloadable cover folders (custom and canvas folders excluded).
+  * lib/core/services/image_cache_service.dart (ImageCacheService.removeOrphans, CacheCleanupResult):
+    New. Deletes `.png` files not in the keep-set per ImageType folder,
+    tolerating Windows file locks. Removed the now-unused
+    ImageCacheService.clearCache (full-wipe) that the button used to call.
+  * lib/features/settings/content/cache_content.dart (_CacheContentState._clearCache):
+    Call removeOrphans through the cleanup service and report the deleted count.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (cacheClearCache, cacheClearCacheTitle, cacheClearCacheMessage, cacheOrphansRemoved, cacheCleared):
+    Reword for the orphan-only behaviour; add cacheOrphansRemoved with a
+    `{count}` placeholder; drop the now-unused cacheCleared toast string.
+
+### Fixed
+
+- **Search crashing on Android devices without a gyroscope**
+
+  Opening an item's detail sheet in search threw `PlatformException(NO_SENSOR,
+  ... no Gyroscope sensor)` on devices that lack a hardware gyroscope (e.g.
+  Honor "Lite" models, many tablets and emulators), because the poster
+  parallax subscribed to the gyroscope without handling the sensor-missing
+  error. The parallax now degrades to a plain static image instead of letting
+  the error surface, fixing every place the effect is used (the search detail
+  sheet and the shared media detail view).
+
+  * lib/shared/widgets/gyroscope_parallax_image.dart (GyroscopeParallaxImage, _GyroscopeParallaxImageState._onGyroscopeError):
+    Add an `onError` handler (with `cancelOnError`) that cancels the
+    subscription and falls back to a static image; `_ticker` becomes nullable
+    and is the single "parallax active" flag, replacing the scattered
+    `Platform.isAndroid` checks. Add a `@visibleForTesting` `gyroscopeStream`
+    seam so the sensor path is testable off-device.
+
+- **Folder picker crashing with "Permission denied" on some newer Android builds**
+
+  Choosing a custom data folder failed with `PathAccessException: ... '/storage/'
+  (Permission denied)` on some newer Android builds (seen on Android 16 / Pixel)
+  even with "All files access" granted, while working on others (Android 10, 13):
+  the volume detector listed `/storage` directly, which those builds refuse
+  regardless of the permission. Storage volumes are now derived from the
+  per-volume app directories instead of listing `/storage`, so detection no
+  longer depends on that OEM-specific behaviour.
+
+  * lib/core/services/storage_volumes.dart (StorageVolumes.detect,
+    StorageVolumes.externalDirsProvider): Derive volume roots from
+    getExternalStorageDirectories() by trimming the `/Android/data/<pkg>/files`
+    suffix; no `/storage` listing. detect() is now async.
+  * lib/shared/utils/storage_access.dart (pickRawFolder): Await the async
+    detect() and guard the BuildContext across the gap.
+
+- **Restore sorting by name on the collections list**
+
+  The collections folder list lost its sort-mode picker in an earlier
+  title-bar refactor — the floating action only flipped the direction, so
+  there was no way to switch from date-created to alphabetical. The sort
+  action now opens a dialog to choose the mode (Date Created / Name) and
+  the direction together, applied only on confirm.
+
+  * lib/features/collections/screens/home_screen.dart
+    (_HomeScreenState._showSortOptions, _SortDialog, _SortChoice): New. The
+    sort entry in the floating menu is relabeled "Sort" with an Icons.sort
+    glyph and opens the dialog; the picked mode and direction are written
+    via collectionListSortProvider.setSortMode and
+    collectionListSortDescProvider.setDescending.
+
+- **Keep user-supplied images with the data they belong to**
+
+  Collection hero banners and custom / canvas cover images were stored
+  outside the data folder, so they were lost when the folder moved or a
+  custom folder was picked, and were never carried over a device-to-device
+  sync. Hero images now live inside the data folder (existing ones migrate
+  on first launch); LAN sync transfers the user images as a second step
+  after the database (the re-downloadable cover cache is skipped — it
+  re-fetches on the receiving device); and the folder copy grows an opt-in
+  "copy the image cache too" checkbox for a full offline mirror.
+
+  * lib/core/services/collection_hero_service.dart
+    (CollectionHeroService.resolveRoot,
+    CollectionHeroService.migrateLegacyHeroImages): Resolve `collections/`
+    under the data root via StorageRoot; one-time idempotent migration of
+    hero images from the legacy AppSupport location.
+  * lib/core/services/storage_root.dart (StorageRoot.collectionsFolderName,
+    StorageRoot.imageCacheFolderName, StorageRoot.copyDataTo,
+    StorageRoot._copyTree): New folder-name constants; copyDataTo gains
+    includeImages to recursively copy `collections/` and each profile's
+    `image_cache/`.
+  * lib/core/services/db_sync_service.dart
+    (DbSyncService.buildUserImagesArchive,
+    DbSyncService.applyUserImagesArchive): Zip of the hero, custom-cover and
+    canvas-image folders (re-downloadable covers excluded), extracted over
+    the data root on receive.
+  * lib/core/services/lan_sync_service.dart (LanSyncService._serveImages,
+    LanSyncService.downloadUserImages): New `/images` endpoint and client
+    for the image step.
+  * lib/features/settings/screens/lan_sync_screen.dart
+    (_LanSyncScreenState._pull): Two-phase pull (database, then images) with
+    a soft warning when the image step fails.
+  * lib/features/settings/widgets/storage_location_section.dart
+    (_StorageLocationSectionState._askCopyOptions): Copy dialog with the
+    "copy images too" checkbox, off by default.
+  * lib/core/services/image_cache_service.dart
+    (ImageCacheService.getBaseCachePath): Reference
+    StorageRoot.imageCacheFolderName instead of the string literal.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (storageLocationCopyImages,
+    storageLocationCopyImagesHint, lanSyncReceivingImages,
+    lanSyncImagesWarning): New strings.
+
 ## [0.34.0] - 2026-06-12
 
 ### Fixed

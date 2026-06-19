@@ -7,15 +7,17 @@ import 'package:tonkatsu_box/features/search/sources/tmdb_movies_source.dart';
 import 'package:tonkatsu_box/features/search/sources/tmdb_tv_source.dart';
 import 'package:tonkatsu_box/features/search/sources/anilist_anime_source.dart';
 import 'package:tonkatsu_box/features/search/sources/anilist_manga_source.dart';
+import 'package:tonkatsu_box/features/search/sources/comicvine_source.dart';
 import 'package:tonkatsu_box/features/search/sources/fantlab_source.dart';
+import 'package:tonkatsu_box/features/search/sources/google_books_source.dart';
 import 'package:tonkatsu_box/features/search/sources/mangabaka_source.dart';
 import 'package:tonkatsu_box/features/search/sources/openlibrary_source.dart';
 import 'package:tonkatsu_box/features/search/sources/vndb_source.dart';
 
 void main() {
   group('searchSources', () {
-    test('contains 10 sources', () {
-      expect(searchSources, hasLength(10));
+    test('contains 12 sources', () {
+      expect(searchSources, hasLength(12));
     });
 
     test('first source is TmdbMoviesSource', () {
@@ -58,6 +60,14 @@ void main() {
       expect(searchSources[9], isA<FantlabSource>());
     });
 
+    test('eleventh source is GoogleBooksSource', () {
+      expect(searchSources[10], isA<GoogleBooksSource>());
+    });
+
+    test('twelfth source is ComicVineSource', () {
+      expect(searchSources[11], isA<ComicVineSource>());
+    });
+
     test('all sources have unique ids', () {
       final Set<String> ids =
           searchSources.map((SearchSource s) => s.id).toSet();
@@ -78,6 +88,8 @@ void main() {
         'visual_novels',
         'openlibrary',
         'fantlab',
+        'googlebooks',
+        'comicvine',
       ]);
     });
   });
@@ -111,6 +123,11 @@ void main() {
     test('returns correct source for "visual_novels"', () {
       final SearchSource source = getSearchSourceById('visual_novels');
       expect(source, isA<VndbSource>());
+    });
+
+    test('returns correct source for "comicvine"', () {
+      final SearchSource source = getSearchSourceById('comicvine');
+      expect(source, isA<ComicVineSource>());
     });
 
     test('returns first source for unknown id', () {

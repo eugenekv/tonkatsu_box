@@ -70,6 +70,19 @@ const List<SourceInfo> kDataSourceCatalog = <SourceInfo>[
     mediaTypes: <MediaType>[MediaType.book],
     url: 'https://fantlab.ru/',
   ),
+  SourceInfo(
+    source: DataSource.googleBooks,
+    mediaTypes: <MediaType>[MediaType.book],
+    // "Get a key" link target: the Cloud Console page to enable the Books API.
+    url: 'https://console.cloud.google.com/apis/library/books.googleapis.com',
+    keyRequirement: SourceKeyRequirement.recommended,
+  ),
+  SourceInfo(
+    source: DataSource.comicVine,
+    mediaTypes: <MediaType>[MediaType.book],
+    url: 'https://comicvine.gamespot.com/api/',
+    keyRequirement: SourceKeyRequirement.recommended,
+  ),
 ];
 
 /// Maps a search-source `groupId` to the [DataSource]s in that group (used by
@@ -83,4 +96,6 @@ const Map<String, List<DataSource>> kSearchGroupToSources =
   'vndb': <DataSource>[DataSource.vndb],
   'openlibrary': <DataSource>[DataSource.openLibrary],
   'fantlab': <DataSource>[DataSource.fantlab],
+  'googlebooks': <DataSource>[DataSource.googleBooks],
+  'comicvine': <DataSource>[DataSource.comicVine],
 };

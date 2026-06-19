@@ -448,6 +448,13 @@ class SEn extends S {
   String get settingsTraktImportSubtitle => 'Watch history, ratings, watchlist';
 
   @override
+  String get settingsKinoriumImport => 'Kinorium Import';
+
+  @override
+  String get settingsKinoriumImportSubtitle =>
+      'Movies & shows from a CSV export';
+
+  @override
   String get settingsDebug => 'Debug';
 
   @override
@@ -493,8 +500,8 @@ class SEn extends S {
   String get settingsApiKeys => 'API Keys';
 
   @override
-  String settingsApiKeysValue(int count) {
-    return '$count keys';
+  String settingsApiKeysValue(int active, int total) {
+    return '$active/$total';
   }
 
   @override
@@ -686,6 +693,19 @@ class SEn extends S {
   String get credentialsEnterTmdbKey => 'Enter your TMDB API key (v3)';
 
   @override
+  String get credentialsComicVineSection => 'ComicVine API (Comics)';
+
+  @override
+  String get credentialsEnterComicVineKey => 'Enter your ComicVine API key';
+
+  @override
+  String get credentialsGoogleBooksSection => 'Google Books API (Books)';
+
+  @override
+  String get credentialsEnterGoogleBooksKey =>
+      'Enter your Google Books API key (optional)';
+
+  @override
   String get credentialsContentLanguage => 'Content Language';
 
   @override
@@ -750,6 +770,19 @@ class SEn extends S {
 
   @override
   String get credentialsTmdbKeyInvalid => 'TMDB API key is invalid';
+
+  @override
+  String get credentialsComicVineKeyValid => 'ComicVine API key is valid';
+
+  @override
+  String get credentialsComicVineKeyInvalid => 'ComicVine API key is invalid';
+
+  @override
+  String get credentialsGoogleBooksKeyValid => 'Google Books API key is valid';
+
+  @override
+  String get credentialsGoogleBooksKeyInvalid =>
+      'Google Books API key is invalid';
 
   @override
   String get credentialsEnterSteamGridDbKeyError =>
@@ -824,20 +857,22 @@ class SEn extends S {
   String get cacheCacheSize => 'Cache size';
 
   @override
-  String get cacheClearCache => 'Clear cache';
+  String get cacheClearCache => 'Remove unused images';
 
   @override
-  String get cacheClearCacheTitle => 'Clear cache?';
+  String get cacheClearCacheTitle => 'Remove unused images?';
 
   @override
   String get cacheClearCacheMessage =>
-      'This will delete all locally saved images. They will be downloaded again during the next sync.';
+      'Deletes downloaded covers for media that is no longer in any collection. Your custom covers and board images are kept.';
 
   @override
   String get cacheFolderUpdated => 'Cache folder updated';
 
   @override
-  String get cacheCleared => 'Cache cleared';
+  String cacheOrphansRemoved(int count) {
+    return 'Removed unused images: $count';
+  }
 
   @override
   String get cacheSelectFolderDialog => 'Select cache folder for images';
@@ -964,6 +999,13 @@ class SEn extends S {
 
   @override
   String get storageLocationCopyConfirm => 'Copy';
+
+  @override
+  String get storageLocationCopyImages => 'Copy the image cache too';
+
+  @override
+  String get storageLocationCopyImagesHint =>
+      'Hero banners and saved covers — larger, but the new folder works offline without re-downloading';
 
   @override
   String get storageLocationCopyError =>
@@ -1095,6 +1137,13 @@ class SEn extends S {
   String get lanSyncReceived => 'Data received';
 
   @override
+  String get lanSyncReceivingImages => 'Transferring images...';
+
+  @override
+  String get lanSyncImagesWarning =>
+      'Database received, but the images could not be transferred';
+
+  @override
   String get lanSyncRestartMessage =>
       'The received data will be used after restart. Restart now?';
 
@@ -1221,6 +1270,64 @@ class SEn extends S {
   String get traktInvalidExport => 'Invalid Trakt export';
 
   @override
+  String get kinoriumImportFrom => 'Import from Kinorium';
+
+  @override
+  String get kinoriumImportDescription =>
+      'Export your list from Kinorium (it arrives by email as a CSV) and select the file below.';
+
+  @override
+  String get kinoriumSelectCsvFile => 'Select CSV File';
+
+  @override
+  String get kinoriumSelectCsvExport => 'Select Kinorium CSV Export';
+
+  @override
+  String get kinoriumOptions => 'Options';
+
+  @override
+  String get kinoriumIsWatchlist => 'This is a \"Watchlist\" file';
+
+  @override
+  String get kinoriumIsWatchlistDesc =>
+      'Import every title as planned instead of watched';
+
+  @override
+  String get kinoriumImportNotes => 'Import cast & crew';
+
+  @override
+  String get kinoriumImportNotesDesc =>
+      'Add directors and actors to the item note';
+
+  @override
+  String get kinoriumTargetCollection => 'Target collection';
+
+  @override
+  String get kinoriumCreateNew => 'Create new collection';
+
+  @override
+  String get kinoriumUseExisting => 'Use existing collection';
+
+  @override
+  String get kinoriumNoCollections => 'No collections available';
+
+  @override
+  String get kinoriumSelectCollection => 'Select collection';
+
+  @override
+  String get kinoriumErrorLoadingCollections => 'Error loading collections';
+
+  @override
+  String get kinoriumStartImport => 'Start Import';
+
+  @override
+  String get kinoriumImporting => 'Importing from Kinorium...';
+
+  @override
+  String get kinoriumRecommendOwnTmdbKey =>
+      'Tip: a personal TMDB API key is recommended for large imports (Settings → API Keys), but it\'s optional — the built-in key works too.';
+
+  @override
   String traktImportedItems(int count) {
     return 'Imported $count items';
   }
@@ -1260,6 +1367,13 @@ class SEn extends S {
 
   @override
   String get creditsFantlabAttribution => 'Book data from Fantlab.';
+
+  @override
+  String get creditsComicVineAttribution =>
+      'Comic data from ComicVine (non-commercial use).';
+
+  @override
+  String get creditsGoogleBooksAttribution => 'Book data from Google Books.';
 
   @override
   String get creditsOpenSource => 'Open Source';
@@ -1783,6 +1897,9 @@ class SEn extends S {
   String get bookPages => 'Pages';
 
   @override
+  String get bookIssues => 'Issues';
+
+  @override
   String get bookMarkCompleted => 'Mark as completed';
 
   @override
@@ -2073,16 +2190,25 @@ class SEn extends S {
   String get searchSourceBooks => 'Books';
 
   @override
+  String get searchSourceComics => 'Comics';
+
+  @override
   String get searchHintManga => 'Search manga...';
 
   @override
   String get searchHintBooks => 'Search books...';
 
   @override
+  String get searchHintComics => 'Search comics...';
+
+  @override
   String get bookFilterLanguage => 'Language';
 
   @override
   String get bookFilterSearchBy => 'Search by';
+
+  @override
+  String get bookFilterPrintType => 'Type';
 
   @override
   String get bookSearchTitle => 'Title';
@@ -2095,6 +2221,12 @@ class SEn extends S {
 
   @override
   String get bookSimilarTitle => 'Similar books';
+
+  @override
+  String get bookMoreByAuthorTitle => 'More by this author';
+
+  @override
+  String get bookTitleCopied => 'Title copied';
 
   @override
   String get editionPickerTitle => 'Choose edition';
@@ -2481,6 +2613,12 @@ class SEn extends S {
   String get welcomeApiTmdbDesc => 'Movies, TV & Anime';
 
   @override
+  String get welcomeApiComicVineDesc => 'Comics & graphic novels';
+
+  @override
+  String get welcomeApiGoogleBooksDesc => 'Google\'s global book catalog';
+
+  @override
   String get welcomeApiRecommended => 'RECOMMENDED';
 
   @override
@@ -2639,6 +2777,14 @@ class SEn extends S {
   @override
   String get welcomeSourceDescFantlab =>
       'A detailed book catalog with ratings, awards and series.';
+
+  @override
+  String get welcomeSourceDescComicVine =>
+      'A vast catalog of comics and graphic novels.';
+
+  @override
+  String get welcomeSourceDescGoogleBooks =>
+      'Millions of editions from Google\'s book catalog, searchable by title, author or ISBN.';
 
   @override
   String get welcomeTourTitle => 'Get to know the menu';
@@ -3500,6 +3646,18 @@ class SEn extends S {
 
   @override
   String get browseSortTrending => 'Trending';
+
+  @override
+  String get browseSortNameAsc => 'Name (A–Z)';
+
+  @override
+  String get browseSortNameDesc => 'Name (Z–A)';
+
+  @override
+  String get browseSortRecentlyUpdated => 'Recently updated';
+
+  @override
+  String get browseSortRecentlyAdded => 'Recently added';
 
   @override
   String get browseAnimeTypeSeries => 'Series';

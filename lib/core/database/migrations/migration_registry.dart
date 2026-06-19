@@ -47,6 +47,7 @@ import 'migration_v45.dart';
 import 'migration_v46.dart';
 import 'migration_v47.dart';
 import 'migration_v48.dart';
+import 'migration_v49.dart';
 
 abstract final class MigrationRegistry {
   static final List<Migration> all = <Migration>[
@@ -98,6 +99,7 @@ abstract final class MigrationRegistry {
     MigrationV46(),
     MigrationV47(),
     MigrationV48(),
+    MigrationV49(),
   ];
 
   /// Schema version this build can open; newer databases must be rejected.

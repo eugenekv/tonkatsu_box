@@ -33,7 +33,7 @@
 
 ---
 
-Tonkatsu Box is a free, open-source app to organize your media collections. Search millions of titles from IGDB, TMDB, VNDB, AniList, MangaBaka, OpenLibrary, and Fantlab. Track your progress, rate everything, create visual boards and mood grids, and import your library from Steam, Trakt.tv, RetroAchievements, MyAnimeList, or AniList.
+Tonkatsu Box is a free, open-source app to organize your media collections. Search millions of titles from IGDB, TMDB, VNDB, AniList, MangaBaka, OpenLibrary, Fantlab, ComicVine, and Google Books. Track your progress, rate everything, create visual boards and mood grids, and import your library from Steam, Trakt.tv, Kinorium, RetroAchievements, MyAnimeList, or AniList.
 
 <p align="center">
   <img src="docs/screenshots/mockup_main_all.jpg" width="800" alt="Main screen">
@@ -67,12 +67,12 @@ Tonkatsu Box is a free, open-source app to organize your media collections. Sear
 |---|---|
 | **Collections** | Organize by platform, genre, or any way you like. Grid, list, and table views |
 | **Wishlist** | Dedicated top-level list for what you want to play, watch, or read next |
-| **Search** | IGDB (games), TMDB (movies/TV), AniList (anime & manga), MangaBaka (manga), VNDB (visual novels), OpenLibrary & Fantlab (books) |
+| **Search** | IGDB (games), TMDB (movies/TV), AniList (anime & manga), MangaBaka (manga), VNDB (visual novels), OpenLibrary, Fantlab & Google Books (books), ComicVine (comics) |
 | **Progress Tracking** | Status, ratings 1-10, episode tracking for TV shows and anime |
 | **Discord Rich Presence** | Show what you're playing/watching/reading in Discord (desktop) |
 | **Visual Boards** | Drag-and-drop canvas with posters, notes, and connections |
 | **Tier Lists & Mood Grids** | Rank items into S/A/B/C tiers, or arrange them on a visual N×M board with labels — export either as PNG |
-| **Import** | Steam library, Trakt.tv history, RetroAchievements progress, MyAnimeList XML, AniList by username |
+| **Import** | Steam library, Trakt.tv history, Kinorium CSV, RetroAchievements progress, MyAnimeList XML, AniList by username |
 | **Kodi Sync** | Pull watched status and ratings for your movies from a Kodi media server over JSON-RPC |
 | **Export & Share** | .xcoll / .xcollx files with full offline support |
 | **Gamepad** | Navigate with Xbox controller (desktop and Android handhelds) |
@@ -127,6 +127,7 @@ Already tracking elsewhere? Bring your data:
 |:-:|--------|-----------------|
 | <img src="assets/images/icon_steam_color.png" width="28" alt="Steam"> | **Steam** | Owned games, playtime, last played date |
 | <img src="assets/images/icon_trakt_color.png" width="28" alt="Trakt.tv"> | **Trakt.tv** | Watch history, ratings, watchlist, episode progress |
+| <img src="assets/images/icon_kinorium_color.png" width="28" alt="Kinorium"> | **Kinorium** | Movies, TV & animation from a CSV export — ratings and watch dates |
 | <img src="assets/images/ra_logo.png" width="28" alt="RetroAchievements"> | **RetroAchievements** | Retro game library, achievement progress, awards |
 | <img src="assets/images/icon_myanimelist_color.png" width="28" alt="MyAnimeList"> | **MyAnimeList** | Anime and manga lists with scores, status and progress from an XML export |
 | <img src="assets/images/icon_anilist_color.png" width="28" alt="AniList"> | **AniList** | Anime and manga directly by a public username — no API key required |
@@ -178,6 +179,8 @@ When you pick an empty folder, the app copies your current data there. When you 
 | <img src="assets/images/icon_mangabaka_color.png" width="28" alt="MangaBaka"> | Manga | [MangaBaka](https://mangabaka.org/) | Not required |
 | <img src="assets/images/open_library_color.png" width="28" alt="OpenLibrary"> | Books | [OpenLibrary](https://openlibrary.org/) | Not required |
 | <img src="assets/images/icon_fantlab_color.png" width="28" alt="Fantlab"> | Books | [Fantlab](https://fantlab.ru/) | Not required |
+| <img src="assets/images/icon_google_book_color.png" width="28" alt="Google Books"> | Books | [Google Books](https://books.google.com/) | Optional (free key) |
+| <img src="assets/images/comic_vine_color.png" width="28" alt="ComicVine"> | Comics | [ComicVine](https://comicvine.gamespot.com/) | Required (free key) |
 | <img src="assets/images/icon_steamgriddb_color.png" width="28" alt="SteamGridDB"> | Artwork | [SteamGridDB](https://www.steamgriddb.com/) | Built-in |
 | <img src="assets/images/icon_scrapper_color.png" width="28" alt="ScreenScraper"> | Retro media gallery | [ScreenScraper](https://www.screenscraper.fr/) | Required (user account) |
 | <img src="assets/images/ra_logo.png" width="28" alt="RetroAchievements"> | Achievements | [RetroAchievements](https://retroachievements.org/) | Required |
@@ -225,7 +228,7 @@ Contributions welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for build ins
 
 ## Credits
 
-Data: [IGDB](https://www.igdb.com/) · [TMDB](https://www.themoviedb.org/) · [VNDB](https://vndb.org/) · [AniList](https://anilist.co/) · [MangaBaka](https://mangabaka.org/) · [OpenLibrary](https://openlibrary.org/) · [Fantlab](https://fantlab.ru/) · [MyAnimeList](https://myanimelist.net/) · [RetroAchievements](https://retroachievements.org/) · [SteamGridDB](https://www.steamgriddb.com/) · [ScreenScraper](https://www.screenscraper.fr/)
+Data: [IGDB](https://www.igdb.com/) · [TMDB](https://www.themoviedb.org/) · [VNDB](https://vndb.org/) · [AniList](https://anilist.co/) · [MangaBaka](https://mangabaka.org/) · [OpenLibrary](https://openlibrary.org/) · [Fantlab](https://fantlab.ru/) · [Google Books](https://books.google.com/) · [ComicVine](https://comicvine.gamespot.com/) · [MyAnimeList](https://myanimelist.net/) · [RetroAchievements](https://retroachievements.org/) · [SteamGridDB](https://www.steamgriddb.com/) · [ScreenScraper](https://www.screenscraper.fr/)
 
 *This product uses the TMDB API but is not endorsed or certified by TMDB.*
 

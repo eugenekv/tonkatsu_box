@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/comicvine_api.dart';
+import '../../../core/api/google_books_api.dart';
 import '../../../core/api/fantlab_api.dart';
 import '../../../core/api/openlibrary_api.dart';
 import '../../../core/database/database_service.dart';
@@ -21,6 +23,7 @@ import '../../settings/providers/settings_provider.dart';
 import '../../collections/widgets/fantlab_edition_picker.dart';
 import '../services/search_collection_adder.dart';
 import '../widgets/fantlab_book_sheet.dart';
+import '../widgets/google_books_more_by_author_section.dart';
 import '../widgets/item_details_sheet.dart';
 import 'game_handler.dart';
 import 'media_action_handler.dart';
@@ -167,6 +170,15 @@ class MediaHandlers {
           // Search rows omit the description — load the full work inside the
           // open sheet (spinner), so the tap itself stays instant.
           overviewLoader: overviewLoader,
+          // Google Books volumes carry an author — show a lazily-paged
+          // "more by this author" strip at the bottom of the sheet.
+          moreByAuthorSection: (b.source == DataSource.googleBooks &&
+                  b.authors.isNotEmpty)
+              ? GoogleBooksMoreByAuthorSection(
+                  author: b.authors.first,
+                  excludeNativeId: b.nativeId,
+                )
+              : null,
         );
       },
       // On add, cache the full work so the collected item's detail page also
@@ -266,6 +278,10 @@ Future<Book?> _fetchFullBook(WidgetRef ref, Book book) async {
       return ref.read(openLibraryApiProvider).getWork(book.nativeId);
     case DataSource.fantlab:
       return ref.read(fantlabApiProvider).getWork(book.nativeId);
+    case DataSource.comicVine:
+      return ref.read(comicVineApiProvider).getVolume(book.nativeId);
+    case DataSource.googleBooks:
+      return ref.read(googleBooksApiProvider).getVolume(book.nativeId);
     default:
       return null;
   }

@@ -53,19 +53,19 @@ Flutter 3.38+ / Dart 3.10+ · Riverpod · SQLite · Dio · Material Design 3
 > **Flutter SDK is installed on Windows only, not in WSL.** All Flutter commands must be executed through PowerShell:
 >
 > ```bash
-> powershell.exe -Command "cd D:\CODE\xerabora; flutter pub get"
-> powershell.exe -Command "cd D:\CODE\xerabora; flutter run -d windows"
+> powershell.exe -Command "cd path\to\tonkatsu_box; flutter pub get"
+> powershell.exe -Command "cd path\to\tonkatsu_box; flutter run -d windows"
 > ```
 
 ```bash
-git clone https://github.com/your-username/xerabora.git
-cd xerabora  # repository name unchanged
+git clone https://github.com/your-username/tonkatsu_box.git
+cd tonkatsu_box
 ```
 
 Then in PowerShell (or via `powershell.exe`):
 
 ```powershell
-cd D:\CODE\xerabora
+cd path\to\tonkatsu_box
 flutter pub get
 flutter run -d windows
 ```
@@ -123,8 +123,8 @@ To build a **release** APK (`flutter build apk --release`), you need a signing k
 > **Before every commit, ensure the following checks pass:**
 >
 > ```bash
-> powershell.exe -Command "cd D:\CODE\xerabora; flutter analyze"
-> powershell.exe -Command "cd D:\CODE\xerabora; flutter test"
+> powershell.exe -Command "cd path\to\tonkatsu_box; flutter analyze"
+> powershell.exe -Command "cd path\to\tonkatsu_box; flutter test"
 > ```
 >
 > - `flutter analyze` must report **no issues** (warnings from third-party packages like `file_picker` are ignored)
