@@ -6,6 +6,7 @@ import '../../../shared/constants/platform_features.dart';
 import '../../../shared/models/collection_item.dart';
 import '../../../core/services/discord_rpc_service.dart';
 import '../../../core/api/comicvine_api.dart';
+import '../../../core/api/google_books_api.dart';
 import '../../../core/api/igdb_api.dart';
 import '../../../core/api/ra_api.dart';
 import '../../../core/api/screenscraper_api.dart';
@@ -26,6 +27,8 @@ abstract class SettingsKeys {
   static const String tmdbApiKey = 'tmdb_api_key';
 
   static const String comicVineApiKey = 'comicvine_api_key';
+
+  static const String googleBooksApiKey = 'google_books_api_key';
 
   static const String screenScraperSsid = 'screenscraper_ssid';
 
@@ -104,6 +107,7 @@ class SettingsState {
     this.steamGridDbApiKey,
     this.tmdbApiKey,
     this.comicVineApiKey,
+    this.googleBooksApiKey,
     this.screenScraperSsid,
     this.screenScraperSspassword,
     this.defaultAuthor,
@@ -143,6 +147,8 @@ class SettingsState {
   final String? tmdbApiKey;
 
   final String? comicVineApiKey;
+
+  final String? googleBooksApiKey;
 
   final String? screenScraperSsid;
 
@@ -207,6 +213,9 @@ class SettingsState {
   bool get hasComicVineKey =>
       comicVineApiKey != null && comicVineApiKey!.isNotEmpty;
 
+  bool get hasGoogleBooksKey =>
+      googleBooksApiKey != null && googleBooksApiKey!.isNotEmpty;
+
   bool get hasSteamGridDbKey =>
       steamGridDbApiKey != null && steamGridDbApiKey!.isNotEmpty;
 
@@ -253,6 +262,7 @@ class SettingsState {
     String? steamGridDbApiKey,
     String? tmdbApiKey,
     String? comicVineApiKey,
+    String? googleBooksApiKey,
     String? screenScraperSsid,
     String? screenScraperSspassword,
     String? defaultAuthor,
@@ -280,6 +290,7 @@ class SettingsState {
       steamGridDbApiKey: steamGridDbApiKey ?? this.steamGridDbApiKey,
       tmdbApiKey: tmdbApiKey ?? this.tmdbApiKey,
       comicVineApiKey: comicVineApiKey ?? this.comicVineApiKey,
+      googleBooksApiKey: googleBooksApiKey ?? this.googleBooksApiKey,
       screenScraperSsid: screenScraperSsid ?? this.screenScraperSsid,
       screenScraperSspassword:
           screenScraperSspassword ?? this.screenScraperSspassword,
@@ -337,6 +348,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
   late SteamGridDbApi _steamGridDbApi;
   late TmdbApi _tmdbApi;
   late ComicVineApi _comicVineApi;
+  late GoogleBooksApi _googleBooksApi;
   late ScreenScraperApi _screenScraperApi;
   late DatabaseService _dbService;
 
@@ -347,6 +359,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
     _steamGridDbApi = ref.watch(steamGridDbApiProvider);
     _tmdbApi = ref.watch(tmdbApiProvider);
     _comicVineApi = ref.watch(comicVineApiProvider);
+    _googleBooksApi = ref.watch(googleBooksApiProvider);
     _screenScraperApi = ref.watch(screenScraperApiProvider);
     _dbService = ref.watch(databaseServiceProvider);
 
@@ -398,6 +411,9 @@ class SettingsNotifier extends Notifier<SettingsState> {
     // ComicVine: user key from prefs only, no built-in.
     final String? comicVineApiKey =
         _prefs.getString(SettingsKeys.comicVineApiKey);
+    // Google Books: optional user key from prefs only, no built-in.
+    final String? googleBooksApiKey =
+        _prefs.getString(SettingsKeys.googleBooksApiKey);
     final String? screenScraperSsid =
         _prefs.getString(SettingsKeys.screenScraperSsid);
     final String? screenScraperSspassword =
@@ -449,6 +465,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
       steamGridDbApiKey: steamGridDbApiKey,
       tmdbApiKey: tmdbApiKey,
       comicVineApiKey: comicVineApiKey,
+      googleBooksApiKey: googleBooksApiKey,
       screenScraperSsid: screenScraperSsid,
       screenScraperSspassword: screenScraperSspassword,
       defaultAuthor: defaultAuthor,
@@ -516,6 +533,10 @@ class SettingsNotifier extends Notifier<SettingsState> {
     }
     if (state.comicVineApiKey != null && state.comicVineApiKey!.isNotEmpty) {
       _comicVineApi.setApiKey(state.comicVineApiKey!);
+    }
+    if (state.googleBooksApiKey != null &&
+        state.googleBooksApiKey!.isNotEmpty) {
+      _googleBooksApi.setApiKey(state.googleBooksApiKey!);
     }
   }
 
@@ -669,6 +690,18 @@ class SettingsNotifier extends Notifier<SettingsState> {
     state = state.copyWith(comicVineApiKey: apiKey);
   }
 
+  Future<void> setGoogleBooksApiKey(String apiKey) async {
+    if (apiKey.isNotEmpty) {
+      await _prefs.setString(SettingsKeys.googleBooksApiKey, apiKey);
+      _googleBooksApi.setApiKey(apiKey);
+    } else {
+      await _prefs.remove(SettingsKeys.googleBooksApiKey);
+      _googleBooksApi.clearApiKey();
+    }
+
+    state = state.copyWith(googleBooksApiKey: apiKey);
+  }
+
   /// Genres are pre-seeded for both EN + RU — no cache clear needed on switch.
   Future<void> setTmdbLanguage(String language) async {
     await _prefs.setString(SettingsKeys.tmdbLanguage, language);
@@ -798,6 +831,11 @@ class SettingsNotifier extends Notifier<SettingsState> {
     return _comicVineApi.validateApiKey(state.comicVineApiKey!);
   }
 
+  Future<bool> validateGoogleBooksKey() async {
+    if (!state.hasGoogleBooksKey) return false;
+    return _googleBooksApi.validateApiKey(state.googleBooksApiKey!);
+  }
+
   Future<ConfigResult> exportConfig() async {
     final ConfigService configService = ref.read(configServiceProvider);
     return configService.exportToFile();
@@ -832,6 +870,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
     await _prefs.remove(SettingsKeys.steamGridDbApiKey);
     await _prefs.remove(SettingsKeys.tmdbApiKey);
     await _prefs.remove(SettingsKeys.comicVineApiKey);
+    await _prefs.remove(SettingsKeys.googleBooksApiKey);
     await _prefs.remove(SettingsKeys.screenScraperSsid);
     await _prefs.remove(SettingsKeys.screenScraperSspassword);
     await _prefs.remove(SettingsKeys.defaultAuthor);
@@ -851,6 +890,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
     _steamGridDbApi.clearApiKey();
     _tmdbApi.clearApiKey();
     _comicVineApi.clearApiKey();
+    _googleBooksApi.clearApiKey();
 
     state = const SettingsState();
   }

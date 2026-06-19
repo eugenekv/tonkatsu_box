@@ -699,6 +699,13 @@ class SEn extends S {
   String get credentialsEnterComicVineKey => 'Enter your ComicVine API key';
 
   @override
+  String get credentialsGoogleBooksSection => 'Google Books API (Books)';
+
+  @override
+  String get credentialsEnterGoogleBooksKey =>
+      'Enter your Google Books API key (optional)';
+
+  @override
   String get credentialsContentLanguage => 'Content Language';
 
   @override
@@ -769,6 +776,13 @@ class SEn extends S {
 
   @override
   String get credentialsComicVineKeyInvalid => 'ComicVine API key is invalid';
+
+  @override
+  String get credentialsGoogleBooksKeyValid => 'Google Books API key is valid';
+
+  @override
+  String get credentialsGoogleBooksKeyInvalid =>
+      'Google Books API key is invalid';
 
   @override
   String get credentialsEnterSteamGridDbKeyError =>
@@ -1357,6 +1371,9 @@ class SEn extends S {
   @override
   String get creditsComicVineAttribution =>
       'Comic data from ComicVine (non-commercial use).';
+
+  @override
+  String get creditsGoogleBooksAttribution => 'Book data from Google Books.';
 
   @override
   String get creditsOpenSource => 'Open Source';
@@ -2191,6 +2208,9 @@ class SEn extends S {
   String get bookFilterSearchBy => 'Search by';
 
   @override
+  String get bookFilterPrintType => 'Type';
+
+  @override
   String get bookSearchTitle => 'Title';
 
   @override
@@ -2201,6 +2221,12 @@ class SEn extends S {
 
   @override
   String get bookSimilarTitle => 'Similar books';
+
+  @override
+  String get bookMoreByAuthorTitle => 'More by this author';
+
+  @override
+  String get bookTitleCopied => 'Title copied';
 
   @override
   String get editionPickerTitle => 'Choose edition';
@@ -2590,6 +2616,9 @@ class SEn extends S {
   String get welcomeApiComicVineDesc => 'Comics & graphic novels';
 
   @override
+  String get welcomeApiGoogleBooksDesc => 'Google\'s global book catalog';
+
+  @override
   String get welcomeApiRecommended => 'RECOMMENDED';
 
   @override
@@ -2752,6 +2781,10 @@ class SEn extends S {
   @override
   String get welcomeSourceDescComicVine =>
       'A vast catalog of comics and graphic novels.';
+
+  @override
+  String get welcomeSourceDescGoogleBooks =>
+      'Millions of editions from Google\'s book catalog, searchable by title, author or ISBN.';
 
   @override
   String get welcomeTourTitle => 'Get to know the menu';

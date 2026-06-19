@@ -32,4 +32,6 @@ abstract final class AppAssets {
       'assets/images/icon_fantlab_color.png';
   static const String iconComicVineColor =
       'assets/images/comic_vine_color.png';
+  static const String iconGoogleBooksColor =
+      'assets/images/icon_google_book_color.png';
 }

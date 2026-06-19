@@ -5,6 +5,7 @@ import 'anilist_anime_source.dart';
 import 'anilist_manga_source.dart';
 import 'comicvine_source.dart';
 import 'fantlab_source.dart';
+import 'google_books_source.dart';
 import 'igdb_games_source.dart';
 import 'mangabaka_source.dart';
 import 'openlibrary_source.dart';
@@ -35,6 +36,7 @@ final List<SearchSource> searchSources = List<SearchSource>.unmodifiable(
     // Books
     OpenLibrarySource(),
     FantlabSource(),
+    GoogleBooksSource(),
     // Comics (a books sub-type)
     ComicVineSource(),
   ],

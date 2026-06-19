@@ -39,7 +39,7 @@ void main() {
       }
     });
 
-    test('only IGDB, TMDB and ComicVine require a key', () {
+    test('only IGDB, TMDB, ComicVine and Google Books prompt for a key', () {
       final Set<DataSource> needKey = kDataSourceCatalog
           .where((SourceInfo i) =>
               i.keyRequirement != SourceKeyRequirement.none)
@@ -52,6 +52,7 @@ void main() {
           DataSource.igdb,
           DataSource.tmdb,
           DataSource.comicVine,
+          DataSource.googleBooks,
         },
       );
     });

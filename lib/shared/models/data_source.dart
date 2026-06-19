@@ -37,6 +37,14 @@ enum DataSource {
   /// `book` media type with `BookKind.comic` records.
   comicVine('ComicVine', Color(0xFFF26522), AppAssets.iconComicVineColor),
 
+  /// Google Books — global book catalog (millions of editions, public search).
+  /// Feeds the `book` media type with `BookKind.book` records.
+  googleBooks(
+    'Google Books',
+    Color(0xFF4285F4),
+    AppAssets.iconGoogleBooksColor,
+  ),
+
   /// Локальный источник (кастомные элементы).
   local('Custom', Color(0xFF26A69A), null);
 

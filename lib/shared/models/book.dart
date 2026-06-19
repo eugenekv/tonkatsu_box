@@ -4,7 +4,23 @@ import '../utils/bbcode.dart';
 import 'book_kind.dart';
 import 'data_source.dart';
 
-/// Book metadata from OpenLibrary or Fantlab.
+/// Deterministic 64-bit FNV-1a hash of [input], masked to 63 bits so the result
+/// is always a non-negative [int] that fits both SQLite's signed INTEGER and a
+/// native Dart int. Used to fold a provider's non-numeric id (Google Books
+/// `volumeId`) into the numeric [Book.id] contract. Unlike [String.hashCode] it
+/// is stable across runs and platforms, so cached / persisted ids stay valid.
+int fnv1a64(String input) {
+  // 64-bit FNV-1a. Dart ints are 64-bit two's-complement on the VM/AOT, so the
+  // multiply wraps mod 2^64 exactly as the algorithm requires.
+  int hash = 0xcbf29ce484222325; // offset basis
+  for (final int unit in input.codeUnits) {
+    hash ^= unit;
+    hash = hash * 0x100000001b3; // FNV prime
+  }
+  return hash & 0x7fffffffffffffff; // mask to 63 bits → non-negative
+}
+
+/// Book metadata from OpenLibrary, Fantlab, ComicVine or Google Books.
 ///
 /// Identity mirrors [Manga]: the cache key is the pair `(id, source)`. [id] is
 /// the provider numeric id stored as a string (`"27448"` / `"3104"`) and maps
@@ -291,7 +307,7 @@ class Book {
       nativeId: '4050-$id',
       title: _nonEmpty(json['name']) ?? 'Unknown',
       authors: _comicVineNames(json['people'], max: _comicVineMaxPeople),
-      description: _stripComicVineText(rawDescription),
+      description: _stripHtmlText(rawDescription),
       coverUrl: _comicVineCover(json['image']),
       subjects: _comicVineNames(json['characters'], max: _comicVineMaxCharacters),
       pageCount: _intOrNull(json['count_of_issues']),
@@ -300,6 +316,55 @@ class Book {
           publisherName != null ? <String>[publisherName] : const <String>[],
       externalUrl: _nonEmpty(json['site_detail_url']),
       kind: BookKind.comic,
+    );
+  }
+
+  /// [Book] from a Google Books `Volume` object — shared by the `volumes.list`
+  /// search rows and the `volumes/{id}` detail payload, which carry the same
+  /// `{id, volumeInfo}` shape. Google's `volumeId` is an alphanumeric string, so
+  /// [id] is a deterministic 63-bit [fnv1a64] hash of it (kept numeric for the
+  /// `external_id: int` contract) while the real id lives in [nativeId] for
+  /// detail refetch / links. `averageRating` (0–5) is doubled to the app's 0–10
+  /// scale; the HTML `description` is sanitised. Tagged [BookKind.book].
+  factory Book.fromGoogleBooksVolume(Map<String, dynamic> json) {
+    final String volumeId = _trimmed(json['id']);
+    final Object? infoObj = json['volumeInfo'];
+    final Map<String, dynamic> info =
+        infoObj is Map<String, dynamic> ? infoObj : const <String, dynamic>{};
+
+    final String title = _nonEmpty(info['title']) ?? 'Unknown';
+    final String? subtitle = _nonEmpty(info['subtitle']);
+    final (String? isbn10, String? isbn13) =
+        _googleIsbns(info['industryIdentifiers']);
+    final double? avg = (info['averageRating'] as num?)?.toDouble();
+    final String? language = _nonEmpty(info['language']);
+    final String? publisher = _nonEmpty(info['publisher']);
+    // Search-list rows return pageCount 0 for catalog-only volumes (the real
+    // count lives only in the volume detail), so treat 0 as unknown — the UI
+    // then shows no page count instead of "0 pages". The detail fetch on add
+    // fills in the real value.
+    final int? pageCount = _intOrNull(info['pageCount']);
+
+    return Book(
+      id: fnv1a64(volumeId).toString(),
+      source: DataSource.googleBooks,
+      nativeId: volumeId,
+      title: subtitle != null ? '$title: $subtitle' : title,
+      authors: _stringList(info['authors']),
+      description: _stripHtmlText(info['description']),
+      coverUrl: _googleCover(info['imageLinks']),
+      pageCount: (pageCount != null && pageCount > 0) ? pageCount : null,
+      publishYear: _yearFrom(info['publishedDate'] as String?),
+      publishers:
+          publisher != null ? <String>[publisher] : const <String>[],
+      isbn10: isbn10,
+      isbn13: isbn13,
+      languages: language != null ? <String>[language] : const <String>[],
+      subjects: _cleanSubjects(_stringList(info['categories'])),
+      rating: avg != null && avg > 0 ? avg * 2 : null,
+      ratingCount: _intOrNull(info['ratingsCount']),
+      externalUrl: _nonEmpty(info['infoLink']) ??
+          _nonEmpty(info['canonicalVolumeLink']),
     );
   }
 
@@ -599,8 +664,9 @@ class Book {
 
   // --- ComicVine helpers -----------------------------------------------------
 
-  /// Strips ComicVine's HTML descriptions (and entities) to plain text.
-  static String? _stripComicVineText(Object? raw) {
+  /// Strips an HTML description (tags + entities) to plain text — used by the
+  /// ComicVine and Google Books factories, whose descriptions come as HTML.
+  static String? _stripHtmlText(Object? raw) {
     if (raw is! String || raw.isEmpty) return null;
     final String clean = stripBbCodes(raw);
     return clean.isEmpty ? null : clean;
@@ -643,6 +709,48 @@ class Book {
   // the character list stands in for the genre/tag chips.
   static const int _comicVineMaxPeople = 12;
   static const int _comicVineMaxCharacters = 15;
+
+  // --- Google Books helpers --------------------------------------------------
+
+  /// Splits a Google Books `industryIdentifiers` array into ISBN-10 / ISBN-13,
+  /// keeping the first of each type.
+  static (String? isbn10, String? isbn13) _googleIsbns(Object? raw) {
+    if (raw is! List<dynamic>) return (null, null);
+    String? isbn10;
+    String? isbn13;
+    for (final Map<String, dynamic> id
+        in raw.whereType<Map<String, dynamic>>()) {
+      final String type = _trimmed(id['type']);
+      final String? value = _nonEmpty(id['identifier']);
+      if (value == null) continue;
+      if (type == 'ISBN_10') isbn10 ??= value;
+      if (type == 'ISBN_13') isbn13 ??= value;
+    }
+    return (isbn10, isbn13);
+  }
+
+  /// Largest available cover from a Google Books `imageLinks` object, with
+  /// Google's curled-corner overlay (`&edge=curl`) removed and the scheme
+  /// upgraded to HTTPS.
+  static String? _googleCover(Object? imageLinks) {
+    if (imageLinks is! Map<String, dynamic>) return null;
+    for (final String key in const <String>[
+      'extraLarge',
+      'large',
+      'medium',
+      'small',
+      'thumbnail',
+      'smallThumbnail',
+    ]) {
+      final String? url = _nonEmpty(imageLinks[key]);
+      if (url != null) {
+        return url
+            .replaceAll('&edge=curl', '')
+            .replaceFirst('http://', 'https://');
+      }
+    }
+    return null;
+  }
 
   // --- Fantlab helpers -------------------------------------------------------
 

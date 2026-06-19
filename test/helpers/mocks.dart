@@ -6,6 +6,7 @@ import 'package:gamepads/gamepads.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:tonkatsu_box/core/api/fantlab_api.dart';
+import 'package:tonkatsu_box/core/api/google_books_api.dart';
 import 'package:tonkatsu_box/core/api/igdb_api.dart';
 import 'package:tonkatsu_box/core/api/kodi_api.dart';
 import 'package:tonkatsu_box/core/api/steamgriddb_api.dart';
@@ -146,6 +147,8 @@ class MockSteamApi extends Mock implements SteamApi {}
 class MockRaApi extends Mock implements RaApi {}
 
 class MockFantlabApi extends Mock implements FantlabApi {}
+
+class MockGoogleBooksApi extends Mock implements GoogleBooksApi {}
 
 class MockKodiApi extends Mock implements KodiApi {}
 
