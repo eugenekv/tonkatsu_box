@@ -44,7 +44,7 @@ import 'package:tonkatsu_box/core/api/steam_api.dart';
 import 'package:tonkatsu_box/core/import/sources/steam/steam_import_service.dart';
 import 'package:tonkatsu_box/core/api/ra_api.dart';
 import 'package:tonkatsu_box/core/services/ra_to_igdb_mapper.dart';
-import 'package:tonkatsu_box/core/services/trakt_zip_import_service.dart';
+import 'package:tonkatsu_box/core/import/sources/trakt/trakt_import_service.dart';
 import 'package:tonkatsu_box/data/repositories/canvas_repository.dart';
 import 'package:tonkatsu_box/data/repositories/collection_repository.dart';
 import 'package:tonkatsu_box/data/repositories/game_repository.dart';
@@ -158,8 +158,8 @@ class MockSteamImportService extends Mock implements SteamImportService {}
 
 class MockImageCacheService extends Mock implements ImageCacheService {}
 
-class MockTraktZipImportService extends Mock
-    implements TraktZipImportService {}
+class MockTraktImportService extends Mock
+    implements TraktImportService {}
 
 class MockRaToIgdbMapper extends Mock implements RaToIgdbMapper {}
 

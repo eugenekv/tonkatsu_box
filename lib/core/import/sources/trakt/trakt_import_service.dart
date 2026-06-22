@@ -5,23 +5,23 @@ import 'package:archive/archive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 
-import '../../data/repositories/collection_repository.dart';
-import '../../data/repositories/wishlist_repository.dart';
-import '../../shared/models/collection.dart';
-import '../../shared/models/collection_item.dart';
-import '../../shared/models/item_status.dart';
-import '../../shared/models/item_status_logic.dart';
-import '../../shared/models/media_type.dart';
-import '../../shared/models/movie.dart';
-import '../../shared/models/tv_show.dart';
-import '../../shared/models/universal_import_result.dart';
-import '../../shared/models/wishlist_tag.dart';
-import '../api/tmdb_api.dart';
-import '../database/database_service.dart';
-import '../import/import_columns.dart';
-import '../import/import_source.dart';
-import '../import/import_writer.dart';
-import 'import_service.dart';
+import '../../../../data/repositories/collection_repository.dart';
+import '../../../../data/repositories/wishlist_repository.dart';
+import '../../../../shared/models/collection.dart';
+import '../../../../shared/models/collection_item.dart';
+import '../../../../shared/models/item_status.dart';
+import '../../../../shared/models/item_status_logic.dart';
+import '../../../../shared/models/media_type.dart';
+import '../../../../shared/models/movie.dart';
+import '../../../../shared/models/tv_show.dart';
+import '../../../../shared/models/universal_import_result.dart';
+import '../../../../shared/models/wishlist_tag.dart';
+import '../../../api/tmdb_api.dart';
+import '../../../database/database_service.dart';
+import '../../../services/import_service.dart';
+import '../../import_columns.dart';
+import '../../import_source.dart';
+import '../../import_writer.dart';
 
 class TraktZipInfo {
   const TraktZipInfo({
@@ -152,9 +152,9 @@ class _TraktWatchlistEntry {
   final String type; // 'movie' | 'show'
 }
 
-final Provider<TraktZipImportService> traktZipImportServiceProvider =
-    Provider<TraktZipImportService>((Ref ref) {
-  return TraktZipImportService(
+final Provider<TraktImportService> traktImportServiceProvider =
+    Provider<TraktImportService>((Ref ref) {
+  return TraktImportService(
     tmdbApi: ref.watch(tmdbApiProvider),
     repository: ref.watch(collectionRepositoryProvider),
     database: ref.watch(databaseServiceProvider),
@@ -168,8 +168,8 @@ final Provider<TraktZipImportService> traktZipImportServiceProvider =
 /// section (watched, ratings, watchlist) through [ImportWriter] in batches.
 /// Watched episodes are marked directly (no collection-item analogue), and
 /// titles without TMDB data fall back to the text wishlist.
-class TraktZipImportService implements ImportSource {
-  TraktZipImportService({
+class TraktImportService implements ImportSource {
+  TraktImportService({
     required TmdbApi tmdbApi,
     required CollectionRepository repository,
     required DatabaseService database,
@@ -182,7 +182,7 @@ class TraktZipImportService implements ImportSource {
         );
 
   // ignore: unused_field
-  static final Logger _log = Logger('TraktZipImportService');
+  static final Logger _log = Logger('TraktImportService');
 
   final TmdbApi _tmdbApi;
   final DatabaseService _database;

@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tonkatsu_box/core/api/tmdb_api.dart';
 import 'package:tonkatsu_box/core/services/import_service.dart';
-import 'package:tonkatsu_box/core/services/trakt_zip_import_service.dart';
+import 'package:tonkatsu_box/core/import/sources/trakt/trakt_import_service.dart';
 import 'package:tonkatsu_box/shared/models/collection.dart';
 import 'package:tonkatsu_box/shared/models/collection_item.dart';
 import 'package:tonkatsu_box/shared/models/item_status.dart';
@@ -16,7 +16,7 @@ import 'package:tonkatsu_box/shared/models/tv_show.dart';
 import 'package:tonkatsu_box/shared/models/universal_import_result.dart';
 import 'package:tonkatsu_box/shared/models/wishlist_item.dart';
 
-import '../../helpers/test_helpers.dart';
+import '../../../../helpers/test_helpers.dart';
 
 List<int> createTestZip({
   String username = 'testuser',
@@ -141,7 +141,7 @@ void main() {
   late MockMovieDao mockMovieDao;
   late MockTvShowDao mockTvShowDao;
   late MockWishlistRepository mockWishlist;
-  late TraktZipImportService sut;
+  late TraktImportService sut;
 
   late Directory tempDir;
   late String zipPath;
@@ -161,7 +161,7 @@ void main() {
     mockTvShowDao = MockTvShowDao();
     when(() => mockDb.tvShowDao).thenReturn(mockTvShowDao);
     mockWishlist = MockWishlistRepository();
-    sut = TraktZipImportService(
+    sut = TraktImportService(
       tmdbApi: mockTmdb,
       repository: mockRepo,
       database: mockDb,
@@ -286,7 +286,7 @@ void main() {
     });
   });
 
-  group('TraktZipImportService', () {
+  group('TraktImportService', () {
     group('validateZip', () {
       test('should return valid для правильного ZIP со всеми файлами',
           () async {

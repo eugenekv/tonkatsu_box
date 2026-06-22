@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/import_service.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../core/services/trakt_zip_import_service.dart';
+import '../../../core/import/sources/trakt/trakt_import_service.dart';
 import '../../../shared/extensions/snackbar_extension.dart';
 import '../../../shared/models/collection.dart';
 import '../../../shared/models/universal_import_result.dart';
@@ -410,8 +410,8 @@ class _TraktImportContentState extends ConsumerState<TraktImportContent> {
       _zipPath = null;
     });
 
-    final TraktZipImportService service =
-        ref.read(traktZipImportServiceProvider);
+    final TraktImportService service =
+        ref.read(traktImportServiceProvider);
     final TraktZipInfo info = await service.validateZip(path);
 
     if (!mounted) return;
@@ -431,8 +431,8 @@ class _TraktImportContentState extends ConsumerState<TraktImportContent> {
   }
 
   Future<void> _startImport() async {
-    final TraktZipImportService service =
-        ref.read(traktZipImportServiceProvider);
+    final TraktImportService service =
+        ref.read(traktImportServiceProvider);
 
     final ValueNotifier<ImportProgress?> progressNotifier =
         ValueNotifier<ImportProgress?>(null);
