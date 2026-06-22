@@ -25,12 +25,7 @@ import '../widgets/settings_group.dart';
 
 /// Flow: ZIP file pick → preview → options → import progress.
 class TraktImportContent extends ConsumerStatefulWidget {
-  const TraktImportContent({
-    super.key,
-    this.onImportComplete,
-  });
-
-  final VoidCallback? onImportComplete;
+  const TraktImportContent({super.key});
 
   @override
   ConsumerState<TraktImportContent> createState() =>
@@ -484,16 +479,16 @@ class _TraktImportContentState extends ConsumerState<TraktImportContent> {
 
       if (!mounted) return;
 
-      await Navigator.of(context).push(
+      // Push the result over the import screen (no await / no follow-up pop):
+      // the import screen stays underneath so a later tab-root reset can't
+      // resolve a pending push and pop the tab root out. Mirrors the RA flow.
+      Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (BuildContext context) => ImportResultScreen(
             result: result,
           ),
         ),
       );
-      if (mounted) {
-        widget.onImportComplete?.call();
-      }
     } else if (result.fatalError != null) {
       context.showSnack(result.fatalError!, type: SnackType.error);
     }

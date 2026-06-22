@@ -44,6 +44,7 @@ import 'package:tonkatsu_box/core/api/steam_api.dart';
 import 'package:tonkatsu_box/core/import/sources/steam/steam_import_service.dart';
 import 'package:tonkatsu_box/core/api/ra_api.dart';
 import 'package:tonkatsu_box/core/services/ra_to_igdb_mapper.dart';
+import 'package:tonkatsu_box/core/import/sources/kinorium/kinorium_import_service.dart';
 import 'package:tonkatsu_box/core/import/sources/trakt/trakt_import_service.dart';
 import 'package:tonkatsu_box/data/repositories/canvas_repository.dart';
 import 'package:tonkatsu_box/data/repositories/collection_repository.dart';
@@ -160,6 +161,9 @@ class MockImageCacheService extends Mock implements ImageCacheService {}
 
 class MockTraktImportService extends Mock
     implements TraktImportService {}
+
+class MockKinoriumImportService extends Mock
+    implements KinoriumImportService {}
 
 class MockRaToIgdbMapper extends Mock implements RaToIgdbMapper {}
 
