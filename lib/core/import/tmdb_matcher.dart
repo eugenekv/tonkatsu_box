@@ -134,13 +134,10 @@ class TmdbMatcher {
     return null;
   }
 
-  /// The first result whose release year equals [year]. When [year] is null the
-  /// row carries no year to enforce, so the most relevant (first) result is
-  /// taken. Returns null when a year is required but no result matches it — the
-  /// caller then widens the search (later query/year combinations) and
-  /// ultimately treats the title as unmatched. The year is checked across the
-  /// whole result list, not just the top hit, so a correct-year film ranked
-  /// below an unrelated popular one is still found.
+  /// First result whose year equals [year], scanning the whole list (a
+  /// correct-year film can rank below an unrelated popular one); null when a
+  /// year is required but unmatched, so the caller widens or drops it. Null
+  /// [year] takes the first result.
   T? _pickAcceptable<T>(
       List<T> results, int? year, int? Function(T result) yearOf) {
     if (year == null) {

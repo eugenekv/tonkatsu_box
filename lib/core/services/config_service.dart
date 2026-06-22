@@ -102,10 +102,8 @@ class ConfigService {
     SettingsKeys.lastSync,
   ];
 
-  /// Keys whose values are bools, not strings. Steam's "remember credentials"
-  /// flag must round-trip: the import screen only restores the saved Steam
-  /// key/id when this flag is set, so exporting the keys without it leaves
-  /// them invisible after an import.
+  /// Keys whose values are bools. steamRememberCredentials must round-trip —
+  /// the import screen only restores the saved Steam key/id when it is set.
   static const List<String> _boolKeys = <String>[
     SettingsKeys.steamRememberCredentials,
     SettingsKeys.showRecommendations,
