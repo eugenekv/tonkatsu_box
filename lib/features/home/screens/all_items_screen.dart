@@ -16,7 +16,9 @@ import '../../../shared/navigation/search_providers.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/utils/media_format.dart';
 import '../../../shared/widgets/chevron_filter_bar.dart';
+import '../../../shared/widgets/filter_subfilter_bar.dart';
 import '../../../shared/widgets/media_poster_card.dart';
 import '../../collections/helpers/collection_actions.dart';
 import '../../collections/providers/all_items_selection_provider.dart';
@@ -41,6 +43,8 @@ class AllItemsScreen extends ConsumerStatefulWidget {
 class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
   final Set<MediaType> _selectedTypes = <MediaType>{};
   final Set<int> _selectedPlatformIds = <int>{};
+  final Set<String> _selectedMangaFormats = <String>{};
+  final Set<String> _selectedAnimeFormats = <String>{};
 
   static const double _desktopMaxCardWidth = 170;
 
@@ -73,7 +77,7 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
     return Column(
       children: <Widget>[
         _buildMediaTypeBar(itemsAsync, filterStatus, tagsMap, searchQuery),
-        _buildPlatformsRow(),
+        SubfilterBar(groups: _subfilterGroups(itemsAsync)),
         if (selectedItems.isNotEmpty)
           BulkActionBar(
             items: selectedItems,
@@ -130,6 +134,13 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
     if (_selectedPlatformIds.isNotEmpty &&
         (item.platformId == null ||
             !_selectedPlatformIds.contains(item.platformId))) {
+      return false;
+    }
+    if (!MediaFormat.matchesFormatFilter(
+      item,
+      mangaFormats: _selectedMangaFormats,
+      animeFormats: _selectedAnimeFormats,
+    )) {
       return false;
     }
     if (lowerQuery.isNotEmpty) {
@@ -261,72 +272,58 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
     );
   }
 
-  /// Platform chips row, visible only while Games is selected.
-  Widget _buildPlatformsRow() {
-    if (!_selectedTypes.contains(MediaType.game)) {
-      return const SizedBox.shrink();
-    }
-    final AsyncValue<List<Platform>> platformsAsync =
-        ref.watch(allItemsPlatformsProvider);
-    final List<Platform> platforms =
-        platformsAsync.valueOrNull ?? <Platform>[];
-    if (platforms.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.sm,
-        AppSpacing.xs,
-        AppSpacing.sm,
-        AppSpacing.sm,
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: <Widget>[
-            for (final Platform p in platforms) ...<Widget>[
-              _buildPlatformChip(p),
-              const SizedBox(width: AppSpacing.xs),
-            ],
-          ],
-        ),
-      ),
-    );
+  /// One subfilter group per active type — game platforms, manga formats,
+  /// anime formats — each tinted with its media-type accent, on one row.
+  List<List<SubfilterChipData>> _subfilterGroups(
+    AsyncValue<List<CollectionItem>> itemsAsync,
+  ) {
+    final List<CollectionItem> items =
+        itemsAsync.valueOrNull ?? const <CollectionItem>[];
+    return <List<SubfilterChipData>>[
+      if (_selectedTypes.contains(MediaType.game))
+        <SubfilterChipData>[
+          for (final Platform p
+              in ref.watch(allItemsPlatformsProvider).valueOrNull ??
+                  const <Platform>[])
+            SubfilterChipData(
+              label: p.displayName,
+              accent: MediaTypeTheme.colorFor(MediaType.game),
+              selected: _selectedPlatformIds.contains(p.id),
+              onTap: () => setState(() {
+                if (_selectedPlatformIds.contains(p.id)) {
+                  _selectedPlatformIds.remove(p.id);
+                } else {
+                  _selectedPlatformIds.add(p.id);
+                }
+              }),
+            ),
+        ],
+      _formatGroup(MediaType.manga, _selectedMangaFormats, items),
+      _formatGroup(MediaType.anime, _selectedAnimeFormats, items),
+    ];
   }
 
-  Widget _buildPlatformChip(Platform platform) {
-    final bool selected = _selectedPlatformIds.contains(platform.id);
-    const Color accentColor = AppColors.brand;
-
-    return ChoiceChip(
-      label: Text(
-        platform.displayName,
-        style: AppTypography.caption.copyWith(
-          color: selected ? AppColors.background : AppColors.textTertiary,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+  List<SubfilterChipData> _formatGroup(
+    MediaType type,
+    Set<String> selected,
+    List<CollectionItem> items,
+  ) {
+    if (!_selectedTypes.contains(type)) return const <SubfilterChipData>[];
+    return <SubfilterChipData>[
+      for (final String code in MediaFormat.present(items, type))
+        SubfilterChipData(
+          label: MediaFormat.label(type, code),
+          accent: MediaTypeTheme.colorFor(type),
+          selected: selected.contains(code),
+          onTap: () => setState(() {
+            if (selected.contains(code)) {
+              selected.remove(code);
+            } else {
+              selected.add(code);
+            }
+          }),
         ),
-      ),
-      selected: selected,
-      selectedColor: accentColor,
-      backgroundColor: AppColors.surface,
-      side: BorderSide(
-        color: selected ? Colors.transparent : accentColor.withAlpha(50),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      ),
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      onSelected: (bool value) {
-        setState(() {
-          if (value) {
-            _selectedPlatformIds.add(platform.id);
-          } else {
-            _selectedPlatformIds.remove(platform.id);
-          }
-        });
-      },
-    );
+    ];
   }
 
   void _toggleMediaType(MediaType type) {
@@ -338,6 +335,12 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
       }
       if (!_selectedTypes.contains(MediaType.game)) {
         _selectedPlatformIds.clear();
+      }
+      if (!_selectedTypes.contains(MediaType.manga)) {
+        _selectedMangaFormats.clear();
+      }
+      if (!_selectedTypes.contains(MediaType.anime)) {
+        _selectedAnimeFormats.clear();
       }
     });
   }
@@ -471,6 +474,7 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
                             mediaTypeOverlay: item.mediaType.overlayAsset,
                           ),
                       mediaType: item.mediaType,
+                      typeLabelOverride: item.formatLabel,
                       status: item.status,
                       tagName: tag?.name,
                       tagColor: tag?.color,
