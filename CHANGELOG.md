@@ -44,6 +44,35 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
   * lib/features/home/screens/all_items_screen.dart (_AllItemsScreenState._buildFormatRow, _AllItemsScreenState._buildFormatChip, _AllItemsScreenState._buildChoiceChip, _AllItemsScreenState._matchesNonTypeFilters, _AllItemsScreenState._toggleMediaType):
     Home-tab format chip rows, filtering, and clear-on-deselect.
 
+- **Inline manage buttons on wishlist cards** — resolve/unresolve, edit and delete on each card, next to the existing context menu.
+
+  * lib/features/wishlist/widgets/wishlist_tile.dart (WishlistTile): trailing resolve, edit and delete icon buttons.
+
+### Changed
+
+- **Config export/import now covers every credential and setting** — all source credentials (ComicVine, Google Books, ScreenScraper, RetroAchievements, Steam, AniList), the app language, and the display/feature toggles (recommendations, Blu-ray and platform overlays, Discord RPC, RA sync, rich collections, hide-empty-media chevrons).
+
+  * lib/core/services/config_service.dart (ConfigService): export/import the new keys; add bool value support.
+
+- **Trakt import moved onto the shared import layer** — same behaviour, batched writes.
+
+  * lib/core/import/sources/trakt/trakt_import_service.dart (TraktImportService): relocated from lib/core/services and reimplemented as an ImportSource over ImportWriter.
+  * lib/features/settings/content/trakt_import_content.dart, test/helpers/mocks.dart (MockTraktImportService): updated to the new API.
+
+### Fixed
+
+- **Steam credentials in an exported config now restore on import** — the saved Steam key and ID reappear after importing a config.
+
+  * lib/core/services/config_service.dart (ConfigService): round-trip the steamRememberCredentials flag.
+
+- **Kinorium import matches the correct title** — titles resolve by exact release year, so different films sharing a name no longer merge into one; episodes and duplicate rows go to the wishlist instead of being dropped.
+
+  * lib/core/import/tmdb_matcher.dart (TmdbMatcher), lib/core/import/sources/kinorium/kinorium_import_service.dart (KinoriumImportService).
+
+- **Settings no longer go blank after opening a collection from an import** — tapping the Settings gear after using "Open Collection" on the import result keeps Settings working.
+
+  * lib/features/settings/content/kinorium_import_content.dart, lib/features/settings/content/trakt_import_content.dart, lib/features/settings/screens/kinorium_import_screen.dart, lib/features/settings/screens/trakt_import_screen.dart.
+
 ## [0.35.0] - 2026-06-19
 
 ### Added
