@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/services/trakt_zip_import_service.dart';
 import '../../../shared/extensions/snackbar_extension.dart';
 import '../../../shared/models/collection.dart';
+import '../../../shared/models/universal_import_result.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
@@ -436,10 +437,10 @@ class _TraktImportContentState extends ConsumerState<TraktImportContent> {
     final ValueNotifier<ImportProgress?> progressNotifier =
         ValueNotifier<ImportProgress?>(null);
 
-    TraktImportResult? importResult;
+    UniversalImportResult? importResult;
 
-    final Future<TraktImportResult> importFuture = service.importFromZip(
-      options: TraktImportOptions(
+    final Future<UniversalImportResult> importFuture = service.import(
+      TraktImportOptions(
         zipPath: _zipPath!,
         collectionId: _useNewCollection ? null : _selectedCollectionId,
         importWatched: _importWatched,
@@ -449,7 +450,7 @@ class _TraktImportContentState extends ConsumerState<TraktImportContent> {
       onProgress: (ImportProgress progress) {
         progressNotifier.value = progress;
       },
-    ).then((TraktImportResult result) {
+    ).then((UniversalImportResult result) {
       importResult = result;
       return result;
     });
@@ -467,7 +468,7 @@ class _TraktImportContentState extends ConsumerState<TraktImportContent> {
 
     if (importResult == null || !mounted) return;
 
-    final TraktImportResult result = importResult!;
+    final UniversalImportResult result = importResult!;
 
     if (result.success) {
       ref.invalidate(collectionsProvider);
@@ -486,15 +487,15 @@ class _TraktImportContentState extends ConsumerState<TraktImportContent> {
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (BuildContext context) => ImportResultScreen(
-            result: result.toUniversal(),
+            result: result,
           ),
         ),
       );
       if (mounted) {
         widget.onImportComplete?.call();
       }
-    } else if (result.error != null) {
-      context.showSnack(result.error!, type: SnackType.error);
+    } else if (result.fatalError != null) {
+      context.showSnack(result.fatalError!, type: SnackType.error);
     }
   }
 }
@@ -506,7 +507,7 @@ class _TraktImportProgressDialog extends StatelessWidget {
   });
 
   final ValueNotifier<ImportProgress?> progressNotifier;
-  final Future<TraktImportResult> importFuture;
+  final Future<UniversalImportResult> importFuture;
 
   @override
   Widget build(BuildContext context) {
@@ -557,10 +558,10 @@ class _TraktImportProgressDialog extends StatelessWidget {
         },
       ),
       actions: <Widget>[
-        FutureBuilder<TraktImportResult>(
+        FutureBuilder<UniversalImportResult>(
           future: importFuture,
           builder: (BuildContext context,
-              AsyncSnapshot<TraktImportResult> snapshot) {
+              AsyncSnapshot<UniversalImportResult> snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
