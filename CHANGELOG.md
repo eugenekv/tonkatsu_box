@@ -7,6 +7,8 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-06-26
+
 ### Added
 
 - **Personalization word cloud of genres, platforms and decades**
