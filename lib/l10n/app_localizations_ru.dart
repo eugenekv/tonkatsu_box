@@ -2755,6 +2755,10 @@ class SRu extends S {
       'Ключи API, кэш, экспорт/импорт БД, отладочные инструменты.';
 
   @override
+  String get welcomeHowPersonalizationDesc =>
+      'Ваш вкус в одном месте: облако любимых жанров и рекомендации на основе ваших оценок.';
+
+  @override
   String get welcomeHowQuickStart => 'Быстрый старт';
 
   @override

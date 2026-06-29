@@ -2710,6 +2710,10 @@ class SEn extends S {
       'API keys, cache, database export/import, debug tools.';
 
   @override
+  String get welcomeHowPersonalizationDesc =>
+      'Your taste in one place: a cloud of your favourite genres plus recommendations picked from what you\'ve rated.';
+
+  @override
   String get welcomeHowQuickStart => 'Quick Start';
 
   @override

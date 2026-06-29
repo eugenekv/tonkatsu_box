@@ -4854,6 +4854,12 @@ abstract class S {
   /// **'API keys, cache, database export/import, debug tools.'**
   String get welcomeHowSettingsDesc;
 
+  /// Menu-tour description for the Personalization centre button (genre cloud + recommendations).
+  ///
+  /// In en, this message translates to:
+  /// **'Your taste in one place: a cloud of your favourite genres plus recommendations picked from what you\'ve rated.'**
+  String get welcomeHowPersonalizationDesc;
+
   /// No description provided for @welcomeHowQuickStart.
   ///
   /// In en, this message translates to:

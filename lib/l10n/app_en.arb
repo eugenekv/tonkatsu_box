@@ -1228,6 +1228,10 @@
   "welcomeHowWishlistDesc": "Quick list of items to check out later. No API needed.",
   "welcomeHowSearchDesc": "Find games, movies, TV shows, visual novels & manga via API. Add to any collection.",
   "welcomeHowSettingsDesc": "API keys, cache, database export/import, debug tools.",
+  "welcomeHowPersonalizationDesc": "Your taste in one place: a cloud of your favourite genres plus recommendations picked from what you've rated.",
+  "@welcomeHowPersonalizationDesc": {
+    "description": "Menu-tour description for the Personalization centre button (genre cloud + recommendations)."
+  },
   "welcomeHowQuickStart": "Quick Start",
   "welcomeHowStep1": "Go to Settings → Credentials, enter API keys",
   "welcomeHowStep2": "Click Verify Connection, wait for platforms sync",
