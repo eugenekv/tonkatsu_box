@@ -2958,6 +2958,60 @@ abstract class S {
   /// **'e.g. PC, SNES, Custom'**
   String get customItemPlatformHint;
 
+  /// No description provided for @customItemFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get customItemFormat;
+
+  /// No description provided for @customProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get customProgress;
+
+  /// No description provided for @customMarkCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as completed'**
+  String get customMarkCompleted;
+
+  /// No description provided for @customUnitParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts'**
+  String get customUnitParts;
+
+  /// No description provided for @customUnitEpisodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Episodes'**
+  String get customUnitEpisodes;
+
+  /// No description provided for @customUnitChapters.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters'**
+  String get customUnitChapters;
+
+  /// No description provided for @customUnitPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get customUnitPages;
+
+  /// No description provided for @customUnitVolumes.
+  ///
+  /// In en, this message translates to:
+  /// **'Volumes'**
+  String get customUnitVolumes;
+
+  /// No description provided for @customUnitSeasons.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasons'**
+  String get customUnitSeasons;
+
   /// No description provided for @customItemDescription.
   ///
   /// In en, this message translates to:

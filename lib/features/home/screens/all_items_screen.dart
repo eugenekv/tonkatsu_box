@@ -122,7 +122,7 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
     return items
         .where((CollectionItem item) =>
             (_selectedTypes.isEmpty ||
-                _selectedTypes.contains(item.mediaType)) &&
+                item.matchesTypeFilter(_selectedTypes)) &&
             _matchesNonTypeFilters(
                 item, filterStatus, favoriteOnly, tagsMap, query, lang))
         .toList();
@@ -139,8 +139,8 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
     if (favoriteOnly && !item.isFavorite) return false;
     if (filterStatus != null && item.status != filterStatus) return false;
     if (_selectedPlatformIds.isNotEmpty &&
-        (item.platformId == null ||
-            !_selectedPlatformIds.contains(item.platformId))) {
+        (item.effectivePlatformId == null ||
+            !_selectedPlatformIds.contains(item.effectivePlatformId))) {
       return false;
     }
     if (!MediaFormat.matchesFormatFilter(
@@ -377,7 +377,9 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
     if (items == null) return const <MediaType, int>{};
     final Map<MediaType, int> totals = <MediaType, int>{};
     for (final CollectionItem item in items) {
-      totals[item.mediaType] = (totals[item.mediaType] ?? 0) + 1;
+      for (final MediaType bucket in item.filterTypeBuckets) {
+        totals[bucket] = (totals[bucket] ?? 0) + 1;
+      }
     }
     return totals;
   }
@@ -402,7 +404,9 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
           item, filterStatus, favoriteOnly, tagsMap, lower, lang)) {
         continue;
       }
-      counts[item.mediaType] = (counts[item.mediaType] ?? 0) + 1;
+      for (final MediaType bucket in item.filterTypeBuckets) {
+        counts[bucket] = (counts[bucket] ?? 0) + 1;
+      }
     }
     return counts;
   }
@@ -502,7 +506,7 @@ class _AllItemsScreenState extends ConsumerState<AllItemsScreen> {
                             platformOverlay: item.platform?.overlayAsset,
                             mediaTypeOverlay: item.mediaType.overlayAsset,
                           ),
-                      mediaType: item.mediaType,
+                      mediaType: item.displayMediaType,
                       typeLabelOverride: item.formatLabel,
                       status: item.status,
                       isFavorite: item.isFavorite,

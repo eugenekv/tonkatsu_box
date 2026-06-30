@@ -1018,6 +1018,33 @@ class CollectionItemsNotifier
       await _autoUpdateMangaStatus(id, currentEpisode, currentSeason);
       await _autoUpdateAnimeStatus(id, currentEpisode);
       await _autoUpdateBookStatus(id, currentEpisode);
+      await _autoUpdateCustomStatus(id, currentEpisode, currentSeason);
+    }
+  }
+
+  /// Mirrors the manga path for custom items: status follows the fine-axis
+  /// progress (stored in `currentEpisode`) against the item's `unitTotal`.
+  Future<void> _autoUpdateCustomStatus(
+    int id,
+    int? newUnitValue,
+    int? newGroupValue,
+  ) async {
+    final CollectionItem? item =
+        state.valueOrNull?.where((CollectionItem i) => i.id == id).firstOrNull;
+    if (item == null || item.mediaType != MediaType.custom) return;
+
+    final int newUnit = newUnitValue ?? item.currentEpisode;
+    final int newGroup = newGroupValue ?? item.currentSeason;
+    final int? totalUnits = item.customUnitTotal;
+
+    final ItemStatus? targetStatus = computeStatusFromProgress(
+      currentStatus: item.status,
+      hasAnyProgress: newUnit > 0 || newGroup > 0,
+      isFullyCompleted: totalUnits != null && newUnit >= totalUnits,
+    );
+
+    if (targetStatus != null) {
+      await updateStatus(id, targetStatus, MediaType.custom);
     }
   }
 

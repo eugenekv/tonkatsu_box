@@ -614,6 +614,10 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
       year: data.year,
       genres: data.genres,
       platformName: data.platform,
+      platformId: data.platformId,
+      format: data.format,
+      unitTotal: data.unitTotal,
+      unitGroupTotal: data.unitGroupTotal,
       externalUrl: data.externalUrl,
     );
 
