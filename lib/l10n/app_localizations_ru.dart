@@ -1658,6 +1658,33 @@ class SRu extends S {
   String get customItemPlatformHint => 'напр. PC, SNES, Custom';
 
   @override
+  String get customItemFormat => 'Формат';
+
+  @override
+  String get customProgress => 'Прогресс';
+
+  @override
+  String get customMarkCompleted => 'Отметить пройденным';
+
+  @override
+  String get customUnitParts => 'Части';
+
+  @override
+  String get customUnitEpisodes => 'Серии';
+
+  @override
+  String get customUnitChapters => 'Главы';
+
+  @override
+  String get customUnitPages => 'Страницы';
+
+  @override
+  String get customUnitVolumes => 'Тома';
+
+  @override
+  String get customUnitSeasons => 'Сезоны';
+
+  @override
   String get customItemDescription => 'Описание';
 
   @override

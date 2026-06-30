@@ -1633,6 +1633,33 @@ class SEn extends S {
   String get customItemPlatformHint => 'e.g. PC, SNES, Custom';
 
   @override
+  String get customItemFormat => 'Format';
+
+  @override
+  String get customProgress => 'Progress';
+
+  @override
+  String get customMarkCompleted => 'Mark as completed';
+
+  @override
+  String get customUnitParts => 'Parts';
+
+  @override
+  String get customUnitEpisodes => 'Episodes';
+
+  @override
+  String get customUnitChapters => 'Chapters';
+
+  @override
+  String get customUnitPages => 'Pages';
+
+  @override
+  String get customUnitVolumes => 'Volumes';
+
+  @override
+  String get customUnitSeasons => 'Seasons';
+
+  @override
   String get customItemDescription => 'Description';
 
   @override

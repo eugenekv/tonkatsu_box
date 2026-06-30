@@ -9,6 +9,79 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Universal progress tracker for custom items**
+
+  Custom cards now carry a count and reading/watching progress, mirroring manga
+  and anime. A fine axis (episodes / chapters / pages / parts) and, for types
+  with a sub-division, a coarse axis (seasons for series, volumes for manga);
+  the unit labels follow the card's display type. Totals are entered in the
+  create / edit form and the item detail shows a +/- progress section that
+  auto-advances the status (in-progress / completed) just like the real types.
+  Totals live on the item's own row, so exports, backups and sync carry them;
+  the "done" position reuses the existing `current_episode` / `current_season`
+  slots, so no new progress columns.
+
+  * lib/core/database/migrations/migration_v52.dart (MigrationV52),
+    migration_registry.dart, database_service.dart (version): Add `unit_total`
+    and `unit_group_total` to `custom_items`; DB version 51 → 52.
+  * lib/shared/models/custom_media.dart (CustomMedia.unitTotal, unitGroupTotal),
+    lib/shared/models/collection_item.dart (CollectionItem.customUnitTotal,
+    customUnitGroupTotal): New fields / accessors.
+  * lib/shared/utils/custom_progress_units.dart (CustomProgressUnits): Resolves
+    fine / coarse unit labels and whether a display type has a coarse axis.
+  * lib/features/collections/widgets/custom_progress_section.dart
+    (CustomProgressSection): Universal +/- progress section.
+  * lib/features/collections/widgets/item_detail/item_detail_media_config.dart
+    (hasCustomProgress), lib/features/collections/screens/item_detail_screen.dart:
+    Render the section for custom items.
+  * lib/features/collections/providers/collections_provider.dart
+    (_autoUpdateCustomStatus): Status follows custom progress.
+  * lib/features/collections/widgets/create_custom_item_dialog.dart
+    (_buildCountsSection), custom_item/custom_item_data.dart (unitTotal,
+    unitGroupTotal): Total inputs in the create / edit form.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (customProgress,
+    customMarkCompleted, customUnit*): New strings.
+
+- **Custom items count under their masqueraded type, with platform / format subfilters**
+
+  A custom card that masquerades as a real type (e.g. a custom "anime") now
+  surfaces under that type's filter chevron — on the collection screen and on
+  All Items — and still under "Custom", since it is a custom element either way;
+  the chevron counts follow suit (it is tallied in both). Custom games can pick a
+  platform and custom manga / anime a format, both strictly from the existing
+  reference lists (no free-text), so the platform and format subfilters include
+  them too. Stored on the item's own row, so exports, backups and network sync
+  carry them.
+
+  * lib/core/database/migrations/migration_v51.dart (MigrationV51),
+    lib/core/database/migrations/migration_registry.dart (MigrationRegistry.all),
+    lib/core/database/database_service.dart (version): Add `platform_id` and
+    `format` to `custom_items`; DB version 50 → 51.
+  * lib/shared/models/custom_media.dart (CustomMedia.platformId,
+    CustomMedia.format, fromDb, toDb, copyWith): New fields.
+  * lib/shared/models/collection_item.dart (CollectionItem.effectivePlatformId,
+    CollectionItem.formatCode, formatLabel, filterTypeBuckets,
+    matchesTypeFilter): Resolve platform / format through the custom item when it
+    masquerades, and place it in both its display-type and Custom filter buckets.
+  * lib/features/collections/helpers/collection_filters.dart (CollectionFilters.apply),
+    lib/shared/utils/media_format.dart (MediaFormat.present, matchesFormatFilter):
+    Filter by effective type / platform / format.
+  * lib/core/database/dao/collection_dao.dart (_loadJoinedData): Hydrate the
+    platform object for custom games.
+  * lib/features/collections/widgets/collection_filter_bar.dart
+    (_effectiveTotals, _typeCounts, _extractPlatforms),
+    lib/features/home/screens/all_items_screen.dart (_applyFilter,
+    _matchesNonTypeFilters, _countByMediaType, _rawTotalsByMediaType),
+    lib/features/home/providers/all_items_provider.dart (allItemsPlatformsProvider):
+    Count and subfilter by effective type / platform.
+  * lib/features/collections/widgets/create_custom_item_dialog.dart
+    (_pickPlatform, _buildFormatChip, _pickFormat),
+    custom_item/custom_item_data.dart (CustomItemData.platformId, format):
+    Reference-list-only pickers.
+  * lib/core/services/export_service.dart (custom export case): Export the custom
+    game's platform so the target resolves it after import.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (customItemFormat): New.
+
 - **Personalization step in the welcome menu tour**
 
   The coachmark tour now highlights the centre nav button (genre cloud +
