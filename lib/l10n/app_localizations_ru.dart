@@ -3948,6 +3948,12 @@ class SRu extends S {
   String get tierListChangeColor => 'Изменить цвет';
 
   @override
+  String get tierListMoveUp => 'Переместить выше';
+
+  @override
+  String get tierListMoveDown => 'Переместить ниже';
+
+  @override
   String get tierListDeleteTier => 'Удалить тир';
 
   @override

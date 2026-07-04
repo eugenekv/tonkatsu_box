@@ -146,6 +146,35 @@ class TierListDao {
     );
   }
 
+  /// Moves an item into [tierKey], rewriting the whole tier's sort orders
+  /// contiguously in one transaction so removals can't leave collisions.
+  Future<void> setItemTierOrdered(
+    int tierListId,
+    int collectionItemId,
+    String tierKey,
+    List<int> orderedItemIds,
+  ) async {
+    final Database db = await _getDatabase();
+    await db.transaction((Transaction txn) async {
+      await txn.delete(
+        'tier_list_entries',
+        where: 'tier_list_id = ? AND collection_item_id = ?',
+        whereArgs: <Object?>[tierListId, collectionItemId],
+      );
+      // Placeholder order; the renumber pass below assigns the real value.
+      await txn.insert(
+        'tier_list_entries',
+        <String, dynamic>{
+          'tier_list_id': tierListId,
+          'collection_item_id': collectionItemId,
+          'tier_key': tierKey,
+          'sort_order': 0,
+        },
+      );
+      await _writeContiguousOrders(txn, tierListId, tierKey, orderedItemIds);
+    });
+  }
+
   Future<void> removeItemFromTier(
     int tierListId,
     int collectionItemId,
@@ -165,16 +194,24 @@ class TierListDao {
   ) async {
     final Database db = await _getDatabase();
     await db.transaction((Transaction txn) async {
-      for (int i = 0; i < itemIds.length; i++) {
-        await txn.update(
-          'tier_list_entries',
-          <String, dynamic>{'sort_order': i},
-          where:
-              'tier_list_id = ? AND collection_item_id = ? AND tier_key = ?',
-          whereArgs: <Object?>[tierListId, itemIds[i], tierKey],
-        );
-      }
+      await _writeContiguousOrders(txn, tierListId, tierKey, itemIds);
     });
+  }
+
+  Future<void> _writeContiguousOrders(
+    DatabaseExecutor txn,
+    int tierListId,
+    String tierKey,
+    List<int> itemIds,
+  ) async {
+    for (int i = 0; i < itemIds.length; i++) {
+      await txn.update(
+        'tier_list_entries',
+        <String, dynamic>{'sort_order': i},
+        where: 'tier_list_id = ? AND collection_item_id = ? AND tier_key = ?',
+        whereArgs: <Object?>[tierListId, itemIds[i], tierKey],
+      );
+    }
   }
 
   Future<void> clearTierListEntries(int tierListId) async {

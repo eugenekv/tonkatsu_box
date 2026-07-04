@@ -3899,6 +3899,12 @@ class SEn extends S {
   String get tierListChangeColor => 'Change color';
 
   @override
+  String get tierListMoveUp => 'Move up';
+
+  @override
+  String get tierListMoveDown => 'Move down';
+
+  @override
   String get tierListDeleteTier => 'Delete tier';
 
   @override

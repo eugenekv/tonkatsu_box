@@ -96,27 +96,27 @@ class _TierListViewState extends ConsumerState<TierListView> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: <Widget>[
-                    for (final TierDefinition def in state.definitions)
+                    for (int i = 0; i < state.definitions.length; i++)
                       Padding(
-                        key: ValueKey<String>('tier_${def.tierKey}'),
+                        key: ValueKey<String>(
+                          'tier_${state.definitions[i].tierKey}',
+                        ),
                         padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                        child: TierRow(
+                        child: _TierRowDropTarget(
                           tierListId: tierListId,
-                          definition: def,
-                          entries: entriesByTier[def.tierKey] ??
-                              const <TierListEntry>[],
+                          index: i,
+                          definitions: state.definitions,
+                          entries:
+                              entriesByTier[state.definitions[i].tierKey] ??
+                                  const <TierListEntry>[],
                           itemsMap: itemsMap,
                           titleLanguage: titleLanguage,
                           overlayResolver: overlayResolver,
-                          onDrop: (int collectionItemId) {
-                            ref
-                                .read(
-                                  tierListDetailProvider(tierListId).notifier,
-                                )
-                                .moveToTier(collectionItemId, def.tierKey);
-                          },
-                          onDefinitionTap: () =>
-                              _showTierOptions(context, ref, def),
+                          onDefinitionTap: () => _showTierOptions(
+                            context,
+                            ref,
+                            state.definitions[i],
+                          ),
                         ),
                       ),
                   ],
@@ -150,6 +150,10 @@ class _TierListViewState extends ConsumerState<TierListView> {
     TierDefinition def,
   ) {
     final S l = S.of(context);
+    final int tierIndex = widget.state.definitions.indexWhere(
+      (TierDefinition d) => d.tierKey == def.tierKey,
+    );
+    final int tierCount = widget.state.definitions.length;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -166,6 +170,32 @@ class _TierListViewState extends ConsumerState<TierListView> {
                   _renameTier(context, ref, def);
                 },
               ),
+              if (tierIndex > 0)
+                ListTile(
+                  leading: const Icon(Icons.arrow_upward),
+                  title: Text(l.tierListMoveUp),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    ref
+                        .read(
+                          tierListDetailProvider(widget.tierListId).notifier,
+                        )
+                        .moveTier(tierIndex, tierIndex - 1);
+                  },
+                ),
+              if (tierIndex >= 0 && tierIndex < tierCount - 1)
+                ListTile(
+                  leading: const Icon(Icons.arrow_downward),
+                  title: Text(l.tierListMoveDown),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    ref
+                        .read(
+                          tierListDetailProvider(widget.tierListId).notifier,
+                        )
+                        .moveTier(tierIndex, tierIndex + 1);
+                  },
+                ),
               ListTile(
                 leading: const Icon(Icons.palette),
                 title: Text(l.tierListChangeColor),
@@ -250,6 +280,81 @@ class _TierListViewState extends ConsumerState<TierListView> {
     }
   }
 
+}
+
+/// Tier row wrapped in a drop target for whole-tier (String key) drags.
+class _TierRowDropTarget extends ConsumerWidget {
+  const _TierRowDropTarget({
+    required this.tierListId,
+    required this.index,
+    required this.definitions,
+    required this.entries,
+    required this.itemsMap,
+    required this.titleLanguage,
+    required this.overlayResolver,
+    required this.onDefinitionTap,
+  });
+
+  final int tierListId;
+  final int index;
+  final List<TierDefinition> definitions;
+  final List<TierListEntry> entries;
+  final Map<int, CollectionItem> itemsMap;
+  final String titleLanguage;
+  final String? Function(CollectionItem) overlayResolver;
+  final VoidCallback onDefinitionTap;
+
+  TierDefinition get _definition => definitions[index];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (DragTargetDetails<String> details) =>
+          details.data != _definition.tierKey,
+      onAcceptWithDetails: (DragTargetDetails<String> details) {
+        final int from = definitions.indexWhere(
+          (TierDefinition t) => t.tierKey == details.data,
+        );
+        if (from == -1) return;
+        ref
+            .read(tierListDetailProvider(tierListId).notifier)
+            .moveTier(from, index);
+      },
+      builder: (BuildContext context, List<String?> candidateData,
+          List<dynamic> rejectedData) {
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: candidateData.isNotEmpty
+                  ? AppColors.brand
+                  : Colors.transparent,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          ),
+          child: TierRow(
+            tierListId: tierListId,
+            definition: _definition,
+            entries: entries,
+            itemsMap: itemsMap,
+            titleLanguage: titleLanguage,
+            overlayResolver: overlayResolver,
+            tierDraggable: true,
+            onDrop: (int collectionItemId, int? dropIndex) {
+              ref
+                  .read(tierListDetailProvider(tierListId).notifier)
+                  .moveToTier(
+                    collectionItemId,
+                    _definition.tierKey,
+                    index: dropIndex,
+                  );
+            },
+            onDefinitionTap: onDefinitionTap,
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _UnrankedPool extends ConsumerWidget {

@@ -1,4 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:tonkatsu_box/core/database/database_service.dart';
 import 'package:tonkatsu_box/features/tier_lists/providers/tier_list_detail_provider.dart';
 import 'package:tonkatsu_box/features/tier_lists/widgets/tier_item_card.dart';
 import 'package:tonkatsu_box/features/tier_lists/widgets/tier_list_view.dart';
@@ -170,6 +174,124 @@ void main() {
       await tester.pump();
 
       expect(find.byType(TierItemCard), findsNWidgets(2));
+    });
+
+    group('tier reorder via options sheet', () {
+      late MockTierListDao mockTierListDao;
+      late MockCollectionDao mockCollectionDao;
+
+      setUp(() {
+        mockTierListDao = MockTierListDao();
+        mockCollectionDao = MockCollectionDao();
+        when(() => mockTierListDao.getTierListById(1)).thenAnswer(
+          (_) async => createTestTierList(id: 1, collectionId: 10),
+        );
+        when(() => mockCollectionDao.getCollectionItemsWithData(10))
+            .thenAnswer((_) async => <CollectionItem>[]);
+        when(() => mockTierListDao.getTierDefinitions(1))
+            .thenAnswer((_) async => state.definitions);
+        when(() => mockTierListDao.getTierListEntries(1))
+            .thenAnswer((_) async => <TierListEntry>[]);
+        when(() => mockTierListDao.saveTierDefinitions(1, any()))
+            .thenAnswer((_) async {});
+      });
+
+      Future<void> pumpView(WidgetTester tester) async {
+        // The tiers pane is a third of the viewport — keep both rows tappable.
+        tester.view.physicalSize = const Size(800, 1400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+        await tester.pumpApp(
+          TierListView(tierListId: 1, state: state),
+          overrides: <Override>[
+            tierListDaoProvider.overrideWithValue(mockTierListDao),
+            collectionDaoProvider.overrideWithValue(mockCollectionDao),
+          ],
+          settle: false,
+        );
+        // The real screen watches (and loads) the provider; warm it up so
+        // sheet actions see loaded state.
+        ProviderScope.containerOf(
+          tester.element(find.byType(TierListView)),
+        ).read(tierListDetailProvider(1));
+        await tester.pump();
+      }
+
+      testWidgets('move down persists swapped definitions',
+          (WidgetTester tester) async {
+        await pumpView(tester);
+
+        await tester.tap(find.text('S'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        await tester.tap(find.byIcon(Icons.arrow_downward));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        final List<TierDefinition> saved = verify(
+          () => mockTierListDao.saveTierDefinitions(1, captureAny()),
+        ).captured.single as List<TierDefinition>;
+        expect(
+          <String>[for (final TierDefinition d in saved) d.tierKey],
+          <String>['A', 'S'],
+        );
+      });
+
+      testWidgets('move up persists swapped definitions',
+          (WidgetTester tester) async {
+        await pumpView(tester);
+
+        await tester.tap(find.text('A'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        await tester.tap(find.byIcon(Icons.arrow_upward));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        final List<TierDefinition> saved = verify(
+          () => mockTierListDao.saveTierDefinitions(1, captureAny()),
+        ).captured.single as List<TierDefinition>;
+        expect(
+          <String>[for (final TierDefinition d in saved) d.tierKey],
+          <String>['A', 'S'],
+        );
+      });
+
+      testWidgets('dragging a tier label onto another tier persists reorder',
+          (WidgetTester tester) async {
+        await pumpView(tester);
+
+        final TestGesture gesture = await tester.startGesture(
+          tester.getCenter(find.text('S')),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+        await gesture.moveTo(tester.getCenter(find.text('A')));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+
+        final List<TierDefinition> saved = verify(
+          () => mockTierListDao.saveTierDefinitions(1, captureAny()),
+        ).captured.single as List<TierDefinition>;
+        expect(
+          <String>[for (final TierDefinition d in saved) d.tierKey],
+          <String>['A', 'S'],
+        );
+      });
+
+      testWidgets('first tier has no move-up action, last has no move-down',
+          (WidgetTester tester) async {
+        await pumpView(tester);
+
+        await tester.tap(find.text('S'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.byIcon(Icons.arrow_upward), findsNothing);
+        expect(find.byIcon(Icons.arrow_downward), findsOneWidget);
+      });
     });
   });
 }

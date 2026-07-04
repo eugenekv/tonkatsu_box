@@ -7056,6 +7056,18 @@ abstract class S {
   /// **'Change color'**
   String get tierListChangeColor;
 
+  /// No description provided for @tierListMoveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get tierListMoveUp;
+
+  /// No description provided for @tierListMoveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get tierListMoveDown;
+
   /// No description provided for @tierListDeleteTier.
   ///
   /// In en, this message translates to:
