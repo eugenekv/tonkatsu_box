@@ -795,7 +795,9 @@ class _TagGlowWrapperState extends State<_TagGlowWrapper>
           child: child,
         );
       },
-      child: widget.child,
+      // The border repaints every frame; the boundary keeps that repaint from
+      // re-rasterizing the whole card (poster image, badges) each tick.
+      child: RepaintBoundary(child: widget.child),
     );
   }
 }

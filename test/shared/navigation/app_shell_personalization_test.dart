@@ -9,6 +9,8 @@ import 'package:tonkatsu_box/core/services/update_service.dart';
 import 'package:tonkatsu_box/data/repositories/collection_repository.dart';
 import 'package:tonkatsu_box/features/genre_cloud/providers/genre_cloud_provider.dart';
 import 'package:tonkatsu_box/features/genre_cloud/screens/genre_cloud_screen.dart';
+import 'package:tonkatsu_box/features/home/screens/all_items_screen.dart';
+import 'package:tonkatsu_box/features/personalization/screens/personalization_screen.dart';
 import 'package:tonkatsu_box/features/settings/providers/settings_provider.dart';
 import 'package:tonkatsu_box/features/welcome/screens/welcome_screen.dart';
 import 'package:tonkatsu_box/shared/models/collection.dart';
@@ -91,6 +93,53 @@ void main() {
       await tester.tap(find.byType(NavIconButton).at(0));
       await tester.pumpAndSettle();
       expect(find.byType(GenreCloudScreen), findsNothing);
+    });
+
+    testWidgets('should fully unmount Personalization after leaving', (
+      WidgetTester tester,
+    ) async {
+      await pumpShell(tester);
+
+      await tester.tap(find.byType(NavCenterButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(PersonalizationScreen), findsOneWidget);
+
+      await tester.tap(find.byType(NavIconButton).at(1));
+      await tester.pumpAndSettle();
+      // Unmounted, not merely offstage — the heavy subtree must not survive.
+      expect(
+        find.byType(PersonalizationScreen, skipOffstage: false),
+        findsNothing,
+      );
+      expect(
+        find.byType(GenreCloudScreen, skipOffstage: false),
+        findsNothing,
+      );
+    });
+
+    testWidgets('should mute tickers of hidden tabs', (
+      WidgetTester tester,
+    ) async {
+      await pumpShell(tester);
+
+      final Element homeTab =
+          tester.element(find.byType(AllItemsScreen, skipOffstage: false));
+      expect(TickerMode.valuesOf(homeTab).enabled, isTrue);
+
+      // Opening Personalization hides the tab — its animations must stop.
+      await tester.tap(find.byType(NavCenterButton));
+      await tester.pumpAndSettle();
+      expect(TickerMode.valuesOf(homeTab).enabled, isFalse);
+
+      // Switching to another tab keeps the home tab muted too.
+      await tester.tap(find.byType(NavIconButton).at(1));
+      await tester.pumpAndSettle();
+      expect(TickerMode.valuesOf(homeTab).enabled, isFalse);
+
+      // Returning re-enables it.
+      await tester.tap(find.byType(NavIconButton).at(0));
+      await tester.pumpAndSettle();
+      expect(TickerMode.valuesOf(homeTab).enabled, isTrue);
     });
 
     testWidgets('should reopen the cloud from the centre button', (

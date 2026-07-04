@@ -2,8 +2,9 @@
 // whole library — the genre cloud (a taste *picture*) and recommendations
 // (taste *acted on*). The two are switched with a segmented pill (the same
 // switcher style as the item-detail status row); it does not touch the app's
-// primary navigation. An IndexedStack keeps both alive so the cloud's pan/zoom
-// and the recs' fetched state survive a switch.
+// primary navigation. Only the selected view is built — both subtrees are
+// heavy, so the hidden one must not cost layout/memory; fetched
+// recommendations survive the switch in their provider, not in the widget.
 
 import 'package:flutter/material.dart';
 
@@ -67,13 +68,12 @@ class _PersonalizationScreenState extends State<PersonalizationScreen> {
             ),
           ),
           Expanded(
-            child: IndexedStack(
-              index: _view.index,
-              children: const <Widget>[
-                GenreCloudScreen(showTitle: false),
-                RecommendationsScreen(),
-              ],
-            ),
+            child: switch (_view) {
+              _PersonalizationView.cloud =>
+                const GenreCloudScreen(showTitle: false),
+              _PersonalizationView.recommendations =>
+                const RecommendationsScreen(),
+            },
           ),
         ],
       ),
