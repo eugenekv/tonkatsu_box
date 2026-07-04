@@ -222,6 +222,32 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
   * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (lanSyncImportConfig,
     lanSyncImportConfigSubtitle, lanSyncReceivingSettings): New.
 
+- **Tier list: drop a card at an exact position and reorder whole tiers**
+
+  Dropping a card onto another card now inserts it right before that card —
+  while hovering, a gap with a bright insertion bar opens at the exact target
+  position; hovering empty row space shows the bar after the last card and
+  appends to the end. A whole tier — with its contents — can be moved up or
+  down: on desktop by dragging its colored label onto another tier row, and
+  everywhere via new "Move up" / "Move down" actions in the tier options
+  sheet. Plain Draggable is used instead of ReorderableListView, whose
+  GlobalKey reparenting crashes with card tooltips (OverlayPortal) inside
+  the screen's LayoutBuilder.
+
+  * lib/features/tier_lists/widgets/tier_row.dart (TierRow.onDrop,
+    TierRow._handleSlotDrop, TierRow.tierDraggable, TierRow._labelBox,
+    _TierCardSlot, _InsertionBar): Per-card drop slots opening an animated
+    insertion-bar gap on hover; the label becomes a Draggable with the tier
+    key as payload.
+  * lib/features/tier_lists/widgets/tier_list_view.dart (_TierRowDropTarget,
+    _TierListViewState._showTierOptions): Per-row drop target for tier keys;
+    move up/down entries in the options sheet.
+  * lib/features/tier_lists/providers/tier_list_detail_provider.dart
+    (TierListDetailNotifier.moveTier): Reorder definitions and persist
+    renumbered sort orders.
+  * lib/l10n/app_en.arb, lib/l10n/app_ru.arb (tierListMoveUp,
+    tierListMoveDown): New.
+
 ### Changed
 
 - **Show the item cover as the Discord Rich Presence large image**
@@ -333,6 +359,25 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
     sortLastActivityOldest): New.
 
 ### Fixed
+
+- **Tier list: card order no longer shuffles after an app restart**
+
+  Placing a card assigned it a sort order equal to the tier's current size
+  while removals left gaps, so different cards could end up with the same
+  sort order — and the load query returned them in unspecified (rowid)
+  order, reshuffling the tier between sessions. Every move now rewrites the
+  whole target tier with contiguous sort orders in one transaction, and
+  tiers already broken by older builds are renumbered once on load,
+  freezing the currently visible order.
+
+  * lib/core/database/dao/tier_list_dao.dart (TierListDao.setItemTierOrdered,
+    TierListDao._writeContiguousOrders): New transactional move that
+    renumbers the target tier; reorderTierItems shares the renumber pass.
+  * lib/features/tier_lists/providers/tier_list_detail_provider.dart
+    (TierListDetailNotifier.moveToTier,
+    TierListDetailNotifier._normalizeSortOrders): Insert at index with
+    clamping and full-tier renumber; one-time self-heal of gaps and
+    duplicates on load.
 
 - **Google Books: keep the real cover when adding a book to a collection**
 

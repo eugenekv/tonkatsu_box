@@ -1442,6 +1442,8 @@
   "tierListImageSaved": "Тир-лист сохранён как изображение",
   "tierListRename": "Переименовать тир",
   "tierListChangeColor": "Изменить цвет",
+  "tierListMoveUp": "Переместить выше",
+  "tierListMoveDown": "Переместить ниже",
   "tierListDeleteTier": "Удалить тир",
   "tierListAddTier": "Добавить тир",
   "tierListClearAll": "Очистить всё",

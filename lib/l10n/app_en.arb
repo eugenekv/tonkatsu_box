@@ -1724,6 +1724,8 @@
   "tierListImageSaved": "Tier list saved as image",
   "tierListRename": "Rename tier",
   "tierListChangeColor": "Change color",
+  "tierListMoveUp": "Move up",
+  "tierListMoveDown": "Move down",
   "tierListDeleteTier": "Delete tier",
   "tierListAddTier": "Add tier",
   "tierListClearAll": "Clear all",
