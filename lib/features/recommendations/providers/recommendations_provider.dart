@@ -262,6 +262,13 @@ final AutoDisposeFutureProvider<RecommendationResult> recommendationsProvider =
     pool: pool,
   );
 
+  // The expensive network work is done — pin the result so it survives the
+  // screen unmounting (Personalization unloads on leave) and a revisit shows
+  // it instantly instead of re-fetching. The refresh button and the watched
+  // TMDB settings still invalidate it. Cheap pre-fetch states above stay
+  // uncached on purpose: they recompute per visit, picking up library changes.
+  ref.keepAlive();
+
   // 4. Vectorize candidates and score them.
   final Map<String, TasteTitle> candidateById = <String, TasteTitle>{};
   final Map<String, RecommendedItem Function(double score, double? predicted)>

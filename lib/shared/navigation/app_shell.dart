@@ -225,19 +225,12 @@ class _AppShellState extends ConsumerState<AppShell> {
   /// area and highlighting the centre nav button like a selected tab).
   bool _personalizationOpen = false;
 
-  /// Whether Personalization has been opened at least once, so its IndexedStack
-  /// child is built lazily on first open rather than on every app start.
-  bool _personalizationEverOpened = false;
-
   /// Shows the preference cloud as a shell-level destination — a sibling of the
   /// tab navigators, not a route pushed onto one — so switching tabs simply
   /// hides it instead of leaving it on a tab's navigator stack.
   void _openPreferenceCloud() {
     if (_personalizationOpen) return;
-    setState(() {
-      _personalizationEverOpened = true;
-      _personalizationOpen = true;
-    });
+    setState(() => _personalizationOpen = true);
   }
 
   /// Captures printable characters from the global Focus and redirects them to
@@ -295,16 +288,24 @@ class _AppShellState extends ConsumerState<AppShell> {
       index: _personalizationOpen ? _tabCount : _selectedIndex,
       children: <Widget>[
         for (int index = 0; index < _tabCount; index++)
-          if (_initializedTabs.contains(index))
-            _buildTabNavigator(index)
-          else
-            const SizedBox.shrink(),
+          // Hidden tabs keep their state but must not keep animating:
+          // IndexedStack alone leaves tickers running in invisible children
+          // (repeating glow/shimmer controllers), so the app never goes
+          // frame-idle and every visible animation competes with them.
+          TickerMode(
+            enabled: !_personalizationOpen && index == _selectedIndex,
+            child: _initializedTabs.contains(index)
+                ? _buildTabNavigator(index)
+                : const SizedBox.shrink(),
+          ),
         // Personalization is a shell-level destination, not a tab: it lives as
         // an extra IndexedStack child rather than a route pushed onto a tab's
         // navigator, so switching tabs hides it instead of leaving it glued to
-        // a tab's stack with the highlight pointing elsewhere. Built lazily on
-        // first open, then kept alive alongside the tabs.
-        if (_personalizationEverOpened)
+        // a tab's stack with the highlight pointing elsewhere. Unlike the tabs
+        // it is NOT kept alive: the genre cloud + recommendations subtree is
+        // heavy (large canvas, many posters), so it unmounts on leave and its
+        // data layers (providers) carry the state between visits.
+        if (_personalizationOpen)
           const PersonalizationScreen()
         else
           const SizedBox.shrink(),

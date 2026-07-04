@@ -334,6 +334,41 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Fixed
 
+- **Stop the app-wide slowdown after visiting Personalization**
+
+  The Personalization screen used to stay mounted forever after its first
+  open: the genre cloud re-aggregated the whole library on every change (plus
+  an always-mounted offscreen export copy re-running the full word placement),
+  and the recommendations pipeline with its posters stayed alive too — on
+  mobile this dragged the entire app, snackbars included. The screen now
+  unmounts on leave and builds only the selected view; the expensive cloud
+  placement is deferred behind a progress indicator instead of freezing the
+  first frame for seconds; the export copy mounts only while saving the PNG.
+  Fetched recommendations are pinned in their provider, so a revisit shows
+  them instantly without re-fetching. Hidden shell tabs no longer run their
+  animations (tag glow, shimmer), and the tag-glow border repaints without
+  re-rasterizing the whole card — both smooth every animation on mobile.
+
+  * lib/shared/navigation/app_shell.dart (_openPreferenceCloud, _buildContent):
+    Drop the keep-alive `_personalizationEverOpened` flag — the screen is in
+    the IndexedStack only while open; wrap hidden tab navigators in
+    `TickerMode(enabled: false)`.
+  * lib/features/personalization/screens/personalization_screen.dart
+    (_PersonalizationScreenState.build): Build only the selected view instead
+    of an IndexedStack keeping both alive.
+  * lib/features/genre_cloud/widgets/genre_cloud_view.dart
+    (_GenreCloudViewState._scheduleLayout, _cachedLayout, _computeWithGrowth):
+    Defer the placement past the first frame; show a progress indicator until
+    it lands.
+  * lib/features/genre_cloud/screens/genre_cloud_screen.dart
+    (_GenreCloudScreenState._exportAsImage, _exporting): Mount the offscreen
+    export view only for the duration of an export.
+  * lib/features/recommendations/providers/recommendations_provider.dart
+    (recommendationsProvider): `ref.keepAlive()` after the network fetch so
+    results survive the screen unmounting; refresh still invalidates.
+  * lib/shared/widgets/media_poster_card.dart (_TagGlowWrapperState.build):
+    RepaintBoundary around the card so the animated border repaints alone.
+
 - **API Keys counter no longer counts built-in default keys**
 
   In production builds with TMDB / SteamGridDB / IGDB keys baked in via
