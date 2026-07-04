@@ -9,6 +9,51 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Added
 
+- **Likes and notes on individual title units (episodes, seasons, chapters…)**
+
+  A universal per-unit mark: a like and/or a free-text note attached to a
+  single unit inside a collection item, stored separately from watch/read
+  progress. Marks anchor on `collection_items.id` (not the TMDB show id), so
+  the feature works for every media type and cascades away with the item. For
+  media with a ready-made unit list (TV / animation from TMDB) the like-heart
+  and note button sit inline on each episode tile and season header, with a
+  summary + filter bar (All / Liked / With notes) above the season list. For
+  media without one (anime, manga, custom…) an "add mark" form lets the user
+  pick a unit type (episode / season / chapter / volume / page / part or a
+  custom string) and number, below a list of the marks they created. Marks are
+  carried in `.xcoll` / `.xcollx` user-data exports and re-anchored to the new
+  item id on import. Episodes already cached in the DB are loaded up front so
+  the summary and filter work without extra TMDB requests.
+
+  * lib/shared/models/item_mark.dart (ItemMark, kUnitEpisode/kUnitSeason/…,
+    unitCoordsFor): New model — fromDb/toDb, toExport/fromExport (seconds),
+    displayNumber, hasContent, identity by (itemId, unitType, parent, unit).
+  * lib/core/database/migrations/migration_v53.dart (MigrationV53): New
+    `item_marks` table (unique unit key, `idx_item_marks_item`, FK cascade).
+  * lib/core/database/dao/item_mark_dao.dart (ItemMarkDao): merge upsert that
+    deletes empty rows and returns the merged mark; getMarksForItem /
+    getMarksForItems / setFavorite / setComment / deleteMark / insertMarks.
+  * lib/features/collections/providers/item_marks_provider.dart
+    (itemMarksProvider, ItemMarksNotifier, ItemMarksState): family by itemId
+    with per-type liked/commented counters and
+    toggleFavorite/setComment/deleteMark.
+  * lib/features/collections/widgets/item_mark_controls.dart (ItemMarkControls,
+    ItemMarkNoteEditor, MarkNoteText, unitTypeLabel): reusable heart plus
+    inline autosaving note editor.
+  * lib/features/collections/widgets/item_marks_list_section.dart
+    (ItemMarksListSection): branch-B add-form + existing-marks list.
+  * lib/features/collections/widgets/episode_tracker_section.dart
+    (EpisodeTrackerSection, SeasonsListWidget, SeasonExpansionTile,
+    EpisodeTile): thread itemId, inline controls, summary + filter bar.
+  * lib/features/collections/widgets/anime_progress_section.dart,
+    manga_progress_section.dart: embed ItemMarksListSection.
+  * lib/core/services/export_service.dart (_attachItemMarks),
+    import_service.dart (_importItemMarks): `_marks` per item, gated on user
+    data, remapped to the new item id.
+  * lib/core/database/database_service.dart (itemMarkDao),
+    migration_registry.dart (MigrationV53): registration; DB version 52 → 53.
+  * lib/l10n/app_en.arb, app_ru.arb: itemMark* / unit* strings.
+
 - **Import a game list exported from IGDB (CSV)**
 
   A new import source under Settings → Import. Every export row carries the

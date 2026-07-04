@@ -2095,5 +2095,42 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+
+  "itemMarkLike": "Нравится",
+  "itemMarkNote": "Заметка",
+  "itemMarkNoteHint": "Напишите заметку…",
+  "itemMarkSectionTitle": "Заметки и лайки",
+  "itemMarkAdd": "Добавить пометку",
+  "itemMarkEmpty": "Пометок пока нет",
+  "itemMarkDelete": "Удалить",
+  "itemMarkType": "Тип",
+  "itemMarkNumber": "Номер",
+  "itemMarkNumberHint": "например, 12",
+  "itemMarkNumberHelper": "Обязательно для сохранения",
+  "itemMarkCustomType": "Свой тип",
+  "itemMarkFilterAll": "Все",
+  "itemMarkFilterLiked": "Лайкнутые",
+  "itemMarkFilterCommented": "С заметками",
+  "itemMarkUnitLabel": "{type} {number}",
+  "@itemMarkUnitLabel": {
+    "placeholders": {
+      "type": {"type": "String"},
+      "number": {"type": "int"}
+    }
+  },
+  "itemMarkEpisodeShort": "S{season}·E{episode}",
+  "@itemMarkEpisodeShort": {
+    "placeholders": {
+      "season": {"type": "int"},
+      "episode": {"type": "int"}
+    }
+  },
+  "unitEpisode": "Серия",
+  "unitSeason": "Сезон",
+  "unitChapter": "Глава",
+  "unitVolume": "Том",
+  "unitPage": "Страница",
+  "unitPart": "Часть",
+  "unitCustom": "Своё"
 }

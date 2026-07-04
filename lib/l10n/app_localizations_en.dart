@@ -5321,4 +5321,80 @@ class SEn extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemMarkLike => 'Like';
+
+  @override
+  String get itemMarkNote => 'Note';
+
+  @override
+  String get itemMarkNoteHint => 'Write a note…';
+
+  @override
+  String get itemMarkSectionTitle => 'Notes & likes';
+
+  @override
+  String get itemMarkAdd => 'Add mark';
+
+  @override
+  String get itemMarkEmpty => 'No marks yet';
+
+  @override
+  String get itemMarkDelete => 'Delete';
+
+  @override
+  String get itemMarkType => 'Type';
+
+  @override
+  String get itemMarkNumber => 'Number';
+
+  @override
+  String get itemMarkNumberHint => 'e.g. 12';
+
+  @override
+  String get itemMarkNumberHelper => 'Required to save';
+
+  @override
+  String get itemMarkCustomType => 'Custom type';
+
+  @override
+  String get itemMarkFilterAll => 'All';
+
+  @override
+  String get itemMarkFilterLiked => 'Liked';
+
+  @override
+  String get itemMarkFilterCommented => 'With notes';
+
+  @override
+  String itemMarkUnitLabel(String type, int number) {
+    return '$type $number';
+  }
+
+  @override
+  String itemMarkEpisodeShort(int season, int episode) {
+    return 'S$season·E$episode';
+  }
+
+  @override
+  String get unitEpisode => 'Episode';
+
+  @override
+  String get unitSeason => 'Season';
+
+  @override
+  String get unitChapter => 'Chapter';
+
+  @override
+  String get unitVolume => 'Volume';
+
+  @override
+  String get unitPage => 'Page';
+
+  @override
+  String get unitPart => 'Part';
+
+  @override
+  String get unitCustom => 'Custom';
 }

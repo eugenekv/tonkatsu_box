@@ -23,6 +23,7 @@ import 'dao/custom_media_dao.dart';
 import 'dao/anime_dao.dart';
 import 'dao/book_dao.dart';
 import 'dao/game_dao.dart';
+import 'dao/item_mark_dao.dart';
 import 'dao/movie_dao.dart';
 import 'dao/tag_dao.dart';
 import 'dao/tv_show_dao.dart';
@@ -211,6 +212,8 @@ class DatabaseService {
   late final CalendarEntryDao calendarEntryDao =
       CalendarEntryDao(() => database);
 
+  late final ItemMarkDao itemMarkDao = ItemMarkDao(() => database);
+
   Future<Database> _initDatabase() async {
     final String basePath = (await StorageRoot.resolve()).path;
 
@@ -244,7 +247,7 @@ class DatabaseService {
     return databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 52,
+        version: 53,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onConfigure: (Database db) async {

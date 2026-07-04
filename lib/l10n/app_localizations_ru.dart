@@ -5413,4 +5413,80 @@ class SRu extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemMarkLike => 'Нравится';
+
+  @override
+  String get itemMarkNote => 'Заметка';
+
+  @override
+  String get itemMarkNoteHint => 'Напишите заметку…';
+
+  @override
+  String get itemMarkSectionTitle => 'Заметки и лайки';
+
+  @override
+  String get itemMarkAdd => 'Добавить пометку';
+
+  @override
+  String get itemMarkEmpty => 'Пометок пока нет';
+
+  @override
+  String get itemMarkDelete => 'Удалить';
+
+  @override
+  String get itemMarkType => 'Тип';
+
+  @override
+  String get itemMarkNumber => 'Номер';
+
+  @override
+  String get itemMarkNumberHint => 'например, 12';
+
+  @override
+  String get itemMarkNumberHelper => 'Обязательно для сохранения';
+
+  @override
+  String get itemMarkCustomType => 'Свой тип';
+
+  @override
+  String get itemMarkFilterAll => 'Все';
+
+  @override
+  String get itemMarkFilterLiked => 'Лайкнутые';
+
+  @override
+  String get itemMarkFilterCommented => 'С заметками';
+
+  @override
+  String itemMarkUnitLabel(String type, int number) {
+    return '$type $number';
+  }
+
+  @override
+  String itemMarkEpisodeShort(int season, int episode) {
+    return 'S$season·E$episode';
+  }
+
+  @override
+  String get unitEpisode => 'Серия';
+
+  @override
+  String get unitSeason => 'Сезон';
+
+  @override
+  String get unitChapter => 'Глава';
+
+  @override
+  String get unitVolume => 'Том';
+
+  @override
+  String get unitPage => 'Страница';
+
+  @override
+  String get unitPart => 'Часть';
+
+  @override
+  String get unitCustom => 'Своё';
 }

@@ -690,6 +690,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         if (config.hasEpisodeTracker && widget.collectionId != null)
           EpisodeTrackerSection(
             collectionId: widget.collectionId,
+            itemId: item.id,
             externalId: item.externalId,
             tvShow: config.tvShow,
             accentColor: config.accentColor,

@@ -10,17 +10,24 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
+import '../../../shared/models/item_mark.dart';
 import '../../../shared/models/tv_episode.dart';
 import '../../../shared/models/tv_season.dart';
 import '../../../shared/models/tv_show.dart';
 import '../../../shared/utils/date_format_preset.dart';
 import '../providers/episode_tracker_provider.dart';
+import '../providers/item_marks_provider.dart';
+import 'item_mark_controls.dart';
+
+/// Filter for the episode marks bar.
+enum _EpisodeMarkFilter { all, liked, commented }
 
 /// Episode Tracker section with a progress bar and a season list.
 class EpisodeTrackerSection extends ConsumerWidget {
   /// Creates an [EpisodeTrackerSection].
   const EpisodeTrackerSection({
     required this.collectionId,
+    required this.itemId,
     required this.externalId,
     required this.tvShow,
     required this.accentColor,
@@ -29,6 +36,9 @@ class EpisodeTrackerSection extends ConsumerWidget {
 
   /// Collection id (null for uncategorized).
   final int? collectionId;
+
+  /// Owning `collection_items.id` — anchor for per-episode marks.
+  final int itemId;
 
   /// TMDB show id.
   final int externalId;
@@ -92,6 +102,7 @@ class EpisodeTrackerSection extends ConsumerWidget {
         SeasonsListWidget(
           tmdbShowId: tmdbShowId,
           collectionId: collectionId,
+          itemId: itemId,
           accentColor: accentColor,
         ),
       ],
@@ -105,6 +116,7 @@ class SeasonsListWidget extends ConsumerStatefulWidget {
   const SeasonsListWidget({
     required this.tmdbShowId,
     required this.collectionId,
+    required this.itemId,
     required this.accentColor,
     super.key,
   });
@@ -114,6 +126,9 @@ class SeasonsListWidget extends ConsumerStatefulWidget {
 
   /// Collection id (null for uncategorized).
   final int? collectionId;
+
+  /// Owning `collection_items.id` — anchor for per-episode marks.
+  final int itemId;
 
   /// Accent color for the "all watched" indicator.
   final Color accentColor;
@@ -126,6 +141,7 @@ class _SeasonsListWidgetState extends ConsumerState<SeasonsListWidget> {
   List<TvSeason> _seasons = <TvSeason>[];
   bool _loading = true;
   bool _refreshing = false;
+  _EpisodeMarkFilter _filter = _EpisodeMarkFilter.all;
 
   @override
   void initState() {
@@ -243,50 +259,279 @@ class _SeasonsListWidgetState extends ConsumerState<SeasonsListWidget> {
 
     final EpisodeTrackerState trackerState =
         ref.watch(episodeTrackerNotifierProvider(_trackerArg));
+    final ItemMarksState marks =
+        ref.watch(itemMarksProvider(widget.itemId));
 
     return Column(
       children: <Widget>[
-        Align(
-          alignment: Alignment.centerRight,
-          child: _refreshing
-              ? const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              : IconButton(
-                  icon: const Icon(Icons.refresh, size: 18),
-                  tooltip: S.of(context).refreshFromTmdb,
-                  onPressed: _refreshSeasons,
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(4),
-                  visualDensity: VisualDensity.compact,
-                ),
-        ),
-        for (final TvSeason season in _seasons)
-          if (season.seasonNumber > 0) // skip Specials (season 0)
-            SeasonExpansionTile(
-              key: ValueKey<int>(season.seasonNumber),
-              season: season,
-              trackerState: trackerState,
-              trackerArg: _trackerArg,
-              accentColor: widget.accentColor,
-            ),
+        _buildMarksBar(marks),
+        if (_filter != _EpisodeMarkFilter.all)
+          _buildFilteredList(marks, trackerState)
+        else ...<Widget>[
+          for (final TvSeason season in _seasons)
+            if (season.seasonNumber > 0) // skip Specials (season 0)
+              SeasonExpansionTile(
+                key: ValueKey<int>(season.seasonNumber),
+                season: season,
+                trackerState: trackerState,
+                trackerArg: _trackerArg,
+                itemId: widget.itemId,
+                accentColor: widget.accentColor,
+              ),
+        ],
       ],
+    );
+  }
+
+  /// Summary (`❤ N · 💬 M`, episode marks only) plus filter chips.
+  Widget _buildMarksBar(ItemMarksState marks) {
+    final int liked = marks.likedCountOfType(kUnitEpisode);
+    final int commented = marks.commentedCountOfType(kUnitEpisode);
+    final S l = S.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Row(
+        children: <Widget>[
+          const Icon(Icons.favorite, size: 13, color: AppColors.favorite),
+          const SizedBox(width: 2),
+          Text(
+            '$liked',
+            style: AppTypography.caption
+                .copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          const Icon(Icons.sticky_note_2,
+              size: 13, color: AppColors.textSecondary),
+          const SizedBox(width: 2),
+          Text(
+            '$commented',
+            style: AppTypography.caption
+                .copyWith(color: AppColors.textSecondary),
+          ),
+          const Spacer(),
+          _filterChip(Icons.list, l.itemMarkFilterAll,
+              _EpisodeMarkFilter.all),
+          const SizedBox(width: 4),
+          _filterChip(Icons.favorite, l.itemMarkFilterLiked,
+              _EpisodeMarkFilter.liked,
+              color: AppColors.favorite),
+          const SizedBox(width: 4),
+          _filterChip(Icons.sticky_note_2, l.itemMarkFilterCommented,
+              _EpisodeMarkFilter.commented),
+          const SizedBox(width: AppSpacing.sm),
+          if (_refreshing)
+            const Padding(
+              padding: EdgeInsets.all(4),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.refresh, size: 18),
+              tooltip: l.refreshFromTmdb,
+              onPressed: _refreshSeasons,
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(4),
+              visualDensity: VisualDensity.compact,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip(
+    IconData icon,
+    String tooltip,
+    _EpisodeMarkFilter filter, {
+    Color? color,
+  }) {
+    final bool selected = _filter == filter;
+    final Color chipColor = color ?? AppColors.textTertiary;
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: () => setState(() => _filter = filter),
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: selected ? chipColor.withAlpha(25) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(
+              color: selected
+                  ? chipColor.withAlpha(80)
+                  : AppColors.surfaceBorder,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 14,
+            color: selected ? chipColor : AppColors.textTertiary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Flat list of episode marks matching the active filter, across all
+  /// seasons. Draws from the marks provider directly, so it works even when a
+  /// season's episode metadata hasn't been loaded (falls back to `S1·E3`).
+  Widget _buildFilteredList(
+    ItemMarksState marks,
+    EpisodeTrackerState trackerState,
+  ) {
+    final S l = S.of(context);
+    final List<ItemMark> episodeMarks = marks.all
+        .where((ItemMark m) => m.unitType == kUnitEpisode && _matchesFilter(m))
+        .toList()
+      ..sort((ItemMark a, ItemMark b) {
+        final int byParent = a.parentNumber.compareTo(b.parentNumber);
+        if (byParent != 0) return byParent;
+        return a.unitNumber.compareTo(b.unitNumber);
+      });
+
+    if (episodeMarks.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Text(
+          l.itemMarkEmpty,
+          style:
+              AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        for (final ItemMark m in episodeMarks)
+          _FilteredEpisodeRow(
+            key: ValueKey<String>('${m.parentNumber}:${m.unitNumber}'),
+            mark: m,
+            title: _episodeTitle(m, trackerState, l),
+            itemId: widget.itemId,
+            accentColor: widget.accentColor,
+          ),
+      ],
+    );
+  }
+
+  bool _matchesFilter(ItemMark m) => _filter == _EpisodeMarkFilter.liked
+      ? m.isFavorite
+      : m.note != null;
+
+  String _episodeTitle(
+    ItemMark m,
+    EpisodeTrackerState trackerState,
+    S l,
+  ) {
+    final List<TvEpisode>? episodes =
+        trackerState.episodesBySeason[m.parentNumber];
+    if (episodes != null) {
+      for (final TvEpisode ep in episodes) {
+        if (ep.episodeNumber == m.unitNumber && ep.name.isNotEmpty) {
+          return ep.name;
+        }
+      }
+    }
+    return l.itemMarkEpisodeShort(m.parentNumber, m.unitNumber);
+  }
+}
+
+/// One row in the flattened liked/commented episode list.
+class _FilteredEpisodeRow extends StatefulWidget {
+  const _FilteredEpisodeRow({
+    required this.mark,
+    required this.title,
+    required this.itemId,
+    required this.accentColor,
+    super.key,
+  });
+
+  final ItemMark mark;
+  final String title;
+  final int itemId;
+  final Color accentColor;
+
+  @override
+  State<_FilteredEpisodeRow> createState() => _FilteredEpisodeRowState();
+}
+
+class _FilteredEpisodeRowState extends State<_FilteredEpisodeRow> {
+  bool _editingNote = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final ItemMark mark = widget.mark;
+    final String title = widget.title;
+    final int itemId = widget.itemId;
+    final S l = S.of(context);
+    final String? note = mark.note;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    children: <InlineSpan>[
+                      TextSpan(
+                        text: l.itemMarkEpisodeShort(
+                          mark.parentNumber,
+                          mark.unitNumber,
+                        ),
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.textTertiary),
+                      ),
+                      const TextSpan(text: '  '),
+                      TextSpan(text: title, style: AppTypography.bodySmall),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              ItemMarkControls(
+                itemId: itemId,
+                unitType: kUnitEpisode,
+                parentNumber: mark.parentNumber,
+                unitNumber: mark.unitNumber,
+                onNotePressed: () =>
+                    setState(() => _editingNote = !_editingNote),
+              ),
+            ],
+          ),
+          if (_editingNote)
+            ItemMarkNoteEditor(
+              itemId: itemId,
+              unitType: kUnitEpisode,
+              parentNumber: mark.parentNumber,
+              unitNumber: mark.unitNumber,
+              accentColor: widget.accentColor,
+              onDone: () => setState(() => _editingNote = false),
+            )
+          else if (note != null)
+            MarkNoteText(note: note, accentColor: widget.accentColor),
+        ],
+      ),
     );
   }
 }
 
 /// ExpansionTile for a single season and its episodes.
-class SeasonExpansionTile extends ConsumerWidget {
+class SeasonExpansionTile extends ConsumerStatefulWidget {
   /// Creates a [SeasonExpansionTile].
   const SeasonExpansionTile({
     required this.season,
     required this.trackerState,
     required this.trackerArg,
+    required this.itemId,
     required this.accentColor,
     super.key,
   });
@@ -300,11 +545,27 @@ class SeasonExpansionTile extends ConsumerWidget {
   /// Argument for the tracker provider.
   final ({int? collectionId, int showId}) trackerArg;
 
+  /// Owning `collection_items.id` — anchor for per-episode/season marks.
+  final int itemId;
+
   /// Accent color for the "all watched" indicator.
   final Color accentColor;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SeasonExpansionTile> createState() =>
+      _SeasonExpansionTileState();
+}
+
+class _SeasonExpansionTileState extends ConsumerState<SeasonExpansionTile> {
+  bool _editingNote = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final TvSeason season = widget.season;
+    final EpisodeTrackerState trackerState = widget.trackerState;
+    final ({int? collectionId, int showId}) trackerArg = widget.trackerArg;
+    final int itemId = widget.itemId;
+    final Color accentColor = widget.accentColor;
     final S l = S.of(context);
     final int seasonNum = season.seasonNumber;
     final int episodeCount = season.episodeCount ?? 0;
@@ -319,6 +580,11 @@ class SeasonExpansionTile extends ConsumerWidget {
     final String subtitle = episodeCount > 0
         ? l.seasonEpisodesProgress(watchedCount, episodeCount)
         : l.episodesWatched(watchedCount);
+    final String? note = ref.watch(
+      itemMarksProvider(itemId).select(
+        (ItemMarksState s) => s.noteFor(kUnitSeason, seasonNum, 0),
+      ),
+    );
 
     return ExpansionTile(
       tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
@@ -328,17 +594,48 @@ class SeasonExpansionTile extends ConsumerWidget {
         color: allWatched ? accentColor : AppColors.surfaceBorder,
         size: 20,
       ),
-      title: Text(
-        seasonTitle,
-        style: AppTypography.body.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
+      title: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              seasonTitle,
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ItemMarkControls(
+            itemId: itemId,
+            unitType: kUnitSeason,
+            parentNumber: seasonNum,
+            unitNumber: 0,
+            showLike: false,
+            onNotePressed: () =>
+                setState(() => _editingNote = !_editingNote),
+          ),
+        ],
       ),
-      subtitle: Text(
-        subtitle,
-        style: AppTypography.bodySmall.copyWith(
-          color: AppColors.textSecondary,
-        ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            subtitle,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          if (_editingNote)
+            ItemMarkNoteEditor(
+              itemId: itemId,
+              unitType: kUnitSeason,
+              parentNumber: seasonNum,
+              unitNumber: 0,
+              accentColor: accentColor,
+              onDone: () => setState(() => _editingNote = false),
+            )
+          else if (note != null)
+            MarkNoteText(note: note, accentColor: accentColor),
+        ],
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -400,6 +697,8 @@ class SeasonExpansionTile extends ConsumerWidget {
                   episode.episodeNumber,
                 ),
                 trackerArg: trackerArg,
+                itemId: itemId,
+                accentColor: accentColor,
               ))
         else if (episodes != null && episodes.isEmpty)
           Padding(
@@ -417,12 +716,14 @@ class SeasonExpansionTile extends ConsumerWidget {
 }
 
 /// Tile for a single episode with a checkbox.
-class EpisodeTile extends ConsumerWidget {
+class EpisodeTile extends ConsumerStatefulWidget {
   /// Creates an [EpisodeTile].
   const EpisodeTile({
     required this.episode,
     required this.isWatched,
     required this.trackerArg,
+    required this.itemId,
+    required this.accentColor,
     this.watchedAt,
     super.key,
   });
@@ -439,8 +740,24 @@ class EpisodeTile extends ConsumerWidget {
   /// Argument for the tracker provider.
   final ({int? collectionId, int showId}) trackerArg;
 
+  /// Owning `collection_items.id` — anchor for per-episode marks.
+  final int itemId;
+
+  /// Accent color of the section, tints the note block.
+  final Color accentColor;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EpisodeTile> createState() => _EpisodeTileState();
+}
+
+class _EpisodeTileState extends ConsumerState<EpisodeTile> {
+  bool _editingNote = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final TvEpisode episode = widget.episode;
+    final bool isWatched = widget.isWatched;
+    final DateTime? watchedAt = widget.watchedAt;
     final DateFormatPreset preset = DateFormatPreset.fromId(
       ref.watch(settingsNotifierProvider.select((SettingsState s) => s.dateFormat)),
     );
@@ -457,42 +774,96 @@ class EpisodeTile extends ConsumerWidget {
     if (isWatched && watchedAt != null) {
       subtitleParts.add(
         S.of(context).episodeWatchedDate(
-          preset.format(watchedAt!, locale: localeName),
+          preset.format(watchedAt, locale: localeName),
         ),
       );
     }
+    final String? note = ref.watch(
+      itemMarksProvider(widget.itemId).select(
+        (ItemMarksState s) => s.noteFor(
+          kUnitEpisode,
+          episode.seasonNumber,
+          episode.episodeNumber,
+        ),
+      ),
+    );
 
-    return CheckboxListTile(
+    final Widget tile = CheckboxListTile(
       value: isWatched,
       onChanged: (_) {
         ref
-            .read(episodeTrackerNotifierProvider(trackerArg).notifier)
+            .read(episodeTrackerNotifierProvider(widget.trackerArg).notifier)
             .toggleEpisode(
               episode.seasonNumber,
               episode.episodeNumber,
             );
       },
-      title: Text(
-        title,
-        style: AppTypography.bodySmall.copyWith(
-          decoration: isWatched ? TextDecoration.lineThrough : null,
-          color: isWatched
-              ? AppColors.textSecondary
-              : AppColors.textPrimary,
-        ),
-      ),
-      subtitle: subtitleParts.isNotEmpty
-          ? Text(
-              subtitleParts.join(' \u2022 '),
-              style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondary,
+      title: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              title,
+              style: AppTypography.bodySmall.copyWith(
+                decoration: isWatched ? TextDecoration.lineThrough : null,
+                color: isWatched
+                    ? AppColors.textSecondary
+                    : AppColors.textPrimary,
               ),
+            ),
+          ),
+          ItemMarkControls(
+            itemId: widget.itemId,
+            unitType: kUnitEpisode,
+            parentNumber: episode.seasonNumber,
+            unitNumber: episode.episodeNumber,
+            onNotePressed: () =>
+                setState(() => _editingNote = !_editingNote),
+          ),
+        ],
+      ),
+      subtitle: (subtitleParts.isNotEmpty || (note != null && !_editingNote))
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (subtitleParts.isNotEmpty)
+                  Text(
+                    subtitleParts.join(' \u2022 '),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                if (note != null && !_editingNote)
+                  MarkNoteText(note: note, accentColor: widget.accentColor),
+              ],
             )
           : null,
       dense: true,
       controlAffinity: ListTileControlAffinity.leading,
       contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       visualDensity: VisualDensity.compact,
+    );
+
+    if (!_editingNote) return tile;
+
+    return Column(
+      children: <Widget>[
+        tile,
+        Padding(
+          padding: const EdgeInsets.only(
+            left: AppSpacing.xl + AppSpacing.sm,
+            right: AppSpacing.sm,
+            bottom: AppSpacing.xs,
+          ),
+          child: ItemMarkNoteEditor(
+            itemId: widget.itemId,
+            unitType: kUnitEpisode,
+            parentNumber: episode.seasonNumber,
+            unitNumber: episode.episodeNumber,
+            accentColor: widget.accentColor,
+            onDone: () => setState(() => _editingNote = false),
+          ),
+        ),
+      ],
     );
   }
 }

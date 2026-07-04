@@ -164,6 +164,7 @@ Includes everything from light export plus `canvas`, `images`, and `media`:
 | user_rating | number | no | User rating (1.0–10.0, one decimal). Integers from v2 files load as doubles |
 | _canvas | object | no | Per-item canvas data (full only) |
 | tag_name | string | no | Name of the assigned tag/section (full only, resolved to `tag_id` on import) |
+| _marks | array | no | Per-unit likes/notes. Present only when `user_data` is `true`; re-anchored to the new item id on import (see Item Marks) |
 
 **User data fields** (present only when top-level `user_data` is `true`):
 
@@ -179,6 +180,23 @@ Includes everything from light export plus `canvas`, `images`, and `media`:
 | started_at | number | Unix timestamp (seconds) when started |
 | completed_at | number | Unix timestamp (seconds) when completed |
 | last_activity_at | number | Unix timestamp (seconds) of last activity |
+
+### Item Marks
+
+Each element of an item's `_marks` array is one like and/or note on a single
+unit of that title. Marks carry no item id — they are nested inside their item
+and re-anchored to the freshly assigned `collection_item_id` on import. Empty
+marks (no like and no note) are never exported. Timestamps are Unix seconds.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| unit_type | string | yes | `"episode"`, `"season"`, `"chapter"`, `"volume"`, `"page"`, `"part"`, or a custom string |
+| parent_number | number | yes | Season / volume number, or `0` |
+| unit_number | number | yes | Episode / chapter / page number, or `0` for a season/volume-level mark |
+| is_favorite | number | yes | `1` if liked, else `0` |
+| user_comment | string | no | Free-text note |
+| liked_at | number | no | When the like was set |
+| updated_at | number | yes | Last modification time |
 
 ### Canvas Object
 
@@ -291,3 +309,4 @@ When `media` is present during import, data is restored directly from the file v
 6. Restores cover images and canvas images from base64 to local disk cache
 7. Restores tier lists — creates tier list, saves definitions, resolves entries via `itemIdMapping` (`media_type:external_id` → new item ID)
 8. Restores tracker data (RA progress) if present — upserts into `tracker_game_data`
+9. Restores per-item marks (embedded in `_marks` field of each item, when `user_data` is present) — re-anchored to the new item ID; idempotent on re-import
