@@ -15,6 +15,7 @@ import '../../shared/models/collection.dart';
 import '../../shared/models/collection_item.dart';
 import '../../shared/models/collection_tag.dart';
 import '../../shared/models/custom_media.dart';
+import '../../shared/models/item_mark.dart';
 import '../../shared/models/item_status.dart';
 import '../../shared/models/tier_definition.dart';
 import '../../shared/models/tier_list.dart';
@@ -393,6 +394,10 @@ class ImportService {
             await _importPerItemCanvas(
                 perItemCanvas, itemId, collection.id);
           }
+
+          if (xcoll.includesUserData) {
+            await _importItemMarks(itemData, itemId);
+          }
         } else if (collectionId != null) {
           // Item already exists — update from file.
           final bool didUpdate = await _updateExistingItem(
@@ -420,6 +425,12 @@ class ImportService {
             final String fallbackKey =
                 '${parsed.mediaType.value}:${parsed.externalId}';
             itemIdMapping.putIfAbsent(fallbackKey, () => existing.id);
+
+            // Marks are idempotent (insertMarks replaces on the unique key),
+            // so re-importing onto an existing item merges, not duplicates.
+            if (xcoll.includesUserData) {
+              await _importItemMarks(itemData, existing.id);
+            }
           }
         }
       }
@@ -1294,6 +1305,22 @@ class ImportService {
 
       await repo.createConnection(conn);
     }
+  }
+
+  /// Restores per-item marks (likes/notes) nested under the item's `_marks`
+  /// key, re-anchoring each to the freshly assigned [collectionItemId].
+  Future<void> _importItemMarks(
+    Map<String, dynamic> itemData,
+    int collectionItemId,
+  ) async {
+    final List<dynamic>? rawMarks = itemData['_marks'] as List<dynamic>?;
+    if (rawMarks == null || rawMarks.isEmpty) return;
+    final List<ItemMark> marks = <ItemMark>[
+      for (final dynamic raw in rawMarks)
+        if (raw is Map<String, dynamic>)
+          ItemMark.fromExport(raw, itemId: collectionItemId),
+    ];
+    await _database.itemMarkDao.insertMarks(marks);
   }
 
   /// [itemIdMapping]: 'media_type:external_id[:platform_id]' -> new collection_item_id.

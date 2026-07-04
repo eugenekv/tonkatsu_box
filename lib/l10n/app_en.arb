@@ -2434,5 +2434,42 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+
+  "itemMarkLike": "Like",
+  "itemMarkNote": "Note",
+  "itemMarkNoteHint": "Write a note…",
+  "itemMarkSectionTitle": "Notes & likes",
+  "itemMarkAdd": "Add mark",
+  "itemMarkEmpty": "No marks yet",
+  "itemMarkDelete": "Delete",
+  "itemMarkType": "Type",
+  "itemMarkNumber": "Number",
+  "itemMarkNumberHint": "e.g. 12",
+  "itemMarkNumberHelper": "Required to save",
+  "itemMarkCustomType": "Custom type",
+  "itemMarkFilterAll": "All",
+  "itemMarkFilterLiked": "Liked",
+  "itemMarkFilterCommented": "With notes",
+  "itemMarkUnitLabel": "{type} {number}",
+  "@itemMarkUnitLabel": {
+    "placeholders": {
+      "type": {"type": "String"},
+      "number": {"type": "int"}
+    }
+  },
+  "itemMarkEpisodeShort": "S{season}·E{episode}",
+  "@itemMarkEpisodeShort": {
+    "placeholders": {
+      "season": {"type": "int"},
+      "episode": {"type": "int"}
+    }
+  },
+  "unitEpisode": "Episode",
+  "unitSeason": "Season",
+  "unitChapter": "Chapter",
+  "unitVolume": "Volume",
+  "unitPage": "Page",
+  "unitPart": "Part",
+  "unitCustom": "Custom"
 }

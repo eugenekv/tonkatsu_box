@@ -9545,6 +9545,150 @@ abstract class S {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 recommendation} other{{count} recommendations}}'**
   String recommendationsCount(int count);
+
+  /// No description provided for @itemMarkLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get itemMarkLike;
+
+  /// No description provided for @itemMarkNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get itemMarkNote;
+
+  /// No description provided for @itemMarkNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a note…'**
+  String get itemMarkNoteHint;
+
+  /// No description provided for @itemMarkSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes & likes'**
+  String get itemMarkSectionTitle;
+
+  /// No description provided for @itemMarkAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add mark'**
+  String get itemMarkAdd;
+
+  /// No description provided for @itemMarkEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No marks yet'**
+  String get itemMarkEmpty;
+
+  /// No description provided for @itemMarkDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get itemMarkDelete;
+
+  /// No description provided for @itemMarkType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get itemMarkType;
+
+  /// No description provided for @itemMarkNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get itemMarkNumber;
+
+  /// No description provided for @itemMarkNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 12'**
+  String get itemMarkNumberHint;
+
+  /// No description provided for @itemMarkNumberHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Required to save'**
+  String get itemMarkNumberHelper;
+
+  /// No description provided for @itemMarkCustomType.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom type'**
+  String get itemMarkCustomType;
+
+  /// No description provided for @itemMarkFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get itemMarkFilterAll;
+
+  /// No description provided for @itemMarkFilterLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked'**
+  String get itemMarkFilterLiked;
+
+  /// No description provided for @itemMarkFilterCommented.
+  ///
+  /// In en, this message translates to:
+  /// **'With notes'**
+  String get itemMarkFilterCommented;
+
+  /// No description provided for @itemMarkUnitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} {number}'**
+  String itemMarkUnitLabel(String type, int number);
+
+  /// No description provided for @itemMarkEpisodeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'S{season}·E{episode}'**
+  String itemMarkEpisodeShort(int season, int episode);
+
+  /// No description provided for @unitEpisode.
+  ///
+  /// In en, this message translates to:
+  /// **'Episode'**
+  String get unitEpisode;
+
+  /// No description provided for @unitSeason.
+  ///
+  /// In en, this message translates to:
+  /// **'Season'**
+  String get unitSeason;
+
+  /// No description provided for @unitChapter.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter'**
+  String get unitChapter;
+
+  /// No description provided for @unitVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get unitVolume;
+
+  /// No description provided for @unitPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get unitPage;
+
+  /// No description provided for @unitPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Part'**
+  String get unitPart;
+
+  /// No description provided for @unitCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get unitCustom;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

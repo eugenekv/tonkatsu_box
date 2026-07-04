@@ -12,6 +12,7 @@ import 'package:tonkatsu_box/shared/models/canvas_viewport.dart';
 import 'package:tonkatsu_box/shared/models/collection.dart';
 import 'package:tonkatsu_box/shared/models/collection_item.dart';
 import 'package:tonkatsu_box/shared/models/game.dart';
+import 'package:tonkatsu_box/shared/models/item_mark.dart';
 import 'package:tonkatsu_box/shared/models/item_status.dart';
 import 'package:tonkatsu_box/shared/models/media_type.dart';
 import 'package:tonkatsu_box/shared/models/movie.dart';
@@ -1995,6 +1996,126 @@ void main() {
 
         expect(xcoll.media.containsKey('platforms'), isTrue);
         verify(() => mockGameDao.getPlatformsByIds(any())).called(1);
+      });
+    });
+
+    group('item marks in full export', () {
+      late MockCanvasRepository mockCanvasRepo;
+      late MockImageCacheService mockImageCache;
+      late MockDatabaseService mockDatabase;
+      late MockTvShowDao mockTvShowDao;
+      late MockItemMarkDao mockItemMarkDao;
+      late MockTierListDao mockTierListDao;
+      late MockTagDao mockTagDao;
+      late ExportService sutMarks;
+
+      setUp(() {
+        mockCanvasRepo = MockCanvasRepository();
+        mockImageCache = MockImageCacheService();
+        mockDatabase = MockDatabaseService();
+        mockTvShowDao = MockTvShowDao();
+        mockItemMarkDao = MockItemMarkDao();
+        mockTierListDao = MockTierListDao();
+        mockTagDao = MockTagDao();
+
+        when(() => mockDatabase.tvShowDao).thenReturn(mockTvShowDao);
+        when(() => mockDatabase.itemMarkDao).thenReturn(mockItemMarkDao);
+        when(() => mockDatabase.tierListDao).thenReturn(mockTierListDao);
+        when(() => mockDatabase.tagDao).thenReturn(mockTagDao);
+
+        when(() => mockCanvasRepo.getViewport(any()))
+            .thenAnswer((_) async => null);
+        when(() => mockCanvasRepo.getItems(any()))
+            .thenAnswer((_) async => <CanvasItem>[]);
+        when(() => mockCanvasRepo.getConnections(any()))
+            .thenAnswer((_) async => <CanvasConnection>[]);
+        when(() => mockCanvasRepo.getGameCanvasItems(any()))
+            .thenAnswer((_) async => <CanvasItem>[]);
+        when(() => mockImageCache.readImageBytes(any(), any()))
+            .thenAnswer((_) async => null);
+        when(() => mockTvShowDao.getTvSeasonsByShowId(any()))
+            .thenAnswer((_) async => <TvSeason>[]);
+        when(() => mockTvShowDao.getEpisodesByShowId(any()))
+            .thenAnswer((_) async => <TvEpisode>[]);
+        when(() => mockTierListDao.getTierListsByCollection(any()))
+            .thenAnswer((_) async => <TierList>[]);
+        when(() => mockTagDao.getTagsByCollection(any()))
+            .thenAnswer((_) async => <CollectionTag>[]);
+
+        sutMarks = ExportService(
+          canvasRepository: mockCanvasRepo,
+          imageCacheService: mockImageCache,
+          database: mockDatabase,
+        );
+      });
+
+      List<CollectionItem> twoTvItems() => <CollectionItem>[
+            createTestCollectionItem(
+              id: 1,
+              mediaType: MediaType.tvShow,
+              externalId: 1399,
+              platformId: null,
+              tvShow: const TvShow(tmdbId: 1399, title: 'GoT'),
+            ),
+            createTestCollectionItem(
+              id: 2,
+              mediaType: MediaType.tvShow,
+              externalId: 1400,
+              platformId: null,
+              tvShow: const TvShow(tmdbId: 1400, title: 'Other'),
+            ),
+          ];
+
+      test('should attach _marks only to items that have marks', () async {
+        when(() => mockItemMarkDao.getMarksForItems(any())).thenAnswer(
+          (_) async => <ItemMark>[
+            ItemMark(
+              id: 1,
+              itemId: 1,
+              unitType: kUnitEpisode,
+              parentNumber: 2,
+              unitNumber: 5,
+              isFavorite: true,
+              userComment: 'loved it',
+              likedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
+              updatedAt: DateTime.fromMillisecondsSinceEpoch(1700000005000),
+            ),
+          ],
+        );
+
+        final XcollFile xcoll = await sutMarks.createFullExport(
+          createTestCollection(),
+          twoTvItems(),
+          1,
+          includeUserData: true,
+        );
+
+        // The DAO must be asked only for the exported items' ids.
+        verify(() => mockItemMarkDao.getMarksForItems(<int>[1, 2])).called(1);
+
+        final List<dynamic> marks =
+            xcoll.items[0]['_marks'] as List<dynamic>;
+        expect(marks, hasLength(1));
+        final Map<String, dynamic> mark = marks[0] as Map<String, dynamic>;
+        expect(mark['unit_type'], kUnitEpisode);
+        expect(mark['parent_number'], 2);
+        expect(mark['unit_number'], 5);
+        expect(mark['is_favorite'], 1);
+        expect(mark['user_comment'], 'loved it');
+        expect(mark['liked_at'], 1700000000);
+        expect(mark['updated_at'], 1700000005);
+        expect(xcoll.items[1].containsKey('_marks'), isFalse);
+      });
+
+      test('should skip marks when includeUserData is false', () async {
+        final XcollFile xcoll = await sutMarks.createFullExport(
+          createTestCollection(),
+          twoTvItems(),
+          1,
+        );
+
+        expect(xcoll.items[0].containsKey('_marks'), isFalse);
+        verifyNever(() => mockItemMarkDao.getMarksForItems(any()));
       });
     });
   });
