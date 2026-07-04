@@ -334,6 +334,21 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ### Fixed
 
+- **Google Books: keep the real cover when adding a book to a collection**
+
+  Search showed the correct cover, but adding the book (and "Refresh from
+  source") swapped it for an interior page scan: the volume-detail
+  `imageLinks` sizes (`small`..`extraLarge`) are page scans for scanned
+  volumes despite `printsec=frontcover`, and the largest size was preferred.
+  The cover is now always built from the thumbnail — the only size that
+  reliably carries the cover — upscaled to 800px width via Google's `fife`
+  parameter, which also sharpens Google Books covers in search results.
+  Existing items pick the fix up via the item's "Refresh from source" button.
+
+  * lib/shared/models/book.dart (Book._googleCover): Use only `thumbnail` /
+    `smallThumbnail`, strip `&edge=curl`, upgrade to HTTPS, append
+    `&fife=w800`.
+
 - **Stop the app-wide slowdown after visiting Personalization**
 
   The Personalization screen used to stay mounted forever after its first
