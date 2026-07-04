@@ -104,16 +104,30 @@ void main() {
       expect(b.pageCount, isNull);
     });
 
-    test('picks the largest cover, strips edge=curl and upgrades to https', () {
+    test(
+        'builds the cover from the thumbnail (never the page-scan sizes), '
+        'strips edge=curl, upgrades to https and upscales via fife', () {
       final Book b = Book.fromGoogleBooksVolume(volume(<String, dynamic>{
         'title': 'Dune',
         'imageLinks': <String, dynamic>{
           'smallThumbnail': 'http://x/small',
-          'thumbnail': 'http://x/thumb?zoom=5&edge=curl',
-          'large': 'http://books.google.com/large?zoom=1&edge=curl',
+          'thumbnail': 'http://x/thumb?zoom=1&edge=curl',
+          // Interior page scan on scanned volumes — must be ignored.
+          'large': 'http://books.google.com/large?zoom=4&edge=curl',
+          'extraLarge': 'http://books.google.com/xl?zoom=6&edge=curl',
         },
       }));
-      expect(b.coverUrl, 'https://books.google.com/large?zoom=1');
+      expect(b.coverUrl, 'https://x/thumb?zoom=1&fife=w800');
+    });
+
+    test('falls back to smallThumbnail when thumbnail is absent', () {
+      final Book b = Book.fromGoogleBooksVolume(volume(<String, dynamic>{
+        'title': 'Dune',
+        'imageLinks': <String, dynamic>{
+          'smallThumbnail': 'http://x/small?zoom=5',
+        },
+      }));
+      expect(b.coverUrl, 'https://x/small?zoom=5&fife=w800');
     });
 
     test('falls back to canonicalVolumeLink for the external url', () {
