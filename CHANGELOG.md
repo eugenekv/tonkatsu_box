@@ -7,6 +7,8 @@ Entries follow the [GNU Change Log style](https://www.gnu.org/prep/standards/htm
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-07-05
+
 ### Added
 
 - **Likes and notes on individual title units (episodes, seasons, chapters…)**
