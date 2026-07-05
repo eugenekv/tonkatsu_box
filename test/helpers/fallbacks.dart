@@ -7,6 +7,7 @@ import 'package:tonkatsu_box/shared/models/canvas_viewport.dart';
 import 'package:tonkatsu_box/shared/models/collection.dart';
 import 'package:tonkatsu_box/shared/models/game.dart';
 import 'package:tonkatsu_box/shared/models/manga.dart';
+import 'package:tonkatsu_box/shared/models/item_mark.dart';
 import 'package:tonkatsu_box/shared/models/item_status.dart';
 import 'package:tonkatsu_box/shared/models/media_type.dart';
 import 'package:tonkatsu_box/shared/models/movie.dart';
@@ -69,6 +70,8 @@ void registerAllFallbacks() {
     trackerGameId: '0',
     lastSyncedAt: 0,
   ));
+
+  registerFallbackValue(const <ItemMark>[]);
 
   registerFallbackValue(Uint8List(0));
   registerFallbackValue(DateTime(2024));

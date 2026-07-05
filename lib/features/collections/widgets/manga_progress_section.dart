@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/models/item_mark.dart';
 import '../../../shared/models/manga.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/media_progress_row.dart';
 import '../providers/collections_provider.dart';
+import 'item_marks_list_section.dart';
 
 /// Reuses existing item fields: `currentEpisode` stores chapters read,
 /// `currentSeason` stores volumes read.
@@ -97,6 +99,18 @@ class MangaProgressSection extends ConsumerWidget {
             ),
           ),
         ],
+
+        const SizedBox(height: AppSpacing.lg),
+        ItemMarksListSection(
+          itemId: itemId,
+          accentColor: accentColor,
+          unitPresets: const <String>[
+            kUnitChapter,
+            kUnitVolume,
+            kUnitPage,
+            kUnitPart,
+          ],
+        ),
       ],
     );
   }

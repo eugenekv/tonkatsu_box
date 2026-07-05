@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tonkatsu_box/features/genre_cloud/providers/genre_cloud_provider.dart';
+import 'package:tonkatsu_box/features/genre_cloud/screens/genre_cloud_screen.dart';
 import 'package:tonkatsu_box/features/personalization/screens/personalization_screen.dart';
 import 'package:tonkatsu_box/features/recommendations/providers/recommendations_provider.dart';
+import 'package:tonkatsu_box/features/recommendations/screens/recommendations_screen.dart';
 import 'package:tonkatsu_box/shared/models/collection_item.dart';
 import 'package:tonkatsu_box/shared/widgets/segmented_pill.dart';
 
@@ -24,9 +26,6 @@ void main() {
               .overrideWith((Ref ref) async => <String>{}),
         ];
 
-    int? viewIndex(WidgetTester tester) =>
-        tester.widget<IndexedStack>(find.byType(IndexedStack).first).index;
-
     Finder segments() => find.descendant(
           of: find.byWidgetPredicate((Widget w) => w is SegmentedPill),
           matching: find.byType(GestureDetector),
@@ -41,7 +40,9 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      expect(viewIndex(tester), 0);
+      expect(find.byType(GenreCloudScreen), findsOneWidget);
+      // The hidden view must not be built at all (lazy tabs).
+      expect(find.byType(RecommendationsScreen), findsNothing);
     });
 
     testWidgets('switches to recommendations and back via the pill', (
@@ -54,11 +55,13 @@ void main() {
 
       await tester.tap(segments().at(1));
       await tester.pumpAndSettle();
-      expect(viewIndex(tester), 1);
+      expect(find.byType(RecommendationsScreen), findsOneWidget);
+      expect(find.byType(GenreCloudScreen), findsNothing);
 
       await tester.tap(segments().at(0));
       await tester.pumpAndSettle();
-      expect(viewIndex(tester), 0);
+      expect(find.byType(GenreCloudScreen), findsOneWidget);
+      expect(find.byType(RecommendationsScreen), findsNothing);
     });
   });
 }

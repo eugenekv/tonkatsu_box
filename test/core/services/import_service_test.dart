@@ -15,6 +15,7 @@ import 'package:tonkatsu_box/shared/models/canvas_viewport.dart';
 import 'package:tonkatsu_box/shared/models/collection.dart';
 import 'package:tonkatsu_box/shared/models/collection_item.dart';
 import 'package:tonkatsu_box/shared/models/game.dart';
+import 'package:tonkatsu_box/shared/models/item_mark.dart';
 import 'package:tonkatsu_box/shared/models/media_type.dart';
 import 'package:tonkatsu_box/shared/models/movie.dart';
 import 'package:tonkatsu_box/shared/models/tv_show.dart';
@@ -2714,6 +2715,156 @@ void main() {
         // Canvas should NOT be imported
         verifyNever(() => mockCanvas.createItem(any()));
         verifyNever(() => mockCanvas.createConnection(any()));
+      });
+    });
+
+    group('import item marks (_marks)', () {
+      late ImportService sutV2;
+      late MockItemMarkDao mockItemMarkDao;
+
+      const List<Map<String, dynamic>> itemsWithMarks =
+          <Map<String, dynamic>>[
+        <String, dynamic>{
+          'media_type': 'game',
+          'external_id': 100,
+          '_marks': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'unit_type': 'episode',
+              'parent_number': 2,
+              'unit_number': 5,
+              'is_favorite': 1,
+              'user_comment': 'loved it',
+              'liked_at': 1700000000,
+              'updated_at': 1700000005,
+            },
+            <String, dynamic>{
+              'unit_type': 'chapter',
+              'parent_number': 0,
+              'unit_number': 45,
+              'is_favorite': 0,
+              'user_comment': 'cliffhanger',
+              'updated_at': 1700000005,
+            },
+          ],
+        },
+      ];
+
+      setUp(() {
+        mockItemMarkDao = MockItemMarkDao();
+        when(() => mockDb.itemMarkDao).thenReturn(mockItemMarkDao);
+        when(() => mockItemMarkDao.insertMarks(any()))
+            .thenAnswer((_) async {});
+
+        when(() => mockApi.getGamesByIds(any()))
+            .thenAnswer((_) async => const <Game>[Game(id: 100, name: 'G')]);
+        when(() => mockGameDao.upsertGame(any())).thenAnswer((_) async {});
+        when(() => mockRepo.getById(5))
+            .thenAnswer((_) async => createTestCollection(id: 5));
+
+        sutV2 = ImportService(
+          repository: mockRepo,
+          igdbApi: mockApi,
+          tmdbApi: mockTmdb,
+          database: mockDb,
+          canvasRepository: mockCanvas,
+        );
+      });
+
+      XcollFile xcollWith({required bool userData}) => XcollFile(
+            version: 2,
+            format: ExportFormat.light,
+            name: 'Import',
+            author: 'Author',
+            created: testDate,
+            includesUserData: userData,
+            items: itemsWithMarks,
+          );
+
+      test('should re-anchor imported marks to the new item id', () async {
+        when(() => mockRepo.addItem(
+              collectionId: any(named: 'collectionId'),
+              mediaType: any(named: 'mediaType'),
+              externalId: any(named: 'externalId'),
+              platformId: any(named: 'platformId'),
+              authorComment: any(named: 'authorComment'),
+              status: any(named: 'status'),
+            )).thenAnswer((_) async => 42);
+
+        final ImportResult result = await sutV2.importFromXcoll(
+          xcollWith(userData: true),
+          collectionId: 5,
+        );
+
+        expect(result.success, isTrue);
+        final List<ItemMark> inserted = verify(
+          () => mockItemMarkDao.insertMarks(captureAny()),
+        ).captured.single as List<ItemMark>;
+        expect(inserted, hasLength(2));
+        expect(inserted[0].itemId, 42);
+        expect(inserted[0].unitType, 'episode');
+        expect(inserted[0].parentNumber, 2);
+        expect(inserted[0].unitNumber, 5);
+        expect(inserted[0].isFavorite, isTrue);
+        expect(inserted[0].userComment, 'loved it');
+        expect(
+          inserted[0].likedAt,
+          DateTime.fromMillisecondsSinceEpoch(1700000000 * 1000),
+        );
+        expect(inserted[1].itemId, 42);
+        expect(inserted[1].unitType, 'chapter');
+        expect(inserted[1].isFavorite, isFalse);
+      });
+
+      test('should skip marks when the file has no user data', () async {
+        when(() => mockRepo.addItem(
+              collectionId: any(named: 'collectionId'),
+              mediaType: any(named: 'mediaType'),
+              externalId: any(named: 'externalId'),
+              platformId: any(named: 'platformId'),
+              authorComment: any(named: 'authorComment'),
+            )).thenAnswer((_) async => 42);
+
+        final ImportResult result = await sutV2.importFromXcoll(
+          xcollWith(userData: false),
+          collectionId: 5,
+        );
+
+        expect(result.success, isTrue);
+        verifyNever(() => mockItemMarkDao.insertMarks(any()));
+      });
+
+      test('should merge marks onto an existing duplicate item', () async {
+        // addItem returns null = duplicate; marks anchor to the existing id.
+        when(() => mockRepo.addItem(
+              collectionId: any(named: 'collectionId'),
+              mediaType: any(named: 'mediaType'),
+              externalId: any(named: 'externalId'),
+              platformId: any(named: 'platformId'),
+              authorComment: any(named: 'authorComment'),
+              status: any(named: 'status'),
+            )).thenAnswer((_) async => null);
+        when(() => mockRepo.findItem(
+              collectionId: any(named: 'collectionId'),
+              mediaType: any(named: 'mediaType'),
+              externalId: any(named: 'externalId'),
+              platformId: any(named: 'platformId'),
+            )).thenAnswer((_) async => createTestCollectionItem(
+              id: 77,
+              mediaType: MediaType.game,
+              externalId: 100,
+            ));
+
+        final ImportResult result = await sutV2.importFromXcoll(
+          xcollWith(userData: true),
+          collectionId: 5,
+        );
+
+        expect(result.success, isTrue);
+        final List<ItemMark> inserted = verify(
+          () => mockItemMarkDao.insertMarks(captureAny()),
+        ).captured.single as List<ItemMark>;
+        expect(inserted, hasLength(2));
+        expect(inserted.every((ItemMark m) => m.itemId == 77), isTrue);
       });
     });
   });

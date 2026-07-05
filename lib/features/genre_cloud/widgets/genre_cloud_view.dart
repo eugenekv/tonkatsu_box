@@ -125,6 +125,10 @@ class _GenreCloudViewState extends State<GenreCloudView> {
   List<FacetValue>? _laidOutWords;
   Size? _laidOutViewport;
 
+  // Deferred (post-frame) layout bookkeeping; see _scheduleLayout.
+  bool _layoutPending = false;
+  Size? _pendingViewport;
+
   // Canvas the view is currently centred for; re-centre only when it changes so
   // the user's own panning survives rebuilds.
   Size? _centeredFor;
@@ -155,16 +159,18 @@ class _GenreCloudViewState extends State<GenreCloudView> {
         maxFontSize: widget.maxFontSize,
       );
 
-  GenreCloudLayout _resolveLayout(Size viewport) {
-    if (!widget.interactive) return _compute(viewport);
-
+  /// The cached layout when it still matches the current words + viewport.
+  GenreCloudLayout? _cachedLayout(Size viewport) {
     if (_layout != null &&
         _laidOutViewport == viewport &&
         _laidOutWords != null &&
         listEquals(_laidOutWords, widget.words)) {
-      return _layout!;
+      return _layout;
     }
+    return null;
+  }
 
+  GenreCloudLayout _computeWithGrowth(Size viewport) {
     Size canvas = viewport;
     GenreCloudLayout layout = _compute(canvas);
     // Grow the canvas (keeping fonts readable) until everything fits, so the
@@ -175,11 +181,33 @@ class _GenreCloudViewState extends State<GenreCloudView> {
       layout = _compute(canvas);
       pass++;
     }
-
-    _layout = layout;
-    _laidOutWords = List<FacetValue>.of(widget.words);
-    _laidOutViewport = viewport;
     return layout;
+  }
+
+  /// Defers the expensive placement past the current frame so the screen
+  /// paints (with a progress indicator) before the layout blocks the UI
+  /// thread, instead of freezing navigation for the whole computation.
+  void _scheduleLayout() {
+    if (_layoutPending) return;
+    _layoutPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        _layoutPending = false;
+        return;
+      }
+      final Size? viewport = _pendingViewport;
+      if (viewport == null) {
+        _layoutPending = false;
+        return;
+      }
+      final GenreCloudLayout layout = _computeWithGrowth(viewport);
+      setState(() {
+        _layout = layout;
+        _laidOutWords = List<FacetValue>.of(widget.words);
+        _laidOutViewport = viewport;
+        _layoutPending = false;
+      });
+    });
   }
 
   void _maybeRecenter(Size viewport, Size canvas) {
@@ -200,7 +228,22 @@ class _GenreCloudViewState extends State<GenreCloudView> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final Size viewport = Size(constraints.maxWidth, constraints.maxHeight);
-        final GenreCloudLayout layout = _resolveLayout(viewport);
+
+        final GenreCloudLayout layout;
+        if (widget.interactive) {
+          // Export views compute synchronously (they are captured right after
+          // the frame); the interactive cloud defers so the screen opens
+          // instantly with a spinner instead of a frozen frame.
+          final GenreCloudLayout? cached = _cachedLayout(viewport);
+          if (cached == null) {
+            _pendingViewport = viewport;
+            _scheduleLayout();
+            return const Center(child: CircularProgressIndicator());
+          }
+          layout = cached;
+        } else {
+          layout = _compute(viewport);
+        }
 
         final Widget content;
         if (widget.interactive) {

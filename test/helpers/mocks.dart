@@ -19,6 +19,7 @@ import 'package:tonkatsu_box/core/api/vndb_api.dart';
 import 'package:tonkatsu_box/core/database/dao/canvas_dao.dart';
 import 'package:tonkatsu_box/core/database/dao/collection_dao.dart';
 import 'package:tonkatsu_box/core/database/dao/game_dao.dart';
+import 'package:tonkatsu_box/core/database/dao/item_mark_dao.dart';
 import 'package:tonkatsu_box/core/database/dao/movie_dao.dart';
 import 'package:tonkatsu_box/core/database/dao/tv_show_dao.dart';
 import 'package:tonkatsu_box/core/database/dao/tracked_release_dao.dart';
@@ -99,6 +100,8 @@ class MockGameDao extends Mock implements GameDao {}
 class MockMovieDao extends Mock implements MovieDao {}
 
 class MockTvShowDao extends Mock implements TvShowDao {}
+
+class MockItemMarkDao extends Mock implements ItemMarkDao {}
 
 class MockTrackedReleaseDao extends Mock implements TrackedReleaseDao {}
 

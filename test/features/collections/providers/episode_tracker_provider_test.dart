@@ -142,6 +142,10 @@ void main() {
     mockDb = MockDatabaseService();
     mockTvShowDao = MockTvShowDao();
     when(() => mockDb.tvShowDao).thenReturn(mockTvShowDao);
+    // Eager cache load on build; default to no cached episodes so tests that
+    // don't care about it are unaffected.
+    when(() => mockTvShowDao.getEpisodesByShowId(any()))
+        .thenAnswer((_) async => <TvEpisode>[]);
     mockTmdbApi = MockTmdbApi();
     when(() => mockTmdbApi.getTvShow(any()))
         .thenAnswer((_) async => null);
@@ -344,6 +348,31 @@ void main() {
         expect(state.watchedEpisodes, watchedEpisodes);
         verify(() => mockTvShowDao.getWatchedEpisodes(testCollectionId, testShowId))
             .called(1);
+      });
+
+      test('should eagerly load cached episodes grouped by season on build',
+          () async {
+        when(() => mockTvShowDao.getWatchedEpisodes(testCollectionId, testShowId))
+            .thenAnswer((_) async => <(int, int), DateTime?>{});
+        when(() => mockTvShowDao.getEpisodesByShowId(testShowId)).thenAnswer(
+          (_) async => <TvEpisode>[
+            testEpisode1,
+            testEpisode2,
+            testEpisode2s1,
+          ],
+        );
+
+        final ProviderContainer container = createContainer();
+        container.read(episodeTrackerNotifierProvider(testArg));
+
+        await Future<void>.delayed(Duration.zero);
+
+        final EpisodeTrackerState state =
+            container.read(episodeTrackerNotifierProvider(testArg));
+
+        expect(state.episodesBySeason[1], hasLength(2));
+        expect(state.episodesBySeason[2], hasLength(1));
+        verify(() => mockTvShowDao.getEpisodesByShowId(testShowId)).called(1);
       });
 
       test('should handle ошибку загрузки просмотренных эпизодов',

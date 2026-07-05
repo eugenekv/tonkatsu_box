@@ -729,24 +729,21 @@ class Book {
     return (isbn10, isbn13);
   }
 
-  /// Largest available cover from a Google Books `imageLinks` object, with
-  /// Google's curled-corner overlay (`&edge=curl`) removed and the scheme
-  /// upgraded to HTTPS.
+  /// Cover from a Google Books `imageLinks` object. Only the thumbnail zoom
+  /// levels reliably carry the cover — the volume-detail sizes
+  /// (`small`..`extraLarge`, zoom 2-6) are interior page scans for scanned
+  /// volumes despite `printsec=frontcover` — so the thumbnail is upscaled via
+  /// Google's `fife` width parameter instead. The curled-corner overlay
+  /// (`&edge=curl`) is removed and the scheme upgraded to HTTPS.
   static String? _googleCover(Object? imageLinks) {
     if (imageLinks is! Map<String, dynamic>) return null;
-    for (final String key in const <String>[
-      'extraLarge',
-      'large',
-      'medium',
-      'small',
-      'thumbnail',
-      'smallThumbnail',
-    ]) {
+    for (final String key in const <String>['thumbnail', 'smallThumbnail']) {
       final String? url = _nonEmpty(imageLinks[key]);
       if (url != null) {
-        return url
+        final String clean = url
             .replaceAll('&edge=curl', '')
             .replaceFirst('http://', 'https://');
+        return '$clean&fife=w800';
       }
     }
     return null;

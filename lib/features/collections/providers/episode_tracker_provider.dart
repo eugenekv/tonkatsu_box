@@ -123,6 +123,7 @@ class EpisodeTrackerNotifier extends FamilyNotifier<EpisodeTrackerState,
     if (_collectionId == null) return const EpisodeTrackerState();
 
     Future<void>.microtask(_loadWatchedEpisodes);
+    Future<void>.microtask(_loadCachedEpisodes);
 
     return const EpisodeTrackerState();
   }
@@ -136,6 +137,29 @@ class EpisodeTrackerNotifier extends FamilyNotifier<EpisodeTrackerState,
       state = state.copyWith(watchedEpisodes: watched);
     } on Exception catch (e) {
       state = state.copyWith(error: 'Failed to load watched episodes: $e');
+    }
+  }
+
+  /// Loads every already-cached episode (all seasons) in one query, without
+  /// touching the network. Lets the marks summary/filter resolve episode names
+  /// up front; uncached seasons still lazy-load from TMDB on expand.
+  Future<void> _loadCachedEpisodes() async {
+    try {
+      final List<TvEpisode> episodes =
+          await _db.tvShowDao.getEpisodesByShowId(_showId);
+      if (episodes.isEmpty) return;
+      final Map<int, List<TvEpisode>> bySeason = <int, List<TvEpisode>>{};
+      for (final TvEpisode ep in episodes) {
+        (bySeason[ep.seasonNumber] ??= <TvEpisode>[]).add(ep);
+      }
+      state = state.copyWith(
+        episodesBySeason: <int, List<TvEpisode>>{
+          ...bySeason,
+          ...state.episodesBySeason,
+        },
+      );
+    } on Exception catch (_) {
+      // Cache read failed — non-fatal; seasons still load lazily on expand.
     }
   }
 

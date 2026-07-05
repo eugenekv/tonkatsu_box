@@ -44,6 +44,10 @@ class _GenreCloudScreenState extends ConsumerState<GenreCloudScreen> {
 
   final GlobalKey _exportKey = GlobalKey();
 
+  // The offscreen export poster re-runs the full cloud layout on every build,
+  // so it is mounted only for the duration of an export.
+  bool _exporting = false;
+
   // "Broad strokes" filters: hidden facet dimensions and hidden media types.
   final Set<Facet> _hiddenFacets = <Facet>{};
   final Set<MediaType> _hiddenTypes = <MediaType>{};
@@ -86,7 +90,7 @@ class _GenreCloudScreenState extends ConsumerState<GenreCloudScreen> {
               Expanded(child: _buildBody(l, itemsAsync, words)),
             ],
           ),
-          if (hasWords)
+          if (hasWords && _exporting)
             Positioned(
               left: -10000,
               top: -10000,
@@ -239,7 +243,8 @@ class _GenreCloudScreenState extends ConsumerState<GenreCloudScreen> {
     List<FacetValue> words,
   ) async {
     final S l = S.of(context);
-    // Wait for the current frame so the offscreen export view is rendered.
+    // Mount the offscreen export view and wait for it to render.
+    setState(() => _exporting = true);
     await WidgetsBinding.instance.endOfFrame;
 
     final String safeBase = sanitizeFileName(l.genreCloudTitle);
@@ -251,6 +256,7 @@ class _GenreCloudScreenState extends ConsumerState<GenreCloudScreen> {
       suggestedFileName: fileName,
       saveDialogTitle: l.genreCloudExportImage,
     );
+    if (mounted) setState(() => _exporting = false);
     if (!context.mounted) return;
 
     switch (result.status) {
