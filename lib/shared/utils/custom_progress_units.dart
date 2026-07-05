@@ -19,11 +19,10 @@ abstract final class CustomProgressUnits {
       };
 
   /// Label for the coarse progress axis, or `null` when [type] has none.
-  static String? groupLabel(MediaType type, S l) => switch (type) {
-        MediaType.tvShow || MediaType.animation => l.customUnitSeasons,
-        MediaType.manga => l.customUnitVolumes,
-        _ => null,
-      };
+  static String? groupLabel(MediaType type, S l) {
+    if (!hasGroupAxis(type)) return null;
+    return type == MediaType.manga ? l.customUnitVolumes : l.customUnitSeasons;
+  }
 
   /// Whether a custom item displayed as [type] has a coarse axis at all.
   static bool hasGroupAxis(MediaType type) =>

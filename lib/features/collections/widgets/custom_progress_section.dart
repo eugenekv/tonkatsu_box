@@ -149,46 +149,51 @@ class CustomProgressSection extends ConsumerWidget {
     final TextEditingController controller =
         TextEditingController(text: current > 0 ? current.toString() : '');
 
-    final String? result = await showDialog<String>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        title: Text(label),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: total != null ? '0–$total' : '0+',
+    try {
+      final String? result = await showDialog<String>(
+        context: context,
+        builder: (BuildContext ctx) => AlertDialog(
+          title: Text(label),
+          content: SingleChildScrollView(
+            child: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: total != null ? '0–$total' : '0+',
+              ),
+            ),
           ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, controller.text),
+              child: Text(l.save),
+            ),
+          ],
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: Text(l.save),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (result != null) {
-      final int? value = int.tryParse(result);
-      if (value != null && value >= 0) {
-        final int clamped = total != null && value > total ? total : value;
-        if (isGroup) {
-          ref
-              .read(collectionItemsNotifierProvider(collectionId).notifier)
-              .updateProgress(itemId, currentSeason: clamped);
-        } else {
-          ref
-              .read(collectionItemsNotifierProvider(collectionId).notifier)
-              .updateProgress(itemId, currentEpisode: clamped);
+      if (result != null) {
+        final int? value = int.tryParse(result);
+        if (value != null && value >= 0) {
+          final int clamped = total != null && value > total ? total : value;
+          if (isGroup) {
+            ref
+                .read(collectionItemsNotifierProvider(collectionId).notifier)
+                .updateProgress(itemId, currentSeason: clamped);
+          } else {
+            ref
+                .read(collectionItemsNotifierProvider(collectionId).notifier)
+                .updateProgress(itemId, currentEpisode: clamped);
+          }
         }
       }
+    } finally {
+      controller.dispose();
     }
-    controller.dispose();
   }
 }

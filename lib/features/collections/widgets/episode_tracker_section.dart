@@ -353,8 +353,9 @@ class _SeasonsListWidgetState extends ConsumerState<SeasonsListWidget> {
     final Color chipColor = color ?? AppColors.textTertiary;
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: InkWell(
         onTap: () => setState(() => _filter = filter),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         child: Container(
           width: 28,
           height: 28,
@@ -655,6 +656,7 @@ class _SeasonExpansionTileState extends ConsumerState<SeasonExpansionTile> {
                     .read(episodeTrackerNotifierProvider(trackerArg).notifier)
                     .loadSeason(seasonNum)
                     .then((_) {
+                  if (!mounted) return;
                   ref
                       .read(
                           episodeTrackerNotifierProvider(trackerArg).notifier)

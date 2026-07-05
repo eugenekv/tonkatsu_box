@@ -312,7 +312,7 @@ void main() {
           CollectionSortMode.rating,
         );
 
-        // Высокий API (95) не поднимает элемент выше оценённых лично.
+        // A high API rating (95) must not outrank personally rated items.
         expect(
           result.map((CollectionItem i) => i.id).toList(),
           <int>[3, 1, 2],
@@ -331,7 +331,7 @@ void main() {
           CollectionSortMode.rating,
         );
 
-        // id=1 оценён лично (3), id=2 без личной оценки → в конец.
+        // id=1 has a personal rating (3); id=2 has none and goes last.
         expect(
           result.map((CollectionItem i) => i.id).toList(),
           <int>[1, 2],
@@ -350,8 +350,8 @@ void main() {
           CollectionSortMode.rating,
         );
 
-        expect(result[0].id, 2); // оценённый — первым
-        expect(result[1].id, 3); // 'Alpha' < 'Zeta' среди неоценённых
+        expect(result[0].id, 2); // rated one first
+        expect(result[1].id, 3); // 'Alpha' < 'Zeta' among the unrated
         expect(result[2].id, 1);
       });
 
@@ -556,8 +556,8 @@ void main() {
       });
 
       test('без активности используется дата добавления как запасной ключ', () {
-        // Свежедобавленный элемент без активности должен стоять выше старого с
-        // давней активностью — а не падать в самый низ.
+        // A freshly added item with no activity must rank above an old item
+        // with long-past activity, not sink to the very bottom.
         final List<CollectionItem> items = <CollectionItem>[
           _makeItem(
             id: 1,
