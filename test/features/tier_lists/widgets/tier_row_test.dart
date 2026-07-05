@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tonkatsu_box/features/tier_lists/widgets/tier_item_card.dart';
 import 'package:tonkatsu_box/features/tier_lists/widgets/tier_row.dart';
@@ -44,7 +45,7 @@ void main() {
           entries: const <TierListEntry>[],
           itemsMap: const <int, CollectionItem>{},
           titleLanguage: '',
-          onDrop: (_) {},
+          onDrop: (_, _) {},
           onDefinitionTap: () {},
         ),
         settle: false,
@@ -63,7 +64,7 @@ void main() {
           entries: const <TierListEntry>[],
           itemsMap: const <int, CollectionItem>{},
           titleLanguage: '',
-          onDrop: (_) {},
+          onDrop: (_, _) {},
           onDefinitionTap: () {},
         ),
         settle: false,
@@ -82,7 +83,7 @@ void main() {
           entries: const <TierListEntry>[],
           itemsMap: const <int, CollectionItem>{},
           titleLanguage: '',
-          onDrop: (_) {},
+          onDrop: (_, _) {},
           onDefinitionTap: () {},
         ),
         settle: false,
@@ -111,7 +112,7 @@ void main() {
           entries: entries,
           itemsMap: itemsMap,
           titleLanguage: '',
-          onDrop: (_) {},
+          onDrop: (_, _) {},
           onDefinitionTap: () {},
         ),
         settle: false,
@@ -132,7 +133,7 @@ void main() {
           entries: const <TierListEntry>[],
           itemsMap: const <int, CollectionItem>{},
           titleLanguage: '',
-          onDrop: (_) {},
+          onDrop: (_, _) {},
           onDefinitionTap: () => tapped = true,
         ),
         settle: false,
@@ -167,7 +168,7 @@ void main() {
           entries: entries,
           itemsMap: itemsMap,
           titleLanguage: '',
-          onDrop: (_) {},
+          onDrop: (_, _) {},
           onDefinitionTap: () {},
         ),
         settle: false,
@@ -175,6 +176,112 @@ void main() {
       await tester.pump();
 
       expect(find.byType(TierItemCard), findsOneWidget);
+    });
+
+    group('intra-tier drop slots', () {
+      late CollectionItem item3;
+
+      setUp(() {
+        item3 = createTestCollectionItem(
+          id: 3,
+          externalId: 300,
+          game: createTestGame(id: 300, name: 'Game Three'),
+        );
+      });
+
+      Future<void> dragCard(
+        WidgetTester tester,
+        int fromIndex,
+        int toIndex,
+      ) async {
+        final Finder cards = find.byType(TierItemCard);
+        final TestGesture gesture = await tester.startGesture(
+          tester.getCenter(cards.at(fromIndex)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+        await gesture.moveTo(tester.getCenter(cards.at(toIndex)));
+        await tester.pump();
+        await gesture.up();
+        await tester.pump();
+      }
+
+      Widget buildRow(
+        List<TierListEntry> entries,
+        Map<int, CollectionItem> itemsMap,
+        void Function(int, int?) onDrop,
+      ) {
+        return TierRow(
+          tierListId: 1,
+          definition: definition,
+          entries: entries,
+          itemsMap: itemsMap,
+          titleLanguage: '',
+          onDrop: onDrop,
+          onDefinitionTap: () {},
+        );
+      }
+
+      testWidgets('dropping a card onto an earlier card inserts before it',
+          (WidgetTester tester) async {
+        final List<TierListEntry> entries = <TierListEntry>[
+          createTestTierListEntry(
+              collectionItemId: 1, tierKey: 'S', sortOrder: 0),
+          createTestTierListEntry(
+              collectionItemId: 2, tierKey: 'S', sortOrder: 1),
+        ];
+        final Map<int, CollectionItem> itemsMap = <int, CollectionItem>{
+          1: item1,
+          2: item2,
+        };
+        final List<(int, int?)> drops = <(int, int?)>[];
+
+        await tester.pumpApp(
+          buildRow(
+            entries,
+            itemsMap,
+            (int id, int? index) => drops.add((id, index)),
+          ),
+          settle: false,
+        );
+        await tester.pump();
+
+        await dragCard(tester, 1, 0);
+
+        expect(drops, <(int, int?)>[(2, 0)]);
+      });
+
+      testWidgets(
+          'dropping a card onto a later card adjusts index for its removal',
+          (WidgetTester tester) async {
+        final List<TierListEntry> entries = <TierListEntry>[
+          createTestTierListEntry(
+              collectionItemId: 1, tierKey: 'S', sortOrder: 0),
+          createTestTierListEntry(
+              collectionItemId: 2, tierKey: 'S', sortOrder: 1),
+          createTestTierListEntry(
+              collectionItemId: 3, tierKey: 'S', sortOrder: 2),
+        ];
+        final Map<int, CollectionItem> itemsMap = <int, CollectionItem>{
+          1: item1,
+          2: item2,
+          3: item3,
+        };
+        final List<(int, int?)> drops = <(int, int?)>[];
+
+        await tester.pumpApp(
+          buildRow(
+            entries,
+            itemsMap,
+            (int id, int? index) => drops.add((id, index)),
+          ),
+          settle: false,
+        );
+        await tester.pump();
+
+        await dragCard(tester, 0, 2);
+
+        expect(drops, <(int, int?)>[(1, 1)]);
+      });
     });
   });
 }

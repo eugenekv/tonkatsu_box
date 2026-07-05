@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/constants/platform_features.dart';
 import '../../../shared/models/collection_item.dart';
 import '../../../shared/models/tier_definition.dart';
 import '../../../shared/models/tier_list_entry.dart';
@@ -62,6 +63,7 @@ class TierRow extends StatelessWidget {
     required this.titleLanguage,
     required this.onDrop,
     required this.onDefinitionTap,
+    this.tierDraggable = false,
     this.overlayResolver,
     super.key,
   });
@@ -74,9 +76,25 @@ class TierRow extends StatelessWidget {
   /// Resolved once in the parent so each card doesn't subscribe to settings.
   final String titleLanguage;
 
-  final void Function(int collectionItemId) onDrop;
+  /// Insert the dragged item at [index]; null appends to the end.
+  final void Function(int collectionItemId, int? index) onDrop;
+
   final VoidCallback onDefinitionTap;
+
+  /// Desktop-only drag of the whole tier by its label.
+  final bool tierDraggable;
+
   final String? Function(CollectionItem item)? overlayResolver;
+
+  void _handleSlotDrop(int draggedId, int slotIndex) {
+    // A same-tier move from an earlier slot shifts the anchor one left.
+    int insertAt = slotIndex;
+    final int oldIndex = entries.indexWhere(
+      (TierListEntry e) => e.collectionItemId == draggedId,
+    );
+    if (oldIndex != -1 && oldIndex < slotIndex) insertAt -= 1;
+    onDrop(draggedId, insertAt);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,35 +103,11 @@ class TierRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-        GestureDetector(
-          onTap: onDefinitionTap,
-          onLongPress: onDefinitionTap,
-          child: Container(
-            width: m.tierLabelWidth,
-            constraints: BoxConstraints(minHeight: m.rowMinHeight),
-            decoration: BoxDecoration(
-              color: definition.color,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppSpacing.radiusSm),
-                bottomLeft: Radius.circular(AppSpacing.radiusSm),
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              definition.label,
-              style: AppTypography.h2.copyWith(
-                color: _textColorFor(definition.color),
-                fontWeight: FontWeight.bold,
-                fontSize: m.tierLabelFont,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
+        _buildLabel(m),
         Expanded(
           child: DragTarget<int>(
             onAcceptWithDetails: (DragTargetDetails<int> details) =>
-                onDrop(details.data),
+                onDrop(details.data, null),
             builder: (BuildContext context, List<int?> candidateData,
                 List<dynamic> rejectedData) {
               return Container(
@@ -143,20 +137,35 @@ class TierRow extends StatelessWidget {
                         spacing: AppSpacing.xs,
                         runSpacing: AppSpacing.xs,
                         children: <Widget>[
-                          for (final TierListEntry entry in entries)
-                            if (itemsMap[entry.collectionItemId] != null)
-                              TierItemCard(
-                                key: ValueKey<int>(entry.collectionItemId),
-                                item: itemsMap[entry.collectionItemId]!,
-                                displayName: itemsMap[entry.collectionItemId]!
-                                    .displayName(titleLanguage),
-                                isDraggable: true,
-                                width: m.cardWidth,
-                                height: m.cardImageHeight,
-                                labelHeight: m.cardLabelMinHeight,
-                                platformOverlayAsset: overlayResolver
-                                    ?.call(itemsMap[entry.collectionItemId]!),
+                          for (int i = 0; i < entries.length; i++)
+                            if (itemsMap[entries[i].collectionItemId] != null)
+                              _TierCardSlot(
+                                key: ValueKey<int>(
+                                  entries[i].collectionItemId,
+                                ),
+                                indicatorHeight: m.cardTotalHeight,
+                                onDrop: (int draggedId) =>
+                                    _handleSlotDrop(draggedId, i),
+                                child: TierItemCard(
+                                  item: itemsMap[entries[i].collectionItemId]!,
+                                  displayName:
+                                      itemsMap[entries[i].collectionItemId]!
+                                          .displayName(titleLanguage),
+                                  isDraggable: true,
+                                  width: m.cardWidth,
+                                  height: m.cardImageHeight,
+                                  labelHeight: m.cardLabelMinHeight,
+                                  platformOverlayAsset: overlayResolver?.call(
+                                    itemsMap[entries[i].collectionItemId]!,
+                                  ),
+                                ),
                               ),
+                          // Empty-space hover appends — mark the end slot.
+                          if (candidateData.isNotEmpty)
+                            _InsertionBar(
+                              visible: true,
+                              height: m.cardTotalHeight,
+                            ),
                         ],
                       ),
               );
@@ -168,8 +177,130 @@ class TierRow extends StatelessWidget {
     );
   }
 
+  Widget _buildLabel(TierRowMetrics m) {
+    final Widget label = GestureDetector(
+      onTap: onDefinitionTap,
+      onLongPress: onDefinitionTap,
+      child: _labelBox(
+        m,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(AppSpacing.radiusSm),
+          bottomLeft: Radius.circular(AppSpacing.radiusSm),
+        ),
+      ),
+    );
+    // Mobile long-press is taken by the options sheet. Plain Draggable, not
+    // ReorderableListView: its GlobalKey reparenting during layout crashes
+    // the card Tooltips (OverlayPortal) under the screen's LayoutBuilder.
+    if (!tierDraggable || kIsMobile) return label;
+    return Draggable<String>(
+      data: definition.tierKey,
+      feedback: Material(
+        color: Colors.transparent,
+        child: Opacity(
+          opacity: 0.85,
+          child: _labelBox(
+            m,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            height: m.rowMinHeight,
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.3, child: label),
+      child: label,
+    );
+  }
+
+  Widget _labelBox(
+    TierRowMetrics m, {
+    required BorderRadius borderRadius,
+    double? height,
+  }) {
+    return Container(
+      width: m.tierLabelWidth,
+      height: height,
+      constraints:
+          height == null ? BoxConstraints(minHeight: m.rowMinHeight) : null,
+      decoration: BoxDecoration(
+        color: definition.color,
+        borderRadius: borderRadius,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        definition.label,
+        style: AppTypography.h2.copyWith(
+          color: _textColorFor(definition.color),
+          fontWeight: FontWeight.bold,
+          fontSize: m.tierLabelFont,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   Color _textColorFor(Color background) {
     final double luminance = background.computeLuminance();
     return luminance > 0.5 ? Colors.black : Colors.white;
+  }
+}
+
+/// Drop zone over a card: a drop inserts before it; hover opens an
+/// insertion-bar gap at that spot.
+class _TierCardSlot extends StatelessWidget {
+  const _TierCardSlot({
+    required this.indicatorHeight,
+    required this.onDrop,
+    required this.child,
+    super.key,
+  });
+
+  final double indicatorHeight;
+  final void Function(int draggedId) onDrop;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DragTarget<int>(
+      onAcceptWithDetails: (DragTargetDetails<int> details) =>
+          onDrop(details.data),
+      builder: (BuildContext context, List<int?> candidateData,
+          List<dynamic> rejectedData) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _InsertionBar(
+              visible: candidateData.isNotEmpty,
+              height: indicatorHeight,
+            ),
+            child,
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Marks where a dragged card will land; collapses to zero width when hidden.
+class _InsertionBar extends StatelessWidget {
+  const _InsertionBar({
+    required this.visible,
+    required this.height,
+  });
+
+  final bool visible;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      width: visible ? 6 : 0,
+      height: height,
+      margin: EdgeInsets.only(right: visible ? AppSpacing.xs : 0),
+      decoration: BoxDecoration(
+        color: AppColors.brand,
+        borderRadius: BorderRadius.circular(3),
+      ),
+    );
   }
 }

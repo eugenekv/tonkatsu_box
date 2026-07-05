@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/anime.dart';
+import '../../../shared/models/item_mark.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
 import '../../../shared/widgets/media_progress_row.dart';
 import '../providers/collections_provider.dart';
+import 'item_marks_list_section.dart';
 
 /// Tracks watched episodes via `currentEpisode` only; `currentSeason` is
 /// unused because AniList anime have no season split.
@@ -97,6 +99,13 @@ class AnimeProgressSection extends ConsumerWidget {
             ),
           ),
         ],
+
+        const SizedBox(height: AppSpacing.lg),
+        ItemMarksListSection(
+          itemId: itemId,
+          accentColor: accentColor,
+          unitPresets: const <String>[kUnitEpisode, kUnitPart],
+        ),
       ],
     );
   }

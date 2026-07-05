@@ -222,6 +222,27 @@ class SEn extends S {
   String get sortLastActivityDesc => 'Recent first';
 
   @override
+  String get sortDateOldest => 'Oldest first';
+
+  @override
+  String get sortStatusFinished => 'Finished first';
+
+  @override
+  String get sortNameZa => 'Z to A';
+
+  @override
+  String get sortRatingLowest => 'Lowest first';
+
+  @override
+  String get sortFavoriteLast => 'Favorites last';
+
+  @override
+  String get sortExternalRatingLowest => 'Lowest first';
+
+  @override
+  String get sortLastActivityOldest => 'Oldest first';
+
+  @override
   String get searchSortRelevanceShort => 'Rel';
 
   @override
@@ -1158,6 +1179,16 @@ class SEn extends S {
   String get lanSyncReceivingImages => 'Transferring images...';
 
   @override
+  String get lanSyncReceivingSettings => 'Transferring settings...';
+
+  @override
+  String get lanSyncImportConfig => 'Also transfer settings';
+
+  @override
+  String get lanSyncImportConfigSubtitle =>
+      'Includes API keys. All or nothing.';
+
+  @override
   String get lanSyncImagesWarning =>
       'Database received, but the images could not be transferred';
 
@@ -1344,6 +1375,23 @@ class SEn extends S {
   @override
   String get kinoriumRecommendOwnTmdbKey =>
       'Tip: a personal TMDB API key is recommended for large imports (Settings → API Keys), but it\'s optional — the built-in key works too.';
+
+  @override
+  String get kinoriumReasonNotFound => 'Not found on TMDB';
+
+  @override
+  String get kinoriumReasonApiError =>
+      'TMDB error or rate limit — try again later';
+
+  @override
+  String kinoriumReasonUnsupportedType(String type) {
+    return 'Unsupported type: $type';
+  }
+
+  @override
+  String kinoriumReasonDuplicate(String title) {
+    return 'Duplicate of \"$title\"';
+  }
 
   @override
   String traktImportedItems(int count) {
@@ -1600,6 +1648,33 @@ class SEn extends S {
 
   @override
   String get customItemPlatformHint => 'e.g. PC, SNES, Custom';
+
+  @override
+  String get customItemFormat => 'Format';
+
+  @override
+  String get customProgress => 'Progress';
+
+  @override
+  String get customMarkCompleted => 'Mark as completed';
+
+  @override
+  String get customUnitParts => 'Parts';
+
+  @override
+  String get customUnitEpisodes => 'Episodes';
+
+  @override
+  String get customUnitChapters => 'Chapters';
+
+  @override
+  String get customUnitPages => 'Pages';
+
+  @override
+  String get customUnitVolumes => 'Volumes';
+
+  @override
+  String get customUnitSeasons => 'Seasons';
 
   @override
   String get customItemDescription => 'Description';
@@ -2710,6 +2785,10 @@ class SEn extends S {
       'API keys, cache, database export/import, debug tools.';
 
   @override
+  String get welcomeHowPersonalizationDesc =>
+      'Your taste in one place: a cloud of your favourite genres plus recommendations picked from what you\'ve rated.';
+
+  @override
   String get welcomeHowQuickStart => 'Quick Start';
 
   @override
@@ -3375,6 +3454,13 @@ class SEn extends S {
       'Hide media type chevrons (Games, Movies, etc.) when there are no items of that type';
 
   @override
+  String get settingsAlwaysShowSubcategories => 'Always show subcategories';
+
+  @override
+  String get settingsAlwaysShowSubcategoriesSubtitle =>
+      'Show subcategory filters (game platforms, anime/manga types) without selecting their media type first';
+
+  @override
   String get settingsShowPlatformOverlay => 'Game platform covers';
 
   @override
@@ -3444,6 +3530,13 @@ class SEn extends S {
 
   @override
   String get uncategorizedBannerAction => 'Add to Collection';
+
+  @override
+  String get uncategorizedDeprecationNotice =>
+      'This system collection will be removed soon. Create your own collection and move all items here into it.';
+
+  @override
+  String get uncategorizedDeprecationBadge => 'Will be removed';
 
   @override
   String get browseFilterGenre => 'Genre';
@@ -3806,6 +3899,12 @@ class SEn extends S {
   String get tierListChangeColor => 'Change color';
 
   @override
+  String get tierListMoveUp => 'Move up';
+
+  @override
+  String get tierListMoveDown => 'Move down';
+
+  @override
   String get tierListDeleteTier => 'Delete tier';
 
   @override
@@ -3862,6 +3961,69 @@ class SEn extends S {
 
   @override
   String get settingsSteamImportSubtitle => 'Import games via Steam Web API';
+
+  @override
+  String get settingsIgdbImport => 'IGDB List';
+
+  @override
+  String get settingsIgdbImportSubtitle =>
+      'Import a game list exported from IGDB (CSV)';
+
+  @override
+  String get igdbImportTitle => 'Import IGDB List';
+
+  @override
+  String get igdbImportDescription =>
+      'Pick a CSV list exported from IGDB. Games are matched by their IGDB id; anything IGDB no longer has goes to the wishlist.';
+
+  @override
+  String get igdbImportSelectCsvFile => 'Select CSV file';
+
+  @override
+  String get igdbImportSelectCsvExport => 'Select IGDB CSV export';
+
+  @override
+  String get igdbImportOptions => 'Options';
+
+  @override
+  String get igdbImportStatusLabel => 'Status for imported games';
+
+  @override
+  String get igdbImportPlatformLabel => 'Platform';
+
+  @override
+  String get igdbImportPlatformSelect => 'Select platform';
+
+  @override
+  String get igdbImportTargetCollection => 'Target collection';
+
+  @override
+  String get igdbImportCreateNew => 'Create new collection';
+
+  @override
+  String get igdbImportUseExisting => 'Use existing collection';
+
+  @override
+  String get igdbImportNoCollections => 'No collections available';
+
+  @override
+  String get igdbImportSelectCollection => 'Select collection';
+
+  @override
+  String get igdbImportErrorLoadingCollections => 'Error loading collections';
+
+  @override
+  String get igdbImportIgdbRequired =>
+      'IGDB connection required. Set up API keys in Settings → Credentials first.';
+
+  @override
+  String get igdbStartImport => 'Start Import';
+
+  @override
+  String get igdbImporting => 'Importing...';
+
+  @override
+  String get igdbReasonNotFound => 'Not found on IGDB';
 
   @override
   String get steamImportTitle => 'Import Steam Library';
@@ -5165,4 +5327,80 @@ class SEn extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get itemMarkLike => 'Like';
+
+  @override
+  String get itemMarkNote => 'Note';
+
+  @override
+  String get itemMarkNoteHint => 'Write a note…';
+
+  @override
+  String get itemMarkSectionTitle => 'Notes & likes';
+
+  @override
+  String get itemMarkAdd => 'Add mark';
+
+  @override
+  String get itemMarkEmpty => 'No marks yet';
+
+  @override
+  String get itemMarkDelete => 'Delete';
+
+  @override
+  String get itemMarkType => 'Type';
+
+  @override
+  String get itemMarkNumber => 'Number';
+
+  @override
+  String get itemMarkNumberHint => 'e.g. 12';
+
+  @override
+  String get itemMarkNumberHelper => 'Required to save';
+
+  @override
+  String get itemMarkCustomType => 'Custom type';
+
+  @override
+  String get itemMarkFilterAll => 'All';
+
+  @override
+  String get itemMarkFilterLiked => 'Liked';
+
+  @override
+  String get itemMarkFilterCommented => 'With notes';
+
+  @override
+  String itemMarkUnitLabel(String type, int number) {
+    return '$type $number';
+  }
+
+  @override
+  String itemMarkEpisodeShort(int season, int episode) {
+    return 'S$season·E$episode';
+  }
+
+  @override
+  String get unitEpisode => 'Episode';
+
+  @override
+  String get unitSeason => 'Season';
+
+  @override
+  String get unitChapter => 'Chapter';
+
+  @override
+  String get unitVolume => 'Volume';
+
+  @override
+  String get unitPage => 'Page';
+
+  @override
+  String get unitPart => 'Part';
+
+  @override
+  String get unitCustom => 'Custom';
 }

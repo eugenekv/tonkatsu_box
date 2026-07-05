@@ -104,8 +104,9 @@ void main() {
       expect(b.isbn13, '9780441013593');
       expect(b.isbn10, '0441013597');
       expect(b.description, 'A desert planet.');
-      // Largest variant, curled-corner overlay removed, scheme upgraded.
-      expect(b.coverUrl, 'https://books.google.com/large?zoom=1');
+      // Thumbnail variant (larger sizes can be page scans), curled-corner
+      // overlay removed, scheme upgraded, fife upscale appended.
+      expect(b.coverUrl, 'https://books.google.com/thumb?zoom=1&fife=w800');
       expect(hasMore, isFalse);
     });
 

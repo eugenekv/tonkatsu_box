@@ -12,6 +12,7 @@ import '../../shared/models/canvas_item.dart';
 import '../../shared/models/canvas_viewport.dart';
 import '../../shared/models/collection.dart';
 import '../../shared/models/collection_item.dart';
+import '../../shared/models/item_mark.dart';
 import '../../shared/models/media_type.dart';
 import '../../shared/models/tracker_game_data.dart';
 import '../../shared/models/platform.dart' as model;
@@ -158,6 +159,11 @@ class ExportService {
     // Collect hero image (if set)
     await _collectHeroImage(collection, images);
 
+    // Per-item marks (likes/notes) — user data only
+    if (includeUserData) {
+      await _attachItemMarks(items, exportItems);
+    }
+
     // Collect full media data for offline import (includes tv_seasons)
     final Map<String, dynamic> media = await _collectMediaData(items);
 
@@ -285,6 +291,34 @@ class ExportService {
       );
 
       exportItems[i]['_canvas'] = perItemCanvas.toJson();
+    }
+  }
+
+  /// Attaches per-item marks (likes/notes) under the `_marks` key. Requires a
+  /// database; no-op when unavailable. Only invoked for user-data exports.
+  /// Fetches the exported items' marks in one query and groups by item to
+  /// avoid an N+1.
+  Future<void> _attachItemMarks(
+    List<CollectionItem> items,
+    List<Map<String, dynamic>> exportItems,
+  ) async {
+    final DatabaseService? db = _database;
+    if (db == null) return;
+    final List<ItemMark> allMarks = await db.itemMarkDao.getMarksForItems(
+      <int>[for (final CollectionItem item in items) item.id],
+    );
+    if (allMarks.isEmpty) return;
+
+    final Map<int, List<ItemMark>> byItem = <int, List<ItemMark>>{};
+    for (final ItemMark m in allMarks) {
+      (byItem[m.itemId] ??= <ItemMark>[]).add(m);
+    }
+
+    for (int i = 0; i < items.length; i++) {
+      final List<ItemMark>? marks = byItem[items[i].id];
+      if (marks == null || marks.isEmpty) continue;
+      exportItems[i]['_marks'] =
+          marks.map((ItemMark m) => m.toExport()).toList();
     }
   }
 
@@ -460,6 +494,12 @@ class ExportService {
           if (item.customMedia != null &&
               !customItems.containsKey(item.externalId)) {
             customItems[item.externalId] = item.customMedia!.toExport();
+            // Custom games reference a platform from the catalog; export it
+            // too so the target resolves the platform after import.
+            final int? customPlatformId = item.customMedia!.platformId;
+            if (customPlatformId != null) {
+              platformIds.add(customPlatformId);
+            }
           }
       }
     }
@@ -571,6 +611,11 @@ class ExportService {
           items,
           includeUserData: includeUserData,
         );
+        // Light export is synchronous and DB-free; attach marks here where a
+        // database is available. xcoll.items is the same list built above.
+        if (includeUserData) {
+          await _attachItemMarks(items, xcoll.items);
+        }
         extension = 'xcoll';
       }
 

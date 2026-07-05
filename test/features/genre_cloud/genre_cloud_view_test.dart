@@ -68,6 +68,30 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets(
+        'should show a progress indicator until the deferred layout lands', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpApp(
+        SizedBox(
+          width: 360,
+          height: 560,
+          child: GenreCloudView(words: _sample()),
+        ),
+        mediaQuerySize: const Size(360, 640),
+        settle: false,
+      );
+
+      // First frame: the expensive placement is deferred past it.
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(InteractiveViewer), findsNothing);
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+    });
+
     testWidgets('is pannable/zoomable by default (interactive)', (
       WidgetTester tester,
     ) async {

@@ -344,6 +344,61 @@ void main() {
       });
     });
 
+    group('setItemTierOrdered', () {
+      test('replaces entry and renumbers the whole tier in a transaction',
+          () async {
+        final TransactionMockDatabase txnDb = TransactionMockDatabase();
+        final MockTransaction mockTxn = MockTransaction();
+        txnDb.stubTransaction(mockTxn);
+
+        final TierListDao txnDao = TierListDao(() async => txnDb);
+
+        when(
+          () => mockTxn.delete(
+            'tier_list_entries',
+            where: 'tier_list_id = ? AND collection_item_id = ?',
+            whereArgs: <Object?>[1, 42],
+          ),
+        ).thenAnswer((_) async => 1);
+        when(
+          () => mockTxn.insert('tier_list_entries', any()),
+        ).thenAnswer((_) async => 1);
+        when(
+          () => mockTxn.update(
+            'tier_list_entries',
+            any(),
+            where: any(named: 'where'),
+            whereArgs: any(named: 'whereArgs'),
+          ),
+        ).thenAnswer((_) async => 1);
+
+        await txnDao.setItemTierOrdered(1, 42, 'S', <int>[10, 42, 20]);
+
+        verify(
+          () => mockTxn.delete(
+            'tier_list_entries',
+            where: 'tier_list_id = ? AND collection_item_id = ?',
+            whereArgs: <Object?>[1, 42],
+          ),
+        ).called(1);
+
+        final Map<String, dynamic> inserted = verify(
+          () => mockTxn.insert('tier_list_entries', captureAny()),
+        ).captured.single as Map<String, dynamic>;
+        expect(inserted['collection_item_id'], 42);
+        expect(inserted['tier_key'], 'S');
+
+        verify(
+          () => mockTxn.update(
+            'tier_list_entries',
+            any(),
+            where: any(named: 'where'),
+            whereArgs: any(named: 'whereArgs'),
+          ),
+        ).called(3);
+      });
+    });
+
     group('removeItemFromTier', () {
       test('deletes entry', () async {
         when(

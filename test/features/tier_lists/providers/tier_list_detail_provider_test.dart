@@ -501,7 +501,7 @@ void main() {
           items: items,
         );
 
-        when(() => mockTierListDao.setItemTier(1, 1, 'S', any()))
+        when(() => mockTierListDao.setItemTierOrdered(1, 1, 'S', any()))
             .thenAnswer((_) async {});
 
         await listenAndWait(1);
@@ -537,7 +537,7 @@ void main() {
           items: items,
         );
 
-        when(() => mockTierListDao.setItemTier(1, 20, 'S', 0))
+        when(() => mockTierListDao.setItemTierOrdered(1, 20, 'S', any()))
             .thenAnswer((_) async {});
 
         await listenAndWait(1);
@@ -549,7 +549,66 @@ void main() {
         final TierListDetailState state =
             container.read(tierListDetailProvider(1));
         expect(state.entries, hasLength(2));
-        verify(() => mockTierListDao.setItemTier(1, 20, 'S', 0)).called(1);
+        final List<TierListEntry> sTier = state.entriesByTier['S']!;
+        expect(sTier[0].collectionItemId, 20);
+        expect(sTier[0].sortOrder, 0);
+        expect(sTier[1].collectionItemId, 10);
+        expect(sTier[1].sortOrder, 1);
+        final List<int> orderedIds = verify(
+          () => mockTierListDao.setItemTierOrdered(1, 20, 'S', captureAny()),
+        ).captured.single as List<int>;
+        expect(orderedIds, <int>[20, 10]);
+      });
+
+      test('should assign contiguous sort orders after gaps from removals',
+          () async {
+        // Regression: gaps + append-by-length used to create duplicate
+        // sort orders, reshuffling the tier on restart.
+        final List<TierDefinition> defs = <TierDefinition>[
+          createTestTierDefinition(tierKey: 'S'),
+        ];
+        final List<TierListEntry> entries = <TierListEntry>[
+          createTestTierListEntry(
+              collectionItemId: 10, tierKey: 'S', sortOrder: 0),
+          createTestTierListEntry(
+              collectionItemId: 20, tierKey: 'S', sortOrder: 1),
+        ];
+        final List<CollectionItem> items = <CollectionItem>[
+          createTestCollectionItem(id: 10),
+          createTestCollectionItem(id: 20),
+          createTestCollectionItem(id: 30),
+        ];
+
+        stubLoadCollectionScoped(
+          definitions: defs,
+          entries: entries,
+          items: items,
+        );
+
+        when(() => mockTierListDao.removeItemFromTier(1, 10))
+            .thenAnswer((_) async {});
+        when(() => mockTierListDao.setItemTierOrdered(1, 30, 'S', any()))
+            .thenAnswer((_) async {});
+
+        await listenAndWait(1);
+
+        final TierListDetailNotifier notifier =
+            container.read(tierListDetailProvider(1).notifier);
+        await notifier.removeFromTier(10);
+        await notifier.moveToTier(30, 'S');
+
+        final List<int> orderedIds = verify(
+          () => mockTierListDao.setItemTierOrdered(1, 30, 'S', captureAny()),
+        ).captured.single as List<int>;
+        expect(orderedIds, <int>[20, 30]);
+
+        final List<TierListEntry> sTier = container
+            .read(tierListDetailProvider(1))
+            .entriesByTier['S']!;
+        expect(
+          <int>[for (final TierListEntry e in sTier) e.sortOrder],
+          <int>[0, 1],
+        );
       });
 
       test('should replace existing entry when moving already placed item',
@@ -572,7 +631,7 @@ void main() {
           items: items,
         );
 
-        when(() => mockTierListDao.setItemTier(1, 1, 'A', 0))
+        when(() => mockTierListDao.setItemTierOrdered(1, 1, 'A', any()))
             .thenAnswer((_) async {});
 
         await listenAndWait(1);
@@ -840,7 +899,7 @@ void main() {
 
         when(() => mockTierListDao.removeItemFromTier(1, 1))
             .thenAnswer((_) async {});
-        when(() => mockTierListDao.setItemTier(1, 1, 'A', any()))
+        when(() => mockTierListDao.setItemTierOrdered(1, 1, 'A', any()))
             .thenAnswer((_) async {});
 
         await listenAndWait(1);
@@ -878,7 +937,7 @@ void main() {
           items: items,
         );
 
-        when(() => mockTierListDao.setItemTier(1, 1, 'A', 0))
+        when(() => mockTierListDao.setItemTierOrdered(1, 1, 'A', any()))
             .thenAnswer((_) async {});
 
         await listenAndWait(1);
@@ -887,10 +946,197 @@ void main() {
             container.read(tierListDetailProvider(1).notifier);
         await notifier.moveBetweenTiers(1, 'S', 'A', index: 0);
 
-        // moveBetweenTiers collapses to a single setItemTier — the DELETE+INSERT
-        // lives inside setItemTier itself, to avoid a double state rebuild.
+        // Collapses to a single setItemTierOrdered — no separate remove call.
         verifyNever(() => mockTierListDao.removeItemFromTier(1, 1));
-        verify(() => mockTierListDao.setItemTier(1, 1, 'A', 0)).called(1);
+        final List<int> orderedIds = verify(
+          () => mockTierListDao.setItemTierOrdered(1, 1, 'A', captureAny()),
+        ).captured.single as List<int>;
+        expect(orderedIds, <int>[1, 2]);
+      });
+    });
+
+    group('sort order normalization on load', () {
+      test('renumbers tiers with duplicate sort orders and persists', () async {
+        final List<TierDefinition> defs = <TierDefinition>[
+          createTestTierDefinition(tierKey: 'S'),
+        ];
+        final List<TierListEntry> entries = <TierListEntry>[
+          createTestTierListEntry(
+              collectionItemId: 1, tierKey: 'S', sortOrder: 0),
+          createTestTierListEntry(
+              collectionItemId: 2, tierKey: 'S', sortOrder: 2),
+          createTestTierListEntry(
+              collectionItemId: 3, tierKey: 'S', sortOrder: 2),
+        ];
+        final List<CollectionItem> items = <CollectionItem>[
+          createTestCollectionItem(id: 1),
+          createTestCollectionItem(id: 2),
+          createTestCollectionItem(id: 3),
+        ];
+
+        stubLoadCollectionScoped(
+          definitions: defs,
+          entries: entries,
+          items: items,
+        );
+
+        when(() => mockTierListDao.reorderTierItems(1, 'S', any()))
+            .thenAnswer((_) async {});
+
+        final TierListDetailState state = await listenAndWait(1);
+
+        final List<int> orderedIds = verify(
+          () => mockTierListDao.reorderTierItems(1, 'S', captureAny()),
+        ).captured.single as List<int>;
+        expect(orderedIds, <int>[1, 2, 3]);
+
+        final List<TierListEntry> sTier = state.entriesByTier['S']!;
+        expect(
+          <int>[for (final TierListEntry e in sTier) e.sortOrder],
+          <int>[0, 1, 2],
+        );
+      });
+
+      test('does not touch tiers with contiguous sort orders', () async {
+        final List<TierDefinition> defs = <TierDefinition>[
+          createTestTierDefinition(tierKey: 'S'),
+          createTestTierDefinition(tierKey: 'A'),
+        ];
+        final List<TierListEntry> entries = <TierListEntry>[
+          createTestTierListEntry(
+              collectionItemId: 1, tierKey: 'S', sortOrder: 0),
+          createTestTierListEntry(
+              collectionItemId: 2, tierKey: 'S', sortOrder: 1),
+          createTestTierListEntry(
+              collectionItemId: 3, tierKey: 'A', sortOrder: 0),
+        ];
+        final List<CollectionItem> items = <CollectionItem>[
+          createTestCollectionItem(id: 1),
+          createTestCollectionItem(id: 2),
+          createTestCollectionItem(id: 3),
+        ];
+
+        stubLoadCollectionScoped(
+          definitions: defs,
+          entries: entries,
+          items: items,
+        );
+
+        await listenAndWait(1);
+
+        verifyNever(
+          () => mockTierListDao.reorderTierItems(any(), any(), any()),
+        );
+      });
+
+      test('renumbers only the broken tier', () async {
+        final List<TierDefinition> defs = <TierDefinition>[
+          createTestTierDefinition(tierKey: 'S'),
+          createTestTierDefinition(tierKey: 'A'),
+        ];
+        final List<TierListEntry> entries = <TierListEntry>[
+          createTestTierListEntry(
+              collectionItemId: 1, tierKey: 'S', sortOrder: 0),
+          createTestTierListEntry(
+              collectionItemId: 2, tierKey: 'A', sortOrder: 1),
+        ];
+        final List<CollectionItem> items = <CollectionItem>[
+          createTestCollectionItem(id: 1),
+          createTestCollectionItem(id: 2),
+        ];
+
+        stubLoadCollectionScoped(
+          definitions: defs,
+          entries: entries,
+          items: items,
+        );
+
+        when(() => mockTierListDao.reorderTierItems(1, 'A', any()))
+            .thenAnswer((_) async {});
+
+        await listenAndWait(1);
+
+        verify(() => mockTierListDao.reorderTierItems(1, 'A', any()))
+            .called(1);
+        verifyNever(() => mockTierListDao.reorderTierItems(1, 'S', any()));
+      });
+    });
+
+    group('moveTier', () {
+      test('should move tier to new index and renumber sort orders', () async {
+        final List<TierDefinition> defs = <TierDefinition>[
+          createTestTierDefinition(tierKey: 'S', sortOrder: 0),
+          createTestTierDefinition(tierKey: 'A', sortOrder: 1),
+          createTestTierDefinition(tierKey: 'B', sortOrder: 2),
+        ];
+
+        stubLoadCollectionScoped(definitions: defs);
+
+        await listenAndWait(1);
+
+        final TierListDetailNotifier notifier =
+            container.read(tierListDetailProvider(1).notifier);
+        await notifier.moveTier(0, 2);
+
+        final TierListDetailState state =
+            container.read(tierListDetailProvider(1));
+        expect(
+          <String>[for (final TierDefinition d in state.definitions) d.tierKey],
+          <String>['A', 'B', 'S'],
+        );
+        expect(
+          <int>[for (final TierDefinition d in state.definitions) d.sortOrder],
+          <int>[0, 1, 2],
+        );
+        verify(() => mockTierListDao.saveTierDefinitions(1, any())).called(1);
+      });
+
+      test('should move tier up', () async {
+        final List<TierDefinition> defs = <TierDefinition>[
+          createTestTierDefinition(tierKey: 'S', sortOrder: 0),
+          createTestTierDefinition(tierKey: 'A', sortOrder: 1),
+        ];
+
+        stubLoadCollectionScoped(definitions: defs);
+
+        await listenAndWait(1);
+
+        final TierListDetailNotifier notifier =
+            container.read(tierListDetailProvider(1).notifier);
+        await notifier.moveTier(1, 0);
+
+        final TierListDetailState state =
+            container.read(tierListDetailProvider(1));
+        expect(
+          <String>[for (final TierDefinition d in state.definitions) d.tierKey],
+          <String>['A', 'S'],
+        );
+      });
+
+      test('should be no-op when indices are out of bounds or equal',
+          () async {
+        final List<TierDefinition> defs = <TierDefinition>[
+          createTestTierDefinition(tierKey: 'S', sortOrder: 0),
+          createTestTierDefinition(tierKey: 'A', sortOrder: 1),
+        ];
+
+        stubLoadCollectionScoped(definitions: defs);
+
+        await listenAndWait(1);
+
+        final TierListDetailNotifier notifier =
+            container.read(tierListDetailProvider(1).notifier);
+        await notifier.moveTier(0, 5);
+        await notifier.moveTier(-1, 0);
+        await notifier.moveTier(1, 1);
+
+        final TierListDetailState state =
+            container.read(tierListDetailProvider(1));
+        expect(
+          <String>[for (final TierDefinition d in state.definitions) d.tierKey],
+          <String>['S', 'A'],
+        );
+        verifyNever(() => mockTierListDao.saveTierDefinitions(1, any()));
       });
     });
 

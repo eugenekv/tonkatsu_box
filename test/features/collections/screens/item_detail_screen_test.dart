@@ -16,6 +16,8 @@ import 'package:tonkatsu_box/shared/models/item_status.dart';
 import 'package:tonkatsu_box/shared/models/media_type.dart';
 import 'package:tonkatsu_box/shared/models/movie.dart';
 import 'package:tonkatsu_box/shared/models/platform.dart';
+import 'package:tonkatsu_box/shared/models/item_mark.dart';
+import 'package:tonkatsu_box/shared/models/tv_episode.dart';
 import 'package:tonkatsu_box/shared/models/tv_season.dart';
 import 'package:tonkatsu_box/shared/models/tv_show.dart';
 import 'package:tonkatsu_box/shared/widgets/media_detail_view.dart';
@@ -47,6 +49,12 @@ void main() {
         .thenAnswer((_) async => <TvSeason>[]);
     when(() => mockTvShowDao.getWatchedEpisodes(any(), any()))
         .thenAnswer((_) async => <(int, int), DateTime?>{});
+    when(() => mockTvShowDao.getEpisodesByShowId(any()))
+        .thenAnswer((_) async => <TvEpisode>[]);
+    final MockItemMarkDao mockItemMarkDao = MockItemMarkDao();
+    when(() => mockDb.itemMarkDao).thenReturn(mockItemMarkDao);
+    when(() => mockItemMarkDao.getMarksForItem(any()))
+        .thenAnswer((_) async => <ItemMark>[]);
     final MockGameDao mockGameDao = MockGameDao();
     when(() => mockDb.gameDao).thenReturn(mockGameDao);
     when(() => mockGameDao.getPlatformCount())
@@ -1858,6 +1866,13 @@ void main() {
           )).thenAnswer((_) async => <CollectionItem>[item]);
       when(() => mockRepo.updateItemUserComment(any(), any()))
           .thenAnswer((_) async {});
+      // Comment edits now stamp last_activity_at via this method.
+      when(() => mockRepo.updateItemActivityDates(
+            any(),
+            startedAt: any(named: 'startedAt'),
+            completedAt: any(named: 'completedAt'),
+            lastActivityAt: any(named: 'lastActivityAt'),
+          )).thenAnswer((_) async {});
 
       await tester.pumpWidget(ProviderScope(
         overrides: <Override>[

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tonkatsu_box/features/genre_cloud/providers/genre_cloud_provider.dart';
 import 'package:tonkatsu_box/features/genre_cloud/screens/genre_cloud_screen.dart';
+import 'package:tonkatsu_box/features/genre_cloud/widgets/genre_cloud_export_view.dart';
 import 'package:tonkatsu_box/features/genre_cloud/widgets/genre_cloud_view.dart';
 import 'package:tonkatsu_box/shared/models/collection_item.dart';
 import 'package:tonkatsu_box/shared/models/media_type.dart';
@@ -39,7 +40,13 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
-      expect(find.byType(GenreCloudView), findsWidgets);
+      expect(find.byType(GenreCloudView), findsOneWidget);
+      // The offscreen export poster re-runs the full layout, so it must not
+      // be mounted outside an export.
+      expect(
+        find.byType(GenreCloudExportView, skipOffstage: false),
+        findsNothing,
+      );
     });
 
     testWidgets('should show the empty state when no item carries a facet', (

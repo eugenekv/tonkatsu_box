@@ -185,8 +185,9 @@ class TierListDetailNotifier
         definitions = TierDefinition.defaults;
       }
 
-      final List<TierListEntry> entries =
-          await _tierListDao.getTierListEntries(arg);
+      final List<TierListEntry> entries = await _normalizeSortOrders(
+        await _tierListDao.getTierListEntries(arg),
+      );
 
       state = TierListDetailState(
         tierList: tierList,
@@ -204,28 +205,87 @@ class TierListDetailNotifier
     await _load();
   }
 
+  /// One-time repair of gaps/duplicates left by older builds — duplicate
+  /// sort orders made `ORDER BY sort_order` unstable across restarts.
+  Future<List<TierListEntry>> _normalizeSortOrders(
+    List<TierListEntry> entries,
+  ) async {
+    final Map<String, List<TierListEntry>> byTier =
+        <String, List<TierListEntry>>{};
+    for (final TierListEntry entry in entries) {
+      byTier.putIfAbsent(entry.tierKey, () => <TierListEntry>[]).add(entry);
+    }
+
+    final Map<int, int> fixedOrders = <int, int>{};
+    for (final MapEntry<String, List<TierListEntry>> group in byTier.entries) {
+      final List<TierListEntry> tierEntries = group.value;
+      bool contiguous = true;
+      for (int i = 0; i < tierEntries.length; i++) {
+        if (tierEntries[i].sortOrder != i) {
+          contiguous = false;
+          break;
+        }
+      }
+      if (contiguous) continue;
+
+      await _tierListDao.reorderTierItems(
+        arg,
+        group.key,
+        <int>[
+          for (final TierListEntry e in tierEntries) e.collectionItemId,
+        ],
+      );
+      for (int i = 0; i < tierEntries.length; i++) {
+        fixedOrders[tierEntries[i].collectionItemId] = i;
+      }
+    }
+
+    if (fixedOrders.isEmpty) return entries;
+    return <TierListEntry>[
+      for (final TierListEntry entry in entries)
+        fixedOrders.containsKey(entry.collectionItemId)
+            ? entry.copyWith(sortOrder: fixedOrders[entry.collectionItemId])
+            : entry,
+    ];
+  }
+
+  /// Inserts the item at [index] within [tierKey]; null appends to the end.
   Future<void> moveToTier(
     int collectionItemId,
     String tierKey, {
     int? index,
   }) async {
-    final Map<String, List<TierListEntry>> byTier = state.entriesByTier;
-    final List<TierListEntry> tierEntries =
-        byTier[tierKey] ?? <TierListEntry>[];
-    final int sortOrder = index ?? tierEntries.length;
+    final List<TierListEntry> target = List<TierListEntry>.of(
+      state.entriesByTier[tierKey] ?? const <TierListEntry>[],
+    )..removeWhere(
+        (TierListEntry e) => e.collectionItemId == collectionItemId,
+      );
 
-    await _tierListDao.setItemTier(arg, collectionItemId, tierKey, sortOrder);
-
-    final List<TierListEntry> newEntries = state.entries
-        .where((TierListEntry e) => e.collectionItemId != collectionItemId)
-        .toList()
-      ..add(TierListEntry(
+    int insertAt = index ?? target.length;
+    if (insertAt < 0) insertAt = 0;
+    if (insertAt > target.length) insertAt = target.length;
+    target.insert(
+      insertAt,
+      TierListEntry(
         collectionItemId: collectionItemId,
         tierKey: tierKey,
-        sortOrder: sortOrder,
-      ));
+        sortOrder: insertAt,
+      ),
+    );
 
-    state = state.copyWith(entries: newEntries);
+    await _tierListDao.setItemTierOrdered(
+      arg,
+      collectionItemId,
+      tierKey,
+      <int>[for (final TierListEntry e in target) e.collectionItemId],
+    );
+
+    state = state.copyWith(entries: <TierListEntry>[
+      for (final TierListEntry e in state.entries)
+        if (e.tierKey != tierKey && e.collectionItemId != collectionItemId) e,
+      for (int i = 0; i < target.length; i++)
+        target[i].copyWith(sortOrder: i),
+    ]);
   }
 
   Future<void> removeFromTier(int collectionItemId) async {
@@ -267,8 +327,8 @@ class TierListDetailNotifier
     state = state.copyWith(entries: updatedEntries);
   }
 
-  /// Single setItemTier handles DELETE+INSERT — one DB write, one state update,
-  /// avoids the double rebuild a remove+add pair would cause.
+  /// One moveToTier write instead of a remove+add pair — avoids a double
+  /// state rebuild.
   Future<void> moveBetweenTiers(
     int collectionItemId,
     String fromTierKey,
@@ -305,6 +365,28 @@ class TierListDetailNotifier
         color: color,
         sortOrder: state.definitions.length,
       ));
+
+    await _tierListDao.saveTierDefinitions(arg, updated);
+    state = state.copyWith(definitions: updated);
+  }
+
+  /// Moves a whole tier (with its contents) to [newIndex] in the tier stack.
+  Future<void> moveTier(int oldIndex, int newIndex) async {
+    if (oldIndex < 0 ||
+        oldIndex >= state.definitions.length ||
+        newIndex < 0 ||
+        newIndex >= state.definitions.length ||
+        oldIndex == newIndex) {
+      return;
+    }
+
+    final List<TierDefinition> updated =
+        List<TierDefinition>.of(state.definitions);
+    final TierDefinition moved = updated.removeAt(oldIndex);
+    updated.insert(newIndex, moved);
+    for (int i = 0; i < updated.length; i++) {
+      updated[i] = updated[i].copyWith(sortOrder: i);
+    }
 
     await _tierListDao.saveTierDefinitions(arg, updated);
     state = state.copyWith(definitions: updated);
